@@ -1,0 +1,28 @@
+{
+  "name": "postmark-cli",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "dependencies": {
+    "commander": "^2.15.0",
+    "postmark": "^1.6.1"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wildbit/postmark-cli.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/wildbit/postmark-cli/issues"
+  },
+  "homepage": "https://github.com/wildbit/postmark-cli#readme",
+  "bin":{
+   "postmark" : "index.js",
+   "postmark-templates" : "postmark-templates.js"
+  }
+}
