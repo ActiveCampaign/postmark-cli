@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.js",
   "dependencies": {
-    "commander": "^2.15.0",
-    "postmark": "^1.6.1"
+    "postmark": "^1.6.1",
+    "yargs": "^11.0.0"
   },
   "devDependencies": {},
   "scripts": {
@@ -21,8 +21,7 @@
     "url": "https://github.com/wildbit/postmark-cli/issues"
   },
   "homepage": "https://github.com/wildbit/postmark-cli#readme",
-  "bin":{
-   "postmark" : "index.js",
-   "postmark-templates" : "postmark-templates.js"
+  "bin": {
+    "postmark": "index.js"
   }
 }
