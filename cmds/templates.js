@@ -1,6 +1,8 @@
-exports.command = 'templates <push|pull> [options]'
+const namespace = 'templates'
+
+exports.command = `${namespace} <push|pull> [options]`
 exports.desc = 'Manage your templates'
 exports.builder = yargs => {
-  return yargs.commandDir('templates_cmds')
+  return yargs.commandDir(`${namespace}_cmds`)
 }
 exports.handler = argv => {}
