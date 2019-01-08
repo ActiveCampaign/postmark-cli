@@ -104,7 +104,7 @@ const saveTemplate = (outputDir, template) => {
   if (template.TextBody) {
     const filename = formatFilename(outputDir, template.Name, 'txt')
     result.TextBody = filename
-    fse.outputFileSync(filename, template.HtmlBody)
+    fse.outputFileSync(filename, template.TextBody)
   } else {
     result.TextBody = ''
   }
