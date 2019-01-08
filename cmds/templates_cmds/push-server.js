@@ -17,8 +17,8 @@ exports.builder = {
   },
 }
 exports.handler = argv => {
-  let sourceServer = postmark(argv.sourceServer)
-  let destServer = postmark(argv.destinationServer)
+  let sourceServer = new postmark.ServerClient(argv.sourceServer)
+  let destServer = new postmark.ServerClient(argv.destinationServer)
   sourceServer.getTemplates().then(t => {
     t.Templates.forEach(f => {
       if (!f.Alias) {

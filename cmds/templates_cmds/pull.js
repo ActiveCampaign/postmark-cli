@@ -24,7 +24,7 @@ exports.handler = argv => {
   spinner.setSpinnerTitle(chalk.gray('%s Pulling templates from Postmark...'))
   spinner.start()
 
-  const sourceServer = postmark(argv.sourceServer)
+  const sourceServer = new postmark.ServerClient(argv.sourceServer)
 
   // Fetch template List
   sourceServer

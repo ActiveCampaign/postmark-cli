@@ -42,7 +42,7 @@ exports.handler = argv => {
   spinner.setSpinnerTitle(chalk.gray('%s Sending an email...'))
   spinner.start()
 
-  const sourceServer = postmark(argv.sourceServer)
+  const sourceServer = new postmark.ServerClient(argv.sourceServer)
   sourceServer
     .sendEmail({
       From: argv.from,
