@@ -58,7 +58,7 @@ const processTemplates = config => {
         requestCount++
 
         processed.push({
-          ...templateObject(template),
+          ...templateObject(response),
           ...saveTemplate(outputDir, response),
         })
 
