@@ -1,8 +1,7 @@
 #!/usr/bin/env node
-'use strict';
+'use strict'
 
 require('yargs')
   .commandDir('cmds')
   .demandCommand()
-  .help()
-  .argv
+  .help().argv

@@ -1,4 +1,4 @@
-let postmark = require('postmark');
+let postmark = require('postmark')
 
 exports.command = 'push-local [options]'
 exports.desc = 'Push templates from your local file system to a Postmark server'
@@ -7,9 +7,9 @@ exports.builder = {
     type: 'string',
     describe: '',
     alias: ['d'],
-    required: true
-  }
+    required: true,
+  },
 }
-exports.handler = (argv) => {
+exports.handler = argv => {
   console.log(argv.destinationServer)
 }
