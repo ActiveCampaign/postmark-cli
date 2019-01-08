@@ -1,7 +1,8 @@
 const postmark = require('postmark')
 const chalk = require('chalk')
 const path = require('path')
-const fse = require('fs-extra')
+const fs = require('fs-extra')
+const pluralize = require('pluralize')
 const spinner = require('../../utils/spinner')
 
 exports.command = 'pull [options]'
@@ -64,7 +65,7 @@ const processTemplates = config => {
 
         // If this is the last template
         if (requestCount === totalCount) {
-          fse.outputFileSync(
+          fs.outputFileSync(
             formatFilename(outputDir, 'templates', 'json'),
             JSON.stringify(processed, null, 2)
           )
@@ -72,7 +73,10 @@ const processTemplates = config => {
           spinner.stop(true)
           console.log(
             chalk.green(
-              `All done! ${totalCount} have been saved to ${outputDir}.`
+              `All done! ${totalCount} ${pluralize(
+                'template',
+                totalCount
+              )} have been saved to ${outputDir}.`
             )
           )
         }
@@ -96,7 +100,7 @@ const saveTemplate = (outputDir, template) => {
   if (template.HtmlBody) {
     const filename = formatFilename(outputDir, template.Name, 'html')
     result.HtmlBody = filename
-    fse.outputFileSync(filename, template.HtmlBody)
+    fs.outputFileSync(filename, template.HtmlBody)
   } else {
     result.HtmlBody = ''
   }
@@ -104,7 +108,7 @@ const saveTemplate = (outputDir, template) => {
   if (template.TextBody) {
     const filename = formatFilename(outputDir, template.Name, 'txt')
     result.TextBody = filename
-    fse.outputFileSync(filename, template.TextBody)
+    fs.outputFileSync(filename, template.TextBody)
   } else {
     result.TextBody = ''
   }
