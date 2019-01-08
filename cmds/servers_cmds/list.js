@@ -13,12 +13,12 @@ exports.builder = {
     required: true,
   },
   count: {
-    type: 'integer',
+    type: 'number',
     describe: 'Number of servers to return',
     alias: ['c'],
   },
   offset: {
-    type: 'integer',
+    type: 'number',
     describe: 'Number of servers to skip',
     alias: ['o'],
   },
