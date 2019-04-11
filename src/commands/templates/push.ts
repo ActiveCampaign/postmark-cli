@@ -201,7 +201,7 @@ const printReview = (review: TemplatePushReview) => {
 const pushTemplates = (
   spinner: any,
   client: any,
-  templates: Array<TemplateManifest>
+  templates: TemplateManifest[]
 ) => {
   templates.forEach(template => {
     pushTemplate(spinner, client, template, templates.length)

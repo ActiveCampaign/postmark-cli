@@ -1,18 +1,4 @@
-export class TemplateManifest {
-  constructor(
-    Name?: string,
-    Subject?: string,
-    HtmlBody?: string,
-    TextBody?: string,
-    Alias?: string | null
-  ) {
-    this.Name = Name
-    this.Subject = Subject
-    this.HtmlBody = HtmlBody
-    this.TextBody = TextBody
-    this.Alias = Alias
-  }
-
+export interface TemplateManifest {
   Name?: string
   Subject?: string
   HtmlBody?: string

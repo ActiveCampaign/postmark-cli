@@ -109,7 +109,7 @@ const fetchTemplateList = (options: TemplateListOptions) => {
  */
 const processTemplates = (options: ProcessTemplatesOptions) => {
   const { spinner, client, outputDir, totalCount, templates } = options
-  let requestCount: number = 0
+  let requestCount = 0
 
   templates.forEach(template => {
     client
