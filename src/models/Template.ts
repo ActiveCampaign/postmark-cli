@@ -46,7 +46,7 @@ export interface TemplatePushResults {
 }
 
 export interface TemplatePushReview {
-  files: Array<any>
+  files: any[]
   added: number
   modified: number
 }
@@ -56,7 +56,7 @@ export interface ProcessTemplatesOptions {
   client: any
   outputDir: string
   totalCount: number
-  templates: Array<ListTemplate>
+  templates: ListTemplate[]
 }
 
 export interface TemplateListOptions {

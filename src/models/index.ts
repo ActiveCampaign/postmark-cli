@@ -1,1 +1,1 @@
-export * from './templates/Template'
+export * from './Template'
