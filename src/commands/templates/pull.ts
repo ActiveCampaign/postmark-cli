@@ -150,14 +150,7 @@ const saveTemplate = (outputDir: string, template: Template) => {
   template = pruneTemplateObject(template)
 
   // Create the directory
-  const path: string = untildify(
-    join(
-      outputDir,
-      template.Name.split(' ')
-        .join('_')
-        .toLowerCase()
-    )
-  )
+  const path: string = untildify(join(outputDir, template.Alias))
 
   ensureDirSync(path)
 

@@ -3,7 +3,7 @@ export interface TemplateManifest {
   Subject?: string
   HtmlBody?: string
   TextBody?: string
-  Alias?: string | null
+  Alias?: string
   New?: boolean
 }
 
@@ -12,6 +12,7 @@ export interface Template extends TemplateManifest {
   TemplateId: number
   AssociatedServerId?: number
   Active: boolean
+  Alias: string
 }
 
 export interface ListTemplate {
