@@ -3,9 +3,8 @@
 ## Install
 
 - Install [Node.js](https://nodejs.org/en/)
-- Run `npm install postmark-cli`
-
-## Command structure
+- Run `npm i postmark-cli -g`
+- Run `postmark`
 
 ```bash
 # Commands

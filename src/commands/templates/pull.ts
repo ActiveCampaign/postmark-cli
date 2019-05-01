@@ -109,14 +109,37 @@ const fetchTemplateList = (options: TemplateListOptions) => {
  */
 const processTemplates = (options: ProcessTemplatesOptions) => {
   const { spinner, client, outputDir, totalCount, templates } = options
+
+  // Keep track of requests
   let requestCount = 0
 
+  // keep track of templates downloaded
+  let totalDownloaded = 0
+
+  // Iterate through each template and fetch content
   templates.forEach(template => {
+    requestCount++
+
+    // Show warning if template doesn't have an alias
+    if (!template.Alias) {
+      console.warn(
+        chalk.yellow(
+          `Template named "${
+            template.Name
+          }" will not be downloaded because it is missing an alias.`
+        )
+      )
+
+      // If this is the last template
+      if (requestCount === totalCount) spinner.stop()
+      return
+    }
+
     client
       .getTemplate(template.TemplateId)
       .then((response: Template) => {
-        requestCount++
         saveTemplate(outputDir, response)
+        totalDownloaded++
 
         // Show feedback when finished saving templates
         if (requestCount === totalCount) {
@@ -124,11 +147,11 @@ const processTemplates = (options: ProcessTemplatesOptions) => {
 
           console.log(
             chalk.green(
-              `All done! ${totalCount} ${pluralize(
-                totalCount,
-                'template',
-                'templates'
-              )} have been saved to ${outputDir}.`
+              `All done! ${totalDownloaded} ${pluralize(
+                totalDownloaded,
+                'template has',
+                'templates have'
+              )} been saved to ${outputDir}.`
             )
           )
         }
@@ -179,7 +202,7 @@ const saveTemplate = (outputDir: string, template: Template) => {
 const pruneTemplateObject = (template: Template) => {
   delete template.AssociatedServerId
   delete template.Active
-  if (template.Alias) delete template.TemplateId
+  delete template.TemplateId
 
   return template
 }
