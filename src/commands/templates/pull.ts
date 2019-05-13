@@ -9,7 +9,7 @@ import {
   ProcessTemplatesOptions,
   Template,
   TemplateListOptions,
-} from '../../models'
+} from '../../types'
 import { pluralize, untildify } from '../../utils'
 
 export const command = 'pull <output directory>'

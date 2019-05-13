@@ -17,7 +17,7 @@ import {
   TemplateManifest,
   TemplatePushResults,
   TemplatePushReview,
-} from '../../models'
+} from '../../types'
 import { pluralize, untildify } from '../../utils'
 
 export const command = 'push <templates directory> [options]'
@@ -37,11 +37,12 @@ export const builder = {
 }
 export const handler = (argv: any) => {
   const templateDir = untildify(argv.templatesdirectory)
-  if (!existsSync(templateDir))
-    return console.error(
-      chalk.red('Error: Could not find this template directory.')
-    )
 
+  // Check if directory exists
+  if (!existsSync(templateDir))
+    return console.error(chalk.red('Error: Could not find this directory.'))
+
+  // Ask for server token
   if (!argv.serverToken) {
     prompt([
       {
@@ -58,6 +59,7 @@ export const handler = (argv: any) => {
       }
     })
   } else {
+    // Execute command if server token was found in environment vars
     execute(argv.serverToken, templateDir, argv.confirmation)
   }
 }
