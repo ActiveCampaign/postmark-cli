@@ -17,7 +17,7 @@ postmark templates <command> [options]  Manage your templates
 --help     Show help
 ```
 
-## email &lt;cmd&gt; [opts]
+## email
 
 Send an email via Postmark.
 
@@ -27,6 +27,9 @@ Send a raw email.
 
 ```bash
 postmark email raw --from="" --to="" --subject="howdy" --htmlbody="<h1>Hi there</h1>" --textbody="Hi there"
+
+# Pass server token
+POSTMARK_SERVER_TOKEN=token  email raw --from="" --to="" --subject="howdy" --htmlbody="<h1>Hi there</h1>" --textbody="Hi there"
 
 # Options
 --from, -f  Email address you are sending from. Must be an address on a
@@ -44,6 +47,9 @@ Send a templated email.
 ```bash
 postmark email template --alias="" --from="" --to="" --model='{"name": "Jane"}'
 
+# Pass server token
+POSTMARK_SERVER_TOKEN=token postmark email template --alias="" --from="" --to="" --model='{"name": "Jane"}'
+
 # Options
 --id, -i     Template ID                                              [string]
 --alias, -a  Template Alias                                           [string]
@@ -53,7 +59,7 @@ postmark email template --alias="" --from="" --to="" --model='{"name": "Jane"}'
 --model, -m                                                           [string]
 ```
 
-## servers &lt;cmd&gt; [opts]
+## servers
 
 ### list
 
@@ -62,13 +68,16 @@ Get a list of all servers on an account, including server tokens.
 ```bash
 postmark servers list
 
+# Pass account token
+POSTMARK_ACCOUNT_TOKEN=token postmark servers list
+
 # Options
 --count, -c   Number of servers to return                             [number]
 --offset, -o  Number of servers to skip                               [number]
 --name, -n    Filter servers by name                                  [string]
 ```
 
-## templates &lt;cmd&gt; [opts]
+## templates
 
 **⚠️ Before you get started**, make sure that each of your templates have an alias defined. Check out our [help doc](https://postmarkapp.com/support/article/1117-how-do-i-use-a-template-alias) for more info.
 
