@@ -3,6 +3,15 @@ import * as ora from 'ora'
 import { prompt } from 'inquirer'
 import { ServerClient } from 'postmark'
 
+interface types {
+  serverToken: string
+  id: number
+  alias: string
+  from: string
+  to: string
+  model: string
+}
+
 export const command = 'template [options]'
 export const desc = 'Send a templated email'
 export const builder = {
@@ -39,7 +48,7 @@ export const builder = {
     alias: ['m'],
   },
 }
-export const handler = (argv: any) => {
+export const handler = (argv: types) => {
   if (!argv.serverToken) {
     prompt([
       {
@@ -62,10 +71,8 @@ export const handler = (argv: any) => {
 
 /**
  * Execute the command
- * @param  serverToken
- * @param  args
  */
-const execute = (serverToken: string, args: any) => {
+const execute = (serverToken: string, args: types) => {
   const spinner = ora('Sending an email').start()
   const client = new ServerClient(serverToken)
   client
@@ -76,11 +83,11 @@ const execute = (serverToken: string, args: any) => {
       To: args.to,
       TemplateModel: args.model ? JSON.parse(args.model) : undefined,
     })
-    .then(response => {
+    .then((response: any) => {
       spinner.stop()
       console.log(chalk.green(JSON.stringify(response)))
     })
-    .catch(error => {
+    .catch((error: any) => {
       spinner.stop()
       console.error(chalk.red(JSON.stringify(error)))
     })

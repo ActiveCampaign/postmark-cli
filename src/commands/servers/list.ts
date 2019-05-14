@@ -3,6 +3,13 @@ import * as ora from 'ora'
 import { prompt } from 'inquirer'
 import { AccountClient } from 'postmark'
 
+interface types {
+  accountToken: string
+  count: number
+  offset: number
+  name: string
+}
+
 export const command = 'list [options]'
 export const desc = 'List the servers on your account'
 export const builder = {
@@ -26,7 +33,7 @@ export const builder = {
     alias: ['n'],
   },
 }
-export const handler = (argv: any) => {
+export const handler = (argv: types) => {
   if (!argv.accountToken) {
     prompt([
       {
@@ -49,10 +56,8 @@ export const handler = (argv: any) => {
 
 /**
  * Execute the command
- * @param  accoutToken
- * @param  args - Arguments from command
  */
-const execute = (accountToken: string, args: any) => {
+const execute = (accountToken: string, args: types) => {
   const spinner = ora('Fetching servers...').start()
   const client = new AccountClient(accountToken)
   const options = {

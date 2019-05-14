@@ -3,6 +3,15 @@ import * as ora from 'ora'
 import { prompt } from 'inquirer'
 import { ServerClient } from 'postmark'
 
+interface types {
+  serverToken: string
+  from: string
+  to: string
+  subject: string
+  htmlbody: string
+  textbody: string
+}
+
 export const command = 'raw [options]'
 export const desc = 'Send a raw email'
 export const builder = {
@@ -37,7 +46,7 @@ export const builder = {
     describe: 'The text version of the email',
   },
 }
-export const handler = (argv: any) => {
+export const handler = (argv: types) => {
   if (!argv.serverToken) {
     prompt([
       {
@@ -60,10 +69,8 @@ export const handler = (argv: any) => {
 
 /**
  * Execute the command
- * @param  serverToken
- * @param  args
  */
-const execute = (serverToken: string, args: any) => {
+const execute = (serverToken: string, args: types) => {
   const spinner = ora('Sending an email').start()
   const client = new ServerClient(serverToken)
   client

@@ -20,6 +20,12 @@ import {
 } from '../../types'
 import { pluralize, untildify } from '../../utils'
 
+interface types {
+  serverToken: string
+  templatesdirectory: string
+  confirmation: boolean
+}
+
 export const command = 'push <templates directory> [options]'
 export const desc =
   'Push templates from <templates directory> to a Postmark server'
@@ -35,7 +41,7 @@ export const builder = {
     alias: ['c'],
   },
 }
-export const handler = (argv: any) => {
+export const handler = (argv: types) => {
   const templateDir = untildify(argv.templatesdirectory)
 
   // Check if directory exists
@@ -66,9 +72,6 @@ export const handler = (argv: any) => {
 
 /**
  * Execute the command
- * @param  serverToken
- * @param  templateDir
- * @param  confirmation
  */
 const execute = (
   serverToken: string,
@@ -130,7 +133,6 @@ const execute = (
 
 /**
  * Gather up templates on the file system
- * @param  path
  * @returns An object containing all locally stored templates
  */
 const createManifest = (path: string) => {
@@ -165,7 +167,6 @@ const createManifest = (path: string) => {
 
 /**
  * Show which templates will change after the publish
- * @param  results
  */
 const printReview = (review: TemplatePushReview) => {
   const { files, added, modified } = review
@@ -196,9 +197,6 @@ const printReview = (review: TemplatePushReview) => {
 
 /**
  * Push all local templates
- * @param  spinner - Reference to CLI spinner
- * @param  client - Postmark server instance
- * @param  templates
  */
 const pushTemplates = (
   spinner: any,
@@ -212,10 +210,6 @@ const pushTemplates = (
 
 /**
  * Determine whether to create a new template or edit an existing
- * @param  spinner - Reference to CLI spinner
- * @param  client - Postmark server instance
- * @param  template
- * @param  total number of templates
  */
 const pushTemplate = (
   spinner: any,
@@ -246,10 +240,6 @@ const pushTemplate = (
 
 /**
  * Run each time a push has been completed
- * @param  success - Whether or not the response was successful
- * @param  response - API response
- * @param  template - Local template info
- * @param  spinner - Reference to CLI spinner
  */
 const pushComplete = (
   success: boolean,

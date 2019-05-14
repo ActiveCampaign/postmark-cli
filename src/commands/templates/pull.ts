@@ -12,6 +12,11 @@ import {
 } from '../../types'
 import { pluralize, untildify } from '../../utils'
 
+interface types {
+  serverToken: string
+  outputdirectory: string
+}
+
 export const command = 'pull <output directory>'
 export const desc = 'Pull templates from a server to <output directory>'
 export const builder = {
@@ -20,7 +25,7 @@ export const builder = {
     hidden: true,
   },
 }
-export const handler = (argv: any) => {
+export const handler = (argv: types) => {
   if (!argv.serverToken) {
     prompt([
       {
@@ -43,8 +48,6 @@ export const handler = (argv: any) => {
 
 /**
  * Execute the command
- * @param  serverToken
- * @param  outputDir
  */
 const execute = (serverToken: string, outputDir: string) => {
   // Check if directory exists
@@ -74,7 +77,6 @@ const execute = (serverToken: string, outputDir: string) => {
 
 /**
  * Fetch template list from PM
- * @param options
  */
 const fetchTemplateList = (options: TemplateListOptions) => {
   const spinner = ora('Pulling templates from Postmark...').start()
@@ -105,7 +107,6 @@ const fetchTemplateList = (options: TemplateListOptions) => {
 
 /**
  * Fetch each template’s content from the server
- * @param options
  */
 const processTemplates = (options: ProcessTemplatesOptions) => {
   const { spinner, client, outputDir, totalCount, templates } = options
@@ -165,8 +166,6 @@ const processTemplates = (options: ProcessTemplatesOptions) => {
 
 /**
  * Save template
- * @param  outputDir - Write the templates to this directory
- * @param  template
  * @return An object containing the HTML and Text body
  */
 const saveTemplate = (outputDir: string, template: Template) => {
@@ -196,7 +195,6 @@ const saveTemplate = (outputDir: string, template: Template) => {
 
 /**
  * Remove unneeded fields on the template object
- * @param  template
  * @returns the pruned object
  */
 const pruneTemplateObject = (template: Template) => {
