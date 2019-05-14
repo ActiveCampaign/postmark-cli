@@ -21,12 +21,12 @@ export const builder = {
   },
   id: {
     type: 'string',
-    describe: 'Template ID',
+    describe: 'Template ID. Required if a template alias is not specified.',
     alias: ['i'],
   },
   alias: {
     type: 'string',
-    describe: 'Template Alias',
+    describe: 'Template Alias. Required if a template ID is not specified.',
     alias: ['a'],
   },
   from: {
@@ -73,8 +73,12 @@ export const handler = (argv: types) => {
  * Execute the command
  */
 const execute = (serverToken: string, args: types) => {
+  if (!hasIdOrAlias(args))
+    return console.error(chalk.red('--id or --alias required'))
+
   const spinner = ora('Sending an email').start()
   const client = new ServerClient(serverToken)
+
   client
     .sendEmailWithTemplate({
       TemplateId: args.id ? args.id : undefined,
@@ -91,4 +95,8 @@ const execute = (serverToken: string, args: types) => {
       spinner.stop()
       console.error(chalk.red(JSON.stringify(error)))
     })
+}
+
+const hasIdOrAlias = (args: types) => {
+  return args.id || args.alias
 }
