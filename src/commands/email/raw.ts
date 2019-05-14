@@ -2,6 +2,7 @@ import chalk from 'chalk'
 import * as ora from 'ora'
 import { prompt } from 'inquirer'
 import { ServerClient } from 'postmark'
+import { log } from '../../utils'
 
 interface types {
   serverToken: string
@@ -59,7 +60,7 @@ export const handler = (argv: types) => {
       if (answer.serverToken) {
         execute(answer.serverToken, argv)
       } else {
-        console.error(chalk.red('Invalid server token.'))
+        log('Invalid server token', { error: true })
       }
     })
   } else {
@@ -83,10 +84,11 @@ const execute = (serverToken: string, args: types) => {
     })
     .then(response => {
       spinner.stop()
-      console.log(chalk.green(JSON.stringify(response)))
+      log(JSON.stringify(response))
     })
     .catch(error => {
       spinner.stop()
-      console.error(chalk.red(JSON.stringify(error)))
+      log(JSON.stringify(error), { error: true })
+      log(error, { error: true })
     })
 }

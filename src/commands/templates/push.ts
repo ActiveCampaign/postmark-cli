@@ -18,7 +18,7 @@ import {
   TemplatePushResults,
   TemplatePushReview,
 } from '../../types'
-import { pluralize, untildify } from '../../utils'
+import { pluralize, untildify, log } from '../../utils'
 
 interface types {
   serverToken: string
@@ -46,7 +46,7 @@ export const handler = (argv: types) => {
 
   // Check if directory exists
   if (!existsSync(templateDir))
-    return console.error(chalk.red('Error: Could not find this directory.'))
+    return log('Could not find the specified directory', { error: true })
 
   // Ask for server token
   if (!argv.serverToken) {
@@ -61,7 +61,7 @@ export const handler = (argv: types) => {
       if (answer.serverToken) {
         execute(answer.serverToken, templateDir, argv.confirmation)
       } else {
-        console.error(chalk.red('Invalid server token.'))
+        log('Invalid server token', { error: true })
       }
     })
   } else {
@@ -82,10 +82,13 @@ const execute = (
   const manifest = createManifest(templateDir)
   const client = new ServerClient(serverToken)
 
+  // Make sure manifest isn't empty
   if (manifest.length > 0) {
+    // Get template list from Postmark
     client
       .getTemplates()
       .then(response => {
+        // Compare local templates with server
         manifest.forEach(template => {
           template.New = !find(response.Templates, { Alias: template.Alias })
           template.New ? review.added++ : review.modified++
@@ -113,7 +116,7 @@ const execute = (
               spinner.start()
               pushTemplates(spinner, client, manifest)
             } else {
-              console.log('Canceling push. Have a good day!')
+              log('Canceling push. Have a good day!')
             }
           })
         } else {
@@ -124,10 +127,10 @@ const execute = (
       })
       .catch((error: object) => {
         spinner.stop()
-        console.error(chalk.red(JSON.stringify(error)))
+        log(JSON.stringify(error), { error: true })
       })
   } else {
-    console.log(chalk.red('Error: No templates were found in this directory'))
+    log('No templates were found in this directory', { error: true })
   }
 }
 
@@ -172,25 +175,23 @@ const printReview = (review: TemplatePushReview) => {
   const { files, added, modified } = review
   const head = [chalk.gray('Type'), chalk.gray('Name'), chalk.gray('Alias')]
 
-  console.log(table([head, ...files], { border: getBorderCharacters('norc') }))
+  log(table([head, ...files], { border: getBorderCharacters('norc') }))
 
   if (added > 0) {
-    console.log(
-      chalk.green(
-        `${added} ${pluralize(added, 'template', 'templates')} will be added.`
-      )
+    log(
+      `${added} ${pluralize(added, 'template', 'templates')} will be added.`,
+      { color: 'green' }
     )
   }
 
   if (modified > 0) {
-    console.log(
-      chalk.yellow(
-        `${modified} ${pluralize(
-          modified,
-          'template',
-          'templates'
-        )} will be modified.`
-      )
+    log(
+      `${modified} ${pluralize(
+        modified,
+        'template',
+        'templates'
+      )} will be modified.`,
+      { color: 'yellow' }
     )
   }
 }
@@ -255,33 +256,31 @@ const pushComplete = (
   // Log any errors to the console
   if (!success) {
     spinner.stop()
-    console.log(chalk.red(`\n${template.Name}: ${response.toString()}`))
+    log(`\n${template.Name}: ${response.toString()}`, { error: true })
     spinner.start()
   }
 
   if (completed === total) {
     spinner.stop()
 
-    console.log(
-      chalk.green(
-        `Pushed ${results.success} ${pluralize(
-          results.success,
-          'template',
-          'templates'
-        )} successfully.`
-      )
+    log(
+      `Pushed ${results.success} ${pluralize(
+        results.success,
+        'template',
+        'templates'
+      )} successfully.`,
+      { color: 'green' }
     )
 
     // Show failures
     if (results.failed) {
-      console.log(
-        chalk.red(
-          `Failed to push ${results.failed} ${pluralize(
-            results.failed,
-            'template',
-            'templates'
-          )}. Please see the output above for more details.`
-        )
+      log(
+        `Failed to push ${results.failed} ${pluralize(
+          results.failed,
+          'template',
+          'templates'
+        )}. Please see the output above for more details.`,
+        { error: true }
       )
     }
   }

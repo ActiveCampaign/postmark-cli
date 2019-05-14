@@ -2,6 +2,7 @@ import chalk from 'chalk'
 import * as ora from 'ora'
 import { prompt } from 'inquirer'
 import { AccountClient } from 'postmark'
+import { log } from '../../utils'
 
 interface types {
   accountToken: string
@@ -46,7 +47,7 @@ export const handler = (argv: types) => {
       if (answer.accountToken) {
         execute(answer.accountToken, argv)
       } else {
-        console.error(chalk.red('Invalid account token.'))
+        log('Invalid account token', { error: true })
       }
     })
   } else {
@@ -70,10 +71,11 @@ const execute = (accountToken: string, args: types) => {
     .getServers(options)
     .then(response => {
       spinner.stop()
-      console.log(JSON.stringify(response, null, 2))
+      log(JSON.stringify(response, null, 2))
     })
     .catch(error => {
       spinner.stop()
-      console.log(chalk.red(JSON.stringify(error)))
+      log(JSON.stringify(error), { error: true })
+      log(error, { error: true })
     })
 }

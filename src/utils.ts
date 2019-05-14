@@ -1,4 +1,5 @@
 import { homedir } from 'os'
+import chalk from 'chalk'
 
 /**
  * Converts tildy paths to absolute paths.
@@ -21,3 +22,33 @@ export const convertToAlias = (name: string) =>
  */
 export const pluralize = (count: number, singular: string, plural: string) =>
   count > 1 ? plural : singular
+
+/**
+ * Log stuff to the console
+ * @returns Logging with fancy colors
+ */
+export const log = (text: string, settings?: logSettings) => {
+  // Errors
+  if (settings && settings.error) {
+    return console.error(chalk.red(text))
+  }
+
+  // Warnings
+  if (settings && settings.warn) {
+    return console.warn(chalk.yellow(text))
+  }
+
+  // Custom colors
+  if (settings && settings.color) {
+    return console.log(chalk[settings.color](text))
+  }
+
+  // Default
+  return console.log(text)
+}
+
+interface logSettings {
+  error?: boolean
+  warn?: boolean
+  color?: 'green' | 'red' | 'blue' | 'yellow'
+}

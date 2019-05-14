@@ -2,6 +2,7 @@ import chalk from 'chalk'
 import * as ora from 'ora'
 import { prompt } from 'inquirer'
 import { ServerClient } from 'postmark'
+import { log } from '../../utils'
 
 interface types {
   serverToken: string
@@ -61,7 +62,7 @@ export const handler = (argv: types) => {
       if (answer.serverToken) {
         execute(answer.serverToken, argv)
       } else {
-        console.error(chalk.red('Invalid server token.'))
+        log('Invalid server token', { error: true })
       }
     })
   } else {
@@ -74,7 +75,7 @@ export const handler = (argv: types) => {
  */
 const execute = (serverToken: string, args: types) => {
   if (!hasIdOrAlias(args))
-    return console.error(chalk.red('--id or --alias required'))
+    return log('--id or --alias required', { color: 'green' })
 
   const spinner = ora('Sending an email').start()
   const client = new ServerClient(serverToken)
@@ -89,11 +90,12 @@ const execute = (serverToken: string, args: types) => {
     })
     .then((response: any) => {
       spinner.stop()
-      console.log(chalk.green(JSON.stringify(response)))
+      log(JSON.stringify(response))
     })
     .catch((error: any) => {
       spinner.stop()
-      console.error(chalk.red(JSON.stringify(error)))
+      log(JSON.stringify(error), { error: true })
+      log(error, { error: true })
     })
 }
 
