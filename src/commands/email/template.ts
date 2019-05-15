@@ -1,10 +1,9 @@
-import chalk from 'chalk'
 import * as ora from 'ora'
 import { prompt } from 'inquirer'
 import { ServerClient } from 'postmark'
 import { log } from '../../utils'
 
-interface types {
+interface Types {
   serverToken: string
   id: number
   alias: string
@@ -49,7 +48,7 @@ export const builder = {
     alias: ['m'],
   },
 }
-export const handler = (argv: types) => {
+export const handler = (argv: Types) => {
   if (!argv.serverToken) {
     prompt([
       {
@@ -73,7 +72,7 @@ export const handler = (argv: types) => {
 /**
  * Execute the command
  */
-const execute = (serverToken: string, args: types) => {
+const execute = (serverToken: string, args: Types) => {
   if (!hasIdOrAlias(args))
     return log('--id or --alias required', { color: 'green' })
 
@@ -99,6 +98,6 @@ const execute = (serverToken: string, args: types) => {
     })
 }
 
-const hasIdOrAlias = (args: types) => {
+const hasIdOrAlias = (args: Types) => {
   return args.id || args.alias
 }

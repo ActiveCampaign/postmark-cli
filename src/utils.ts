@@ -27,7 +27,7 @@ export const pluralize = (count: number, singular: string, plural: string) =>
  * Log stuff to the console
  * @returns Logging with fancy colors
  */
-export const log = (text: string, settings?: logSettings) => {
+export const log = (text: string, settings?: LogSettings) => {
   // Errors
   if (settings && settings.error) {
     return console.error(chalk.red(text))
@@ -47,7 +47,7 @@ export const log = (text: string, settings?: logSettings) => {
   return console.log(text)
 }
 
-interface logSettings {
+interface LogSettings {
   error?: boolean
   warn?: boolean
   color?: 'green' | 'red' | 'blue' | 'yellow'

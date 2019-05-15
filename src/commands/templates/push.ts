@@ -20,7 +20,7 @@ import {
 } from '../../types'
 import { pluralize, untildify, log } from '../../utils'
 
-interface types {
+interface Types {
   serverToken: string
   templatesdirectory: string
   confirmation: boolean
@@ -41,7 +41,7 @@ export const builder = {
     alias: ['c'],
   },
 }
-export const handler = (argv: types) => {
+export const handler = (argv: Types) => {
   const templateDir = untildify(argv.templatesdirectory)
 
   // Check if directory exists

@@ -1,10 +1,9 @@
-import chalk from 'chalk'
 import * as ora from 'ora'
 import { prompt } from 'inquirer'
 import { AccountClient } from 'postmark'
 import { log } from '../../utils'
 
-interface types {
+interface Types {
   accountToken: string
   count: number
   offset: number
@@ -34,7 +33,7 @@ export const builder = {
     alias: ['n'],
   },
 }
-export const handler = (argv: types) => {
+export const handler = (argv: Types) => {
   if (!argv.accountToken) {
     prompt([
       {
@@ -58,7 +57,7 @@ export const handler = (argv: types) => {
 /**
  * Execute the command
  */
-const execute = (accountToken: string, args: types) => {
+const execute = (accountToken: string, args: Types) => {
   const spinner = ora('Fetching servers...').start()
   const client = new AccountClient(accountToken)
   const options = {

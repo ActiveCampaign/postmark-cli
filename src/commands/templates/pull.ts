@@ -1,4 +1,3 @@
-import chalk from 'chalk'
 import { join } from 'path'
 import { outputFileSync, existsSync, ensureDirSync } from 'fs-extra'
 import { prompt } from 'inquirer'
@@ -13,7 +12,7 @@ import {
 } from '../../types'
 import { pluralize, untildify } from '../../utils'
 
-interface types {
+interface Types {
   serverToken: string
   outputdirectory: string
 }
@@ -26,7 +25,7 @@ export const builder = {
     hidden: true,
   },
 }
-export const handler = (argv: types) => {
+export const handler = (argv: Types) => {
   if (!argv.serverToken) {
     prompt([
       {

@@ -1,10 +1,9 @@
-import chalk from 'chalk'
 import * as ora from 'ora'
 import { prompt } from 'inquirer'
 import { ServerClient } from 'postmark'
 import { log } from '../../utils'
 
-interface types {
+interface Types {
   serverToken: string
   from: string
   to: string
@@ -47,7 +46,7 @@ export const builder = {
     describe: 'The text version of the email',
   },
 }
-export const handler = (argv: types) => {
+export const handler = (argv: Types) => {
   if (!argv.serverToken) {
     prompt([
       {
@@ -71,7 +70,7 @@ export const handler = (argv: types) => {
 /**
  * Execute the command
  */
-const execute = (serverToken: string, args: types) => {
+const execute = (serverToken: string, args: Types) => {
   const spinner = ora('Sending an email').start()
   const client = new ServerClient(serverToken)
   client
