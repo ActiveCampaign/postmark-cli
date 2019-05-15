@@ -8,8 +8,8 @@ interface Types {
   from: string
   to: string
   subject: string
-  htmlbody: string
-  textbody: string
+  html: string
+  text: string
 }
 
 export const command = 'raw [options]'
@@ -37,11 +37,11 @@ export const builder = {
     describe: 'The subject line of the email',
     required: true,
   },
-  htmlbody: {
+  html: {
     type: 'string',
     describe: 'The HTML version of the email',
   },
-  textbody: {
+  text: {
     type: 'string',
     describe: 'The text version of the email',
   },
@@ -78,8 +78,8 @@ const execute = (serverToken: string, args: Types) => {
       From: args.from,
       To: args.to,
       Subject: args.subject,
-      HtmlBody: args.htmlbody ? args.htmlbody : undefined,
-      TextBody: args.textbody ? args.textbody : undefined,
+      HtmlBody: args.html || undefined,
+      TextBody: args.text || undefined,
     })
     .then(response => {
       spinner.stop()
