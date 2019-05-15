@@ -34,7 +34,7 @@
   "scripts": {
     "start:dev": "watch 'npm run build' './src'",
     "build": "npm run clean && npm run ts && npm run permissions",
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "npm run lint && npm run build",
     "clean": "rm -r -f ./dist",
     "ts": "node_modules/.bin/tsc",
     "permissions": "chmod +x ./dist/index.js",
