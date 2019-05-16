@@ -1,9 +1,9 @@
-import chalk from 'chalk'
 import { join } from 'path'
 import { outputFileSync, existsSync, ensureDirSync } from 'fs-extra'
 import { prompt } from 'inquirer'
 import * as ora from 'ora'
 import { ServerClient } from 'postmark'
+import { log } from '../../utils'
 
 import {
   ProcessTemplatesOptions,
@@ -12,7 +12,7 @@ import {
 } from '../../types'
 import { pluralize, untildify } from '../../utils'
 
-interface types {
+interface Types {
   serverToken: string
   outputdirectory: string
 }
@@ -25,7 +25,7 @@ export const builder = {
     hidden: true,
   },
 }
-export const handler = (argv: types) => {
+export const handler = (argv: Types) => {
   if (!argv.serverToken) {
     prompt([
       {
@@ -38,7 +38,7 @@ export const handler = (argv: types) => {
       if (answer.serverToken) {
         execute(answer.serverToken, argv.outputdirectory)
       } else {
-        console.error(chalk.red('Invalid server token.'))
+        log('Invalid server token.', { error: true })
       }
     })
   } else {
@@ -88,7 +88,7 @@ const fetchTemplateList = (options: TemplateListOptions) => {
     .then(response => {
       if (response.TotalCount === 0) {
         spinner.stop()
-        console.log('There are no templates on this server.')
+        log('There are no templates on this server.', { error: true })
       } else {
         processTemplates({
           spinner,
@@ -101,7 +101,7 @@ const fetchTemplateList = (options: TemplateListOptions) => {
     })
     .catch((error: object) => {
       spinner.stop()
-      console.error(chalk.red(JSON.stringify(error)))
+      log(JSON.stringify(error), { error: true })
     })
 }
 
@@ -123,12 +123,11 @@ const processTemplates = (options: ProcessTemplatesOptions) => {
 
     // Show warning if template doesn't have an alias
     if (!template.Alias) {
-      console.warn(
-        chalk.yellow(
-          `Template named "${
-            template.Name
-          }" will not be downloaded because it is missing an alias.`
-        )
+      log(
+        `Template named "${
+          template.Name
+        }" will not be downloaded because it is missing an alias.`,
+        { warn: true }
       )
 
       // If this is the last template
@@ -146,20 +145,19 @@ const processTemplates = (options: ProcessTemplatesOptions) => {
         if (requestCount === totalCount) {
           spinner.stop()
 
-          console.log(
-            chalk.green(
-              `All done! ${totalDownloaded} ${pluralize(
-                totalDownloaded,
-                'template has',
-                'templates have'
-              )} been saved to ${outputDir}.`
-            )
+          log(
+            `All done! ${totalDownloaded} ${pluralize(
+              totalDownloaded,
+              'template has',
+              'templates have'
+            )} been saved to ${outputDir}.`,
+            { color: 'green' }
           )
         }
       })
       .catch((error: object) => {
         spinner.stop()
-        console.error(chalk.red(JSON.stringify(error)))
+        log(JSON.stringify(error), { error: true })
       })
   })
 }

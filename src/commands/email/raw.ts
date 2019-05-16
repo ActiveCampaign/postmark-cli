@@ -1,15 +1,15 @@
-import chalk from 'chalk'
 import * as ora from 'ora'
 import { prompt } from 'inquirer'
 import { ServerClient } from 'postmark'
+import { log } from '../../utils'
 
-interface types {
+interface Types {
   serverToken: string
   from: string
   to: string
   subject: string
-  htmlbody: string
-  textbody: string
+  html: string
+  text: string
 }
 
 export const command = 'raw [options]'
@@ -37,16 +37,16 @@ export const builder = {
     describe: 'The subject line of the email',
     required: true,
   },
-  htmlbody: {
+  html: {
     type: 'string',
     describe: 'The HTML version of the email',
   },
-  textbody: {
+  text: {
     type: 'string',
     describe: 'The text version of the email',
   },
 }
-export const handler = (argv: types) => {
+export const handler = (argv: Types) => {
   if (!argv.serverToken) {
     prompt([
       {
@@ -59,7 +59,7 @@ export const handler = (argv: types) => {
       if (answer.serverToken) {
         execute(answer.serverToken, argv)
       } else {
-        console.error(chalk.red('Invalid server token.'))
+        log('Invalid server token', { error: true })
       }
     })
   } else {
@@ -70,7 +70,7 @@ export const handler = (argv: types) => {
 /**
  * Execute the command
  */
-const execute = (serverToken: string, args: types) => {
+const execute = (serverToken: string, args: Types) => {
   const spinner = ora('Sending an email').start()
   const client = new ServerClient(serverToken)
   client
@@ -78,15 +78,16 @@ const execute = (serverToken: string, args: types) => {
       From: args.from,
       To: args.to,
       Subject: args.subject,
-      HtmlBody: args.htmlbody ? args.htmlbody : undefined,
-      TextBody: args.textbody ? args.textbody : undefined,
+      HtmlBody: args.html || undefined,
+      TextBody: args.text || undefined,
     })
     .then(response => {
       spinner.stop()
-      console.log(chalk.green(JSON.stringify(response)))
+      log(JSON.stringify(response))
     })
     .catch(error => {
       spinner.stop()
-      console.error(chalk.red(JSON.stringify(error)))
+      log(JSON.stringify(error), { error: true })
+      log(error, { error: true })
     })
 }

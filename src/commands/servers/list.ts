@@ -1,9 +1,9 @@
-import chalk from 'chalk'
 import * as ora from 'ora'
 import { prompt } from 'inquirer'
 import { AccountClient } from 'postmark'
+import { log } from '../../utils'
 
-interface types {
+interface Types {
   accountToken: string
   count: number
   offset: number
@@ -33,7 +33,7 @@ export const builder = {
     alias: ['n'],
   },
 }
-export const handler = (argv: types) => {
+export const handler = (argv: Types) => {
   if (!argv.accountToken) {
     prompt([
       {
@@ -46,7 +46,7 @@ export const handler = (argv: types) => {
       if (answer.accountToken) {
         execute(answer.accountToken, argv)
       } else {
-        console.error(chalk.red('Invalid account token.'))
+        log('Invalid account token', { error: true })
       }
     })
   } else {
@@ -57,7 +57,7 @@ export const handler = (argv: types) => {
 /**
  * Execute the command
  */
-const execute = (accountToken: string, args: types) => {
+const execute = (accountToken: string, args: Types) => {
   const spinner = ora('Fetching servers...').start()
   const client = new AccountClient(accountToken)
   const options = {
@@ -70,10 +70,11 @@ const execute = (accountToken: string, args: types) => {
     .getServers(options)
     .then(response => {
       spinner.stop()
-      console.log(JSON.stringify(response, null, 2))
+      log(JSON.stringify(response, null, 2))
     })
     .catch(error => {
       spinner.stop()
-      console.log(chalk.red(JSON.stringify(error)))
+      log(JSON.stringify(error), { error: true })
+      log(error, { error: true })
     })
 }

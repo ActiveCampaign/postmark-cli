@@ -1,54 +1,75 @@
-# Postmark CLI
+<h1 align="center">
+  <img src="./media/header@2x.png" width="100%" style="max-width:1230px;" alt="Postmark CLI">
+</h1>
+<p align="center">A CLI tool for managing templates, sending emails, and fetching servers on <a href="https://postmarkapp.com">Postmark</a>. Nifty for integrating with a CI/CD pipeline.</p>
 
-## Install
+<p align="center">
+  <a href="https://circleci.com/gh/wildbit/postmark-cli"><img src="https://circleci.com/gh/wildbit/postmark-cli" alt="CircleCI"></a>
+  <a href="https://badge.fury.io/js/postmark-cli"><img src="https://badge.fury.io/js/postmark-cli.svg" alt="npm version"></a>
+</p>
+
+# Install
 
 - Install [Node.js](https://nodejs.org/en/)
-- Run `npm i postmark-cli -g`
-- Run `postmark`
+- `$ npm i postmark-cli -g`
+- `$ postmark` 🌈
+
+# Usage
 
 ```bash
-# Commands
-postmark email <command> [options]      Send an email
-postmark servers <command> [options]    Manage your servers
-postmark templates <command> [options]  Manage your templates
+$ postmark
 
-# Options
---version  Show version number
---help     Show help
+  Commands:
+    postmark email <command> [options]      Send an email
+    postmark servers <command> [options]    Manage your servers
+    postmark templates <command> [options]  Pull and push your templates
+
+  Options:
+    --version  Show version number
+    --help     Show help
 ```
 
-## email
+## Authentication
+
+Each command requires an [account or server token](https://postmarkapp.com/support/article/1008-what-are-the-account-and-server-api-tokens) depending on the level of access required. Tokens can be passed in as environment variables: `POSTMARK_SERVER_TOKEN` and `POSTMARK_ACCOUNT_TOKEN`.
+
+```bash
+$ POSTMARK_SERVER_TOKEN=123 email raw [options]
+
+$ POSTMARK_ACCOUNT_TOKEN=123 servers list [options]
+```
+
+If a token is not supplied as an environment variable, you will be prompted for the server or account token after running the command.
+
+<img src="./media/token-prompt.png" width="100%" style="max-width: 930px;">
+
+## postmark email _&lt;command&gt;_
 
 Send an email via Postmark.
 
-### raw
+### raw [options]
 
-Send a raw email.
+Send an email with the HTML or Text body defined.
 
 ```bash
-postmark email raw --from="" --to="" --subject="howdy" --htmlbody="<h1>Hi there</h1>" --textbody="Hi there"
-
-# Pass server token
-POSTMARK_SERVER_TOKEN=token  email raw --from="" --to="" --subject="howdy" --htmlbody="<h1>Hi there</h1>" --textbody="Hi there"
+$ postmark email raw --from="" --to="" --subject="howdy" --html="<h1>Hi there</h1>" --text="Hi there"
 
 # Options
---from, -f  Email address you are sending from. Must be an address on a
-            verified domain or confirmed Sender Signature. [string] [required]
---to, -t    Email address you are sending to               [string] [required]
---subject   The subject line of the email                  [string] [required]
---htmlbody  The HTML version of the email                             [string]
---textbody  The text version of the email                             [string]
+--from, -f     Email address you are sending from. Must be an address on a
+                verified domain or confirmed Sender Signature.
+                                                           [string] [required]
+--to, -t       Email address you are sending to            [string] [required]
+--subject      The subject line of the email               [string] [required]
+--html         The HTML version of the email                          [string]
+--text         The text version of the email                          [string]
 ```
 
-### template
+### template [options]
 
 Send a templated email.
 
 ```bash
-postmark email template --alias="" --from="" --to="" --model='{"name": "Jane"}'
-
-# Pass server token
-POSTMARK_SERVER_TOKEN=token postmark email template --alias="" --from="" --to="" --model='{"name": "Jane"}'
+$ postmark email template --alias="" --from="" --to="" --model='{"name": "Jane"}'
 
 # Options
 --id, -i     Template ID                                              [string]
@@ -59,17 +80,14 @@ POSTMARK_SERVER_TOKEN=token postmark email template --alias="" --from="" --to=""
 --model, -m                                                           [string]
 ```
 
-## servers
+## postmark servers _&lt;command&gt;_
 
-### list
+### list [options]
 
-Get a list of all servers on an account, including server tokens.
+Fetch a list of servers on an account.
 
 ```bash
-postmark servers list
-
-# Pass account token
-POSTMARK_ACCOUNT_TOKEN=token postmark servers list
+$ postmark servers list
 
 # Options
 --count, -c   Number of servers to return                             [number]
@@ -77,19 +95,21 @@ POSTMARK_ACCOUNT_TOKEN=token postmark servers list
 --name, -n    Filter servers by name                                  [string]
 ```
 
-## templates
+## postmark templates _&lt;command&gt;_
 
-**⚠️ Before you get started**, make sure that each of your templates have an alias defined. Check out our [help doc](https://postmarkapp.com/support/article/1117-how-do-i-use-a-template-alias) for more info.
+Provides a push and pull workflow for your email templates. This lets you store your templates in version control and push to Postmark via a CI/CD pipeline.
 
-### pull &lt;output directory&gt;
+**⚠️ Before you get started**, make sure that all of your templates have an alias. Check out our [help doc](https://postmarkapp.com/support/article/1117-how-do-i-use-a-template-alias) for more info.
+
+### pull _&lt;output directory&gt;_
 
 Download templates from a Postmark server to your local file system.
 
 ```bash
-postmark templates pull ~/Desktop/templates
+$ postmark templates pull ~/Desktop/my_templates
 ```
 
-Here’s an example of the directory structure that is downloaded to the local file system:
+Here’s an example of the directory structure that is downloaded:
 
 ```bash
 my_templates
@@ -102,18 +122,28 @@ my_templates
     └── meta.json
 ```
 
-You can rename each template’s directory to whatever you prefer, we only require that the directory structure stays intact and the filenames(`content.html`, `content.txt`, `meta.json`) are not renamed.
+Each template is stored in its own subdirectory with the HTML and text content, and metadata. The metadata contains the template’s name, subject, and alias.
 
-### push &lt;templates directory&gt; [opts]
+**NOTE:** If you update the template alias in `meta.json`, be sure to rename the template’s directory so it matches. This prevents conflicts down the line when pulling templates.
 
-Push templates from your local file system to Postmark.
+### push _&lt;templates directory&gt;_ [options]
 
-```bash
-postmark templates push ~/Desktop/templates
-```
-
-By default, the command will ask you to confirm your changes before pushing. To disable this, set the `-c` flag to `false`.
+Pushes templates from the local file system to a Postmark server.
 
 ```bash
-postmark templates push ~/Desktop/templates -c=false
+$ postmark templates push ~/Desktop/my_templates
 ```
+
+By default, you will be asked to confirm your changes before pushing your templates.
+
+<img src="./media/push-confirm.png" width="100%" style="max-width: 930px;">
+
+You can disable push confirmations by setting `-c` to `false`.
+
+```bash
+$ postmark templates push ~/Desktop/my_templates -c=false
+```
+
+# License
+
+The MIT License (MIT) 2019 [Wildbit](https://wildbit.com). Please have a look at the [LICENSE.md](LICENSE.md) for more details.

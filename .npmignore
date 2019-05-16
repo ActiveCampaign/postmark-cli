@@ -1,2 +1,6 @@
 tsconfig.json
 src
+.circleci
+.vscode
+.DS_Store
+media

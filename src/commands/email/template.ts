@@ -1,9 +1,9 @@
-import chalk from 'chalk'
 import * as ora from 'ora'
 import { prompt } from 'inquirer'
 import { ServerClient } from 'postmark'
+import { log } from '../../utils'
 
-interface types {
+interface Types {
   serverToken: string
   id: number
   alias: string
@@ -21,12 +21,12 @@ export const builder = {
   },
   id: {
     type: 'string',
-    describe: 'Template ID',
+    describe: 'Template ID. Required if a template alias is not specified.',
     alias: ['i'],
   },
   alias: {
     type: 'string',
-    describe: 'Template Alias',
+    describe: 'Template Alias. Required if a template ID is not specified.',
     alias: ['a'],
   },
   from: {
@@ -48,7 +48,7 @@ export const builder = {
     alias: ['m'],
   },
 }
-export const handler = (argv: types) => {
+export const handler = (argv: Types) => {
   if (!argv.serverToken) {
     prompt([
       {
@@ -61,7 +61,7 @@ export const handler = (argv: types) => {
       if (answer.serverToken) {
         execute(answer.serverToken, argv)
       } else {
-        console.error(chalk.red('Invalid server token.'))
+        log('Invalid server token', { error: true })
       }
     })
   } else {
@@ -72,9 +72,13 @@ export const handler = (argv: types) => {
 /**
  * Execute the command
  */
-const execute = (serverToken: string, args: types) => {
+const execute = (serverToken: string, args: Types) => {
+  if (!hasIdOrAlias(args))
+    return log('--id or --alias required', { color: 'green' })
+
   const spinner = ora('Sending an email').start()
   const client = new ServerClient(serverToken)
+
   client
     .sendEmailWithTemplate({
       TemplateId: args.id ? args.id : undefined,
@@ -85,10 +89,15 @@ const execute = (serverToken: string, args: types) => {
     })
     .then((response: any) => {
       spinner.stop()
-      console.log(chalk.green(JSON.stringify(response)))
+      log(JSON.stringify(response))
     })
     .catch((error: any) => {
       spinner.stop()
-      console.error(chalk.red(JSON.stringify(error)))
+      log(JSON.stringify(error), { error: true })
+      log(error, { error: true })
     })
+}
+
+const hasIdOrAlias = (args: Types) => {
+  return args.id || args.alias
 }

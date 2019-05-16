@@ -27,6 +27,9 @@
     "@typescript-eslint/parser": "^1.6.0",
     "@types/chai": "^4.1.4",
     "@types/mocha": "^5.2.5",
+    "@types/execa": "^0.9.0",
+    "nconf": "^0.10.0",
+    "execa": "^1.0.0",
     "chai": "^4.1.2",
     "mocha": "^5.2.0",
     "eslint": "^5.16.0",
@@ -38,7 +41,7 @@
   "scripts": {
     "start:dev": "watch 'npm run build' './src'",
     "build": "npm run clean && npm run ts && npm run permissions",
-    "test": "node_modules/mocha/bin/mocha --timeout 10000 --retries 1 -r ts-node/register test/**/*test.ts",
+    "test": "npm run lint && npm run build && node_modules/mocha/bin/mocha --timeout 10000 --retries 1 -r ts-node/register test/**/*test.ts",
     "clean": "rm -r -f ./dist",
     "ts": "node_modules/.bin/tsc",
     "permissions": "chmod +x ./dist/index.js",
