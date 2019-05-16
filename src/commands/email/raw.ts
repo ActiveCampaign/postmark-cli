@@ -23,13 +23,13 @@ export const builder = {
     type: 'string',
     describe:
       'Email address you are sending from. Must be an address on a verified domain or confirmed Sender Signature.',
-    alias: ['f'],
+    alias: 'f',
     required: true,
   },
   to: {
     type: 'string',
     describe: 'Email address you are sending to',
-    alias: ['t'],
+    alias: 't',
     required: true,
   },
   subject: {
@@ -51,15 +51,18 @@ export const handler = (argv: Types) => {
     prompt([
       {
         type: 'password',
-        name: 'serverToken',
+        name: 'serverTokenAnswer',
         message: 'Please enter your server token',
         mask: '•',
       },
     ]).then((answer: any) => {
-      if (answer.serverToken) {
-        execute(answer.serverToken, argv)
+      const { serverTokenAnswer } = answer
+
+      if (serverTokenAnswer) {
+        execute(serverTokenAnswer, argv)
       } else {
         log('Invalid server token', { error: true })
+        process.exit(1)
       }
     })
   } else {
@@ -71,15 +74,17 @@ export const handler = (argv: Types) => {
  * Execute the command
  */
 const execute = (serverToken: string, args: Types) => {
+  const { from, to, subject, html, text } = args
   const spinner = ora('Sending an email').start()
   const client = new ServerClient(serverToken)
+
   client
     .sendEmail({
-      From: args.from,
-      To: args.to,
-      Subject: args.subject,
-      HtmlBody: args.html || undefined,
-      TextBody: args.text || undefined,
+      From: from,
+      To: to,
+      Subject: subject,
+      HtmlBody: html || undefined,
+      TextBody: text || undefined,
     })
     .then(response => {
       spinner.stop()

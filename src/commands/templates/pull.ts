@@ -37,13 +37,15 @@ export const handler = (argv: Types) => {
     prompt([
       {
         type: 'password',
-        name: 'serverToken',
+        name: 'serverTokenAnswer',
         message: 'Please enter your server token',
         mask: '•',
       },
     ]).then((answer: any) => {
-      if (answer.serverToken) {
-        execute(answer.serverToken, argv)
+      const { serverTokenAnswer } = answer
+
+      if (serverTokenAnswer) {
+        execute(serverTokenAnswer, argv)
       } else {
         log('Invalid server token', { error: true })
         process.exit(1)
@@ -89,8 +91,8 @@ const execute = (serverToken: string, args: Types) => {
  * Fetch template list from PM
  */
 const fetchTemplateList = (options: TemplateListOptions) => {
-  const spinner = ora('Pulling templates from Postmark...').start()
   const { sourceServer, outputDir } = options
+  const spinner = ora('Pulling templates from Postmark...').start()
   const client = new ServerClient(sourceServer)
 
   client

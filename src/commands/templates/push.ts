@@ -38,7 +38,7 @@ export const builder = {
     type: 'boolean',
     describe: 'Require user confirmation before pushing the templates',
     default: true,
-    alias: ['c'],
+    alias: 'c',
   },
 }
 export const handler = (argv: Types) => {
@@ -55,13 +55,15 @@ export const handler = (argv: Types) => {
     prompt([
       {
         type: 'password',
-        name: 'serverToken',
+        name: 'serverTokenAnswer',
         message: 'Please enter your server token',
         mask: '•',
       },
     ]).then((answer: any) => {
-      if (answer.serverToken) {
-        execute(answer.serverToken, templateDir, argv.confirmation)
+      const { serverTokenAnswer } = answer
+
+      if (serverTokenAnswer) {
+        execute(serverTokenAnswer, templateDir, argv.confirmation)
       } else {
         log('Invalid server token', { error: true })
         process.exit(1)
