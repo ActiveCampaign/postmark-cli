@@ -45,8 +45,10 @@ export const handler = (argv: Types) => {
   const templateDir = untildify(argv.templatesdirectory)
 
   // Check if directory exists
-  if (!existsSync(templateDir))
-    return log('Could not find the specified directory', { error: true })
+  if (!existsSync(templateDir)) {
+    log('Could not find the template directory provided', { error: true })
+    process.exit(1)
+  }
 
   // Ask for server token
   if (!argv.serverToken) {
