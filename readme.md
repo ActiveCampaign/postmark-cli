@@ -1,9 +1,7 @@
-<p align="center">
-  <img src="./media/header@2x.png" width="100%" style="max-width:1230px;margin-bottom:0;">
-</p>
-
-<h1 align="center" style="margin-top: 0;">Postmark CLI</h1>
-<p align="center">A CLI tool for managing templates, sending emails, and fetching servers on <a href="https://postmarkapp.com">Postmark</a>. Nifty for integrating with Postmark via a CI/CD pipeline.</p>
+<h1 align="center">
+  <img src="./media/header@2x.png" width="100%" style="max-width:1230px;" alt="Postmark CLI">
+</h1>
+<p align="center">A CLI tool for managing templates, sending emails, and fetching servers on <a href="https://postmarkapp.com">Postmark</a>. Nifty for integrating with a CI/CD pipeline.</p>
 
 <p align="center">
   <a href="https://circleci.com/gh/wildbit/postmark-cli"><img src="https://circleci.com/gh/wildbit/postmark-cli" alt="CircleCI"></a>
