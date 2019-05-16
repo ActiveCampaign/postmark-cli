@@ -73,16 +73,13 @@ export const handler = (argv: Types) => {
  * Execute the command
  */
 const execute = (serverToken: string, args: Types) => {
-  if (!hasIdOrAlias(args))
-    return log('--id or --alias required', { color: 'green' })
-
   const spinner = ora('Sending an email').start()
   const client = new ServerClient(serverToken)
 
   client
     .sendEmailWithTemplate({
-      TemplateId: args.id ? args.id : undefined,
-      TemplateAlias: args.alias ? args.alias : undefined,
+      TemplateId: args.id || undefined,
+      TemplateAlias: args.alias || undefined,
       From: args.from,
       To: args.to,
       TemplateModel: args.model ? JSON.parse(args.model) : undefined,
@@ -93,11 +90,7 @@ const execute = (serverToken: string, args: Types) => {
     })
     .catch((error: any) => {
       spinner.stop()
-      log(JSON.stringify(error), { error: true })
       log(error, { error: true })
+      process.exit(1)
     })
-}
-
-const hasIdOrAlias = (args: Types) => {
-  return args.id || args.alias
 }

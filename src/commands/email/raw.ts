@@ -87,7 +87,7 @@ const execute = (serverToken: string, args: Types) => {
     })
     .catch(error => {
       spinner.stop()
-      log(JSON.stringify(error), { error: true })
       log(error, { error: true })
+      process.exit(1)
     })
 }

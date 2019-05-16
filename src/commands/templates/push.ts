@@ -62,6 +62,7 @@ export const handler = (argv: Types) => {
         execute(answer.serverToken, templateDir, argv.confirmation)
       } else {
         log('Invalid server token', { error: true })
+        process.exit(1)
       }
     })
   } else {
@@ -125,12 +126,14 @@ const execute = (
           pushTemplates(spinner, client, manifest)
         }
       })
-      .catch((error: object) => {
+      .catch((error: any) => {
         spinner.stop()
-        log(JSON.stringify(error), { error: true })
+        log(error, { error: true })
+        process.exit(1)
       })
   } else {
     log('No templates were found in this directory', { error: true })
+    process.exit(1)
   }
 }
 

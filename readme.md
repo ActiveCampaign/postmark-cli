@@ -101,12 +101,16 @@ Provides a push and pull workflow for your email templates. This lets you store 
 
 **⚠️ Before you get started**, make sure that all of your templates have an alias. Check out our [help doc](https://postmarkapp.com/support/article/1117-how-do-i-use-a-template-alias) for more info.
 
-### pull _&lt;output directory&gt;_
+### pull _&lt;output directory&gt;_ [options]
 
 Download templates from a Postmark server to your local file system.
 
 ```bash
 $ postmark templates pull ~/Desktop/my_templates
+
+#Options
+--overwrite, -o  Overwrite templates if they already exist
+                                                    [boolean] [default: false]
 ```
 
 Here’s an example of the directory structure that is downloaded:
@@ -132,6 +136,10 @@ Pushes templates from the local file system to a Postmark server.
 
 ```bash
 $ postmark templates push ~/Desktop/my_templates
+
+# Options
+--confirmation, -c  Require user confirmation before pushing the templates
+                                                      [boolean] [default: true]
 ```
 
 By default, you will be asked to confirm your changes before pushing your templates.

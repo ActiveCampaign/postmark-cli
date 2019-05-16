@@ -15,14 +15,21 @@ import { pluralize, untildify } from '../../utils'
 interface Types {
   serverToken: string
   outputdirectory: string
+  overwrite: boolean
 }
 
-export const command = 'pull <output directory>'
+export const command = 'pull <output directory> [options]'
 export const desc = 'Pull templates from a server to <output directory>'
 export const builder = {
   'server-token': {
     type: 'string',
     hidden: true,
+  },
+  overwrite: {
+    type: 'boolean',
+    alias: 'o',
+    default: false,
+    describe: 'Overwrite templates if they already exist',
   },
 }
 export const handler = (argv: Types) => {
@@ -36,41 +43,44 @@ export const handler = (argv: Types) => {
       },
     ]).then((answer: any) => {
       if (answer.serverToken) {
-        execute(answer.serverToken, argv.outputdirectory)
+        execute(answer.serverToken, argv)
       } else {
-        log('Invalid server token.', { error: true })
+        log('Invalid server token', { error: true })
+        process.exit(1)
       }
     })
   } else {
-    execute(argv.serverToken, argv.outputdirectory)
+    execute(argv.serverToken, argv)
   }
 }
 
 /**
  * Execute the command
  */
-const execute = (serverToken: string, outputDir: string) => {
+const execute = (serverToken: string, args: Types) => {
+  const { outputdirectory, overwrite } = args
+
   // Check if directory exists
-  if (existsSync(untildify(outputDir))) {
+  if (existsSync(untildify(outputdirectory)) && !overwrite) {
     prompt([
       {
         type: 'confirm',
         name: 'overwrite',
         default: false,
-        message: `Are you sure you want to overwrite the files in ${outputDir}?`,
+        message: `Are you sure you want to overwrite the files in ${outputdirectory}?`,
       },
     ]).then((answer: any) => {
       if (answer.overwrite) {
         fetchTemplateList({
           sourceServer: serverToken,
-          outputDir: outputDir,
+          outputDir: outputdirectory,
         })
       }
     })
   } else {
     fetchTemplateList({
       sourceServer: serverToken,
-      outputDir: outputDir,
+      outputDir: outputdirectory,
     })
   }
 }
@@ -99,9 +109,10 @@ const fetchTemplateList = (options: TemplateListOptions) => {
         })
       }
     })
-    .catch((error: object) => {
+    .catch((error: any) => {
       spinner.stop()
-      log(JSON.stringify(error), { error: true })
+      log(error, { error: true })
+      process.exit(1)
     })
 }
 
@@ -119,10 +130,9 @@ const processTemplates = (options: ProcessTemplatesOptions) => {
 
   // Iterate through each template and fetch content
   templates.forEach(template => {
-    requestCount++
-
     // Show warning if template doesn't have an alias
     if (!template.Alias) {
+      requestCount++
       log(
         `Template named "${
           template.Name
@@ -138,6 +148,9 @@ const processTemplates = (options: ProcessTemplatesOptions) => {
     client
       .getTemplate(template.TemplateId)
       .then((response: Template) => {
+        requestCount++
+
+        // Save template to file system
         saveTemplate(outputDir, response)
         totalDownloaded++
 
@@ -155,9 +168,9 @@ const processTemplates = (options: ProcessTemplatesOptions) => {
           )
         }
       })
-      .catch((error: object) => {
+      .catch((error: any) => {
         spinner.stop()
-        log(JSON.stringify(error), { error: true })
+        log(error, { error: true })
       })
   })
 }
