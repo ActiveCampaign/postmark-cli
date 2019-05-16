@@ -63,5 +63,10 @@
   },
   "precommit": [
     "build"
+  ],
+  "keywords": [
+    "postmark",
+    "cli",
+    "templates"
   ]
 }
