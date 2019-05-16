@@ -45,14 +45,15 @@
     "clean": "rm -r -f ./dist",
     "ts": "node_modules/.bin/tsc",
     "permissions": "chmod +x ./dist/index.js",
-    "lint": "eslint --ext .ts ./src"
+    "lint": "eslint --ext .ts ./src",
+    "prepublish": "npm run build"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/wildbit/postmark-cli.git"
   },
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/wildbit/postmark-cli/issues"
   },
