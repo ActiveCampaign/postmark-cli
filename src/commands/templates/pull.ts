@@ -3,14 +3,13 @@ import { outputFileSync, existsSync, ensureDirSync } from 'fs-extra'
 import { prompt } from 'inquirer'
 import * as ora from 'ora'
 import { ServerClient } from 'postmark'
-import { log } from '../../utils'
 
 import {
   ProcessTemplatesOptions,
   Template,
   TemplateListOptions,
 } from '../../types'
-import { pluralize, untildify } from '../../utils'
+import { log, validateToken, pluralize, untildify } from '../../utils'
 
 interface Types {
   serverToken: string
@@ -32,34 +31,23 @@ export const builder = {
     describe: 'Overwrite templates if they already exist',
   },
 }
-export const handler = (argv: Types) => {
-  if (!argv.serverToken) {
-    prompt([
-      {
-        type: 'password',
-        name: 'serverTokenAnswer',
-        message: 'Please enter your server token',
-        mask: '•',
-      },
-    ]).then((answer: any) => {
-      const { serverTokenAnswer } = answer
-
-      if (serverTokenAnswer) {
-        execute(serverTokenAnswer, argv)
-      } else {
-        log('Invalid server token', { error: true })
-        process.exit(1)
-      }
-    })
-  } else {
-    execute(argv.serverToken, argv)
-  }
-}
+export const handler = (args: Types) => exec(args)
 
 /**
  * Execute the command
  */
-const execute = (serverToken: string, args: Types) => {
+const exec = (args: Types) => {
+  const { serverToken } = args
+
+  return validateToken(serverToken).then(token => {
+    pull(token, args)
+  })
+}
+
+/**
+ * Begin pulling the templates
+ */
+const pull = (serverToken: string, args: Types) => {
   const { outputdirectory, overwrite } = args
 
   // Check if directory exists

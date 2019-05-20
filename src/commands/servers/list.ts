@@ -1,7 +1,6 @@
 import * as ora from 'ora'
-import { prompt } from 'inquirer'
 import { AccountClient } from 'postmark'
-import { log } from '../../utils'
+import { log, validateToken } from '../../utils'
 
 interface Types {
   accountToken: string
@@ -33,31 +32,23 @@ export const builder = {
     alias: ['n'],
   },
 }
-export const handler = (argv: Types) => {
-  if (!argv.accountToken) {
-    prompt([
-      {
-        type: 'password',
-        name: 'accountToken',
-        message: 'Please enter your account token',
-        mask: '•',
-      },
-    ]).then((answer: any) => {
-      if (answer.accountToken) {
-        execute(answer.accountToken, argv)
-      } else {
-        log('Invalid account token', { error: true })
-      }
-    })
-  } else {
-    execute(argv.accountToken, argv)
-  }
-}
+export const handler = (args: Types) => exec(args)
 
 /**
  * Execute the command
  */
-const execute = (accountToken: string, args: Types) => {
+const exec = (args: Types) => {
+  const { accountToken } = args
+
+  return validateToken(accountToken, true).then(token => {
+    fetch(token, args)
+  })
+}
+
+/**
+ * Fetch the servers
+ */
+const fetch = (accountToken: string, args: Types) => {
   const spinner = ora('Fetching servers...').start()
   const client = new AccountClient(accountToken)
   const options = {
