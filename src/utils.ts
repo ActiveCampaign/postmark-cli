@@ -1,5 +1,17 @@
+import { Argv } from 'yargs'
 import { homedir } from 'os'
 import chalk from 'chalk'
+
+/**
+ * Bootstrap commands
+ * @returns yargs compatible command options
+ */
+export const cmd = (name: string, desc: string) => ({
+  name: name,
+  command: `${name} <command> [options]`,
+  desc: desc,
+  builder: (yargs: Argv) => yargs.commandDir(`commands/${name}`),
+})
 
 /**
  * Converts tildy paths to absolute paths.
