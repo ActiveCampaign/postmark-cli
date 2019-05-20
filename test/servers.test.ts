@@ -9,9 +9,10 @@ describe("Servers", () => {
     const accountToken: string = testingKeys.get("ACCOUNT_TOKEN");
     const options: execa.CommonOptions = { env: {'POSTMARK_ACCOUNT_TOKEN': accountToken} };
     const CLICommand: string = './dist/index.js';
+    const commandParameters = ['servers', 'list'];
 
     it('list', async () => {
-        const {stdout} = await execa(CLICommand, ['servers', 'list'], options);
+        const {stdout} = await execa(CLICommand, commandParameters, options);
         const servers = JSON.parse(stdout);
         expect(servers.TotalCount).to.be.gte(0);
     });
@@ -19,7 +20,7 @@ describe("Servers", () => {
     it('list - invalid token', async () => {
         const invalidOptions: execa.CommonOptions = { env: {'POSTMARK_ACCOUNT_TOKEN': 'test'} };
 
-        const {stderr} = await execa(CLICommand, ['servers', 'list'], invalidOptions)
+        const {stderr} = await execa(CLICommand, commandParameters, invalidOptions)
         expect(stderr).to.include('InvalidAPIKeyError');
     });
 });
