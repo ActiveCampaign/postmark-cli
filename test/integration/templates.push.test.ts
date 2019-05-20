@@ -13,7 +13,7 @@ describe("Templates command", () => {
     const options: execa.CommonOptions = {env: {'POSTMARK_SERVER_TOKEN': serverToken}};
     const CLICommand: string = './dist/index.js';
     const pullFolder: string = './test/data';
-    const pushCommandParameters: string[] = ['templates', 'push', pullFolder, '--c=false'];
+    const pushCommandParameters: string[] = ['templates', 'push', pullFolder, '--force'];
     const pullCommandParameters: string[] = ['templates', 'pull', pullFolder];
 
     afterEach(() => {

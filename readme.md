@@ -108,7 +108,7 @@ Download templates from a Postmark server to your local file system.
 ```bash
 $ postmark templates pull ~/Desktop/my_templates
 
-#Options
+# Options
 --overwrite, -o  Overwrite templates if they already exist
                                                     [boolean] [default: false]
 ```
@@ -138,18 +138,17 @@ Pushes templates from the local file system to a Postmark server.
 $ postmark templates push ~/Desktop/my_templates
 
 # Options
---confirmation, -c  Require user confirmation before pushing the templates
-                                                      [boolean] [default: true]
+--force, -f  Disable confirmation before pushing templates           [boolean]
 ```
 
 By default, you will be asked to confirm your changes before pushing your templates.
 
 <img src="./media/push-confirm.png" width="100%" style="max-width: 930px;">
 
-You can disable push confirmations by setting `-c` to `false`.
+You can disable confirmation abd force push templates by including the `-f` flag.
 
 ```bash
-$ postmark templates push ~/Desktop/my_templates -c=false
+$ postmark templates push ~/Desktop/my_templates -f
 ```
 
 # License

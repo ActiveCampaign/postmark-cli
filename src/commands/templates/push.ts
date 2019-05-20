@@ -23,7 +23,7 @@ import { pluralize, untildify, log } from '../../utils'
 interface Types {
   serverToken: string
   templatesdirectory: string
-  confirmation: boolean
+  force: boolean
 }
 
 export const command = 'push <templates directory> [options]'
@@ -34,11 +34,10 @@ export const builder = {
     type: 'string',
     hidden: true,
   },
-  confirmation: {
+  force: {
     type: 'boolean',
-    describe: 'Require user confirmation before pushing the templates',
-    default: true,
-    alias: 'c',
+    describe: 'Disable confirmation before pushing templates',
+    alias: 'f',
   },
 }
 export const handler = (argv: Types) => {
@@ -63,7 +62,7 @@ export const handler = (argv: Types) => {
       const { serverTokenAnswer } = answer
 
       if (serverTokenAnswer) {
-        execute(serverTokenAnswer, templateDir, argv.confirmation)
+        execute(serverTokenAnswer, templateDir, argv.force)
       } else {
         log('Invalid server token', { error: true })
         process.exit(1)
@@ -71,18 +70,14 @@ export const handler = (argv: Types) => {
     })
   } else {
     // Execute command if server token was found in environment vars
-    execute(argv.serverToken, templateDir, argv.confirmation)
+    execute(argv.serverToken, templateDir, argv.force)
   }
 }
 
 /**
  * Execute the command
  */
-const execute = (
-  serverToken: string,
-  templateDir: string,
-  confirmation: boolean
-) => {
+const execute = (serverToken: string, templateDir: string, force: boolean) => {
   const spinner = ora('Fetching templates...').start()
   const manifest = createManifest(templateDir)
   const client = new ServerClient(serverToken)
@@ -107,28 +102,30 @@ const execute = (
         spinner.stop()
         printReview(review)
 
-        if (confirmation) {
-          prompt([
-            {
-              type: 'confirm',
-              name: 'confirm',
-              default: false,
-              message: `Are you sure you want to push these templates to Postmark?`,
-            },
-          ]).then((answer: any) => {
-            if (answer.confirm) {
-              spinner.text = 'Pushing templates to Postmark...'
-              spinner.start()
-              pushTemplates(spinner, client, manifest)
-            } else {
-              log('Canceling push. Have a good day!')
-            }
-          })
-        } else {
+        // Push templates
+        if (force) {
           spinner.text = 'Pushing templates to Postmark...'
           spinner.start()
-          pushTemplates(spinner, client, manifest)
+          return pushTemplates(spinner, client, manifest)
         }
+
+        // User confirmation before pushing
+        prompt([
+          {
+            type: 'confirm',
+            name: 'confirm',
+            default: false,
+            message: `Are you sure you want to push these templates to Postmark?`,
+          },
+        ]).then((answer: any) => {
+          if (answer.confirm) {
+            spinner.text = 'Pushing templates to Postmark...'
+            spinner.start()
+            pushTemplates(spinner, client, manifest)
+          } else {
+            log('Canceling push. Have a good day!')
+          }
+        })
       })
       .catch((error: any) => {
         spinner.stop()
