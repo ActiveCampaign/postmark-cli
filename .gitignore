@@ -11,5 +11,5 @@ dist
 
 dist/test*
 src/test*
-testing_keys.json
-test/testing_keys.json
+**/*testing_keys.json
+test/data
