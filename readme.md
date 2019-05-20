@@ -145,7 +145,7 @@ By default, you will be asked to confirm your changes before pushing your templa
 
 <img src="./media/push-confirm.png" width="100%" style="max-width: 930px;">
 
-You can disable confirmation abd force push templates by including the `-f` flag.
+You can force push templates which disables the confirmation by including the `-f` flag.
 
 ```bash
 $ postmark templates push ~/Desktop/my_templates -f
