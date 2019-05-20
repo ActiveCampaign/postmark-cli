@@ -5,6 +5,7 @@
 
 <p align="center">
   <a href="https://circleci.com/gh/wildbit/postmark-cli"><img src="https://circleci.com/gh/wildbit/postmark-cli.svg?style=svg" alt="CircleCI"></a>
+  <a href="http://www.opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-brightgreen.svg" alt="License: MIT"></a>
   <a href="https://badge.fury.io/js/postmark-cli"><img src="https://badge.fury.io/js/postmark-cli.svg" alt="npm version"></a>
 </p>
 
