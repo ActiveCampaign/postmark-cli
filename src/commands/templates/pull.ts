@@ -52,27 +52,34 @@ const pull = (serverToken: string, args: Types) => {
 
   // Check if directory exists
   if (existsSync(untildify(outputdirectory)) && !overwrite) {
-    prompt([
-      {
-        type: 'confirm',
-        name: 'overwrite',
-        default: false,
-        message: `Are you sure you want to overwrite the files in ${outputdirectory}?`,
-      },
-    ]).then((answer: any) => {
-      if (answer.overwrite) {
-        fetchTemplateList({
-          sourceServer: serverToken,
-          outputDir: outputdirectory,
-        })
-      }
-    })
-  } else {
-    fetchTemplateList({
-      sourceServer: serverToken,
-      outputDir: outputdirectory,
-    })
+    return overwritePrompt(serverToken, outputdirectory)
   }
+
+  return fetchTemplateList({
+    sourceServer: serverToken,
+    outputDir: outputdirectory,
+  })
+}
+
+/**
+ * Ask user to confirm overwrite
+ */
+const overwritePrompt = (serverToken: string, outputdirectory: string) => {
+  return prompt([
+    {
+      type: 'confirm',
+      name: 'overwrite',
+      default: false,
+      message: `Are you sure you want to overwrite the files in ${outputdirectory}?`,
+    },
+  ]).then((answer: { overwrite?: boolean }) => {
+    if (answer.overwrite) {
+      return fetchTemplateList({
+        sourceServer: serverToken,
+        outputDir: outputdirectory,
+      })
+    }
+  })
 }
 
 /**
