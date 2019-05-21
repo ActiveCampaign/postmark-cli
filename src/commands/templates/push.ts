@@ -1,9 +1,10 @@
 import chalk from 'chalk'
-import * as ora from 'ora'
+import ora from 'ora'
 import { join } from 'path'
 import { find } from 'lodash'
 import { prompt } from 'inquirer'
 import { table, getBorderCharacters } from 'table'
+import untildify from 'untildify'
 import {
   readJsonSync,
   readFileSync,
@@ -18,7 +19,7 @@ import {
   TemplatePushResults,
   TemplatePushReview,
 } from '../../types'
-import { pluralize, untildify, log, validateToken } from '../../utils'
+import { pluralize, log, validateToken } from '../../utils'
 
 interface Types {
   serverToken: string

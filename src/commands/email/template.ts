@@ -1,4 +1,4 @@
-import * as ora from 'ora'
+import ora from 'ora'
 import { ServerClient } from 'postmark'
 import { log, validateToken } from '../../utils'
 

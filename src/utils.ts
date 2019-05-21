@@ -1,5 +1,4 @@
 import { Argv } from 'yargs'
-import { homedir } from 'os'
 import chalk from 'chalk'
 import { prompt } from 'inquirer'
 
@@ -13,14 +12,6 @@ export const cmd = (name: string, desc: string) => ({
   desc: desc,
   builder: (yargs: Argv) => yargs.commandDir(`commands/${name}`),
 })
-
-/**
- * Converts tildy paths to absolute paths.
- * Take from https://github.com/sindresorhus/untildify
- * @returns string containing resolved home directory
- */
-export const untildify = (input: string) =>
-  homedir() ? input.replace(/^~(?=$|\/|\\)/, homedir()) : input
 
 /**
  * Convert a string to compatible template alias

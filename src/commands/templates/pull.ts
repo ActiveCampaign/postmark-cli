@@ -1,7 +1,8 @@
 import { join } from 'path'
 import { outputFileSync, existsSync, ensureDirSync } from 'fs-extra'
 import { prompt } from 'inquirer'
-import * as ora from 'ora'
+import ora from 'ora'
+import untildify from 'untildify'
 import { ServerClient } from 'postmark'
 
 import {
@@ -9,7 +10,7 @@ import {
   Template,
   TemplateListOptions,
 } from '../../types'
-import { log, validateToken, pluralize, untildify } from '../../utils'
+import { log, validateToken, pluralize } from '../../utils'
 
 interface Types {
   serverToken: string

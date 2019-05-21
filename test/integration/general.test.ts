@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import "mocha";
-import * as execa from 'execa'
+import execa from 'execa'
 import {CLICommand, packageJson} from "./shared";
 
 describe("Default command", () => {

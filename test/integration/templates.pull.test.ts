@@ -1,6 +1,6 @@
 import {expect} from "chai";
 import "mocha";
-import * as execa from 'execa'
+import execa from 'execa'
 import * as fs from 'fs-extra';
 
 const dirTree = require("directory-tree");
