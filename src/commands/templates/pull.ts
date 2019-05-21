@@ -1,16 +1,16 @@
 import { join } from 'path'
 import { outputFileSync, existsSync, ensureDirSync } from 'fs-extra'
 import { prompt } from 'inquirer'
-import * as ora from 'ora'
+import ora from 'ora'
+import untildify from 'untildify'
 import { ServerClient } from 'postmark'
-import { log } from '../../utils'
 
 import {
   ProcessTemplatesOptions,
   Template,
   TemplateListOptions,
 } from '../../types'
-import { pluralize, untildify } from '../../utils'
+import { log, validateToken, pluralize } from '../../utils'
 
 interface Types {
   serverToken: string
@@ -32,59 +32,55 @@ export const builder = {
     describe: 'Overwrite templates if they already exist',
   },
 }
-export const handler = (argv: Types) => {
-  if (!argv.serverToken) {
-    prompt([
-      {
-        type: 'password',
-        name: 'serverTokenAnswer',
-        message: 'Please enter your server token',
-        mask: '•',
-      },
-    ]).then((answer: any) => {
-      const { serverTokenAnswer } = answer
-
-      if (serverTokenAnswer) {
-        execute(serverTokenAnswer, argv)
-      } else {
-        log('Invalid server token', { error: true })
-        process.exit(1)
-      }
-    })
-  } else {
-    execute(argv.serverToken, argv)
-  }
-}
+export const handler = (args: Types) => exec(args)
 
 /**
  * Execute the command
  */
-const execute = (serverToken: string, args: Types) => {
+const exec = (args: Types) => {
+  const { serverToken } = args
+
+  return validateToken(serverToken).then(token => {
+    pull(token, args)
+  })
+}
+
+/**
+ * Begin pulling the templates
+ */
+const pull = (serverToken: string, args: Types) => {
   const { outputdirectory, overwrite } = args
 
   // Check if directory exists
   if (existsSync(untildify(outputdirectory)) && !overwrite) {
-    prompt([
-      {
-        type: 'confirm',
-        name: 'overwrite',
-        default: false,
-        message: `Are you sure you want to overwrite the files in ${outputdirectory}?`,
-      },
-    ]).then((answer: any) => {
-      if (answer.overwrite) {
-        fetchTemplateList({
-          sourceServer: serverToken,
-          outputDir: outputdirectory,
-        })
-      }
-    })
-  } else {
-    fetchTemplateList({
-      sourceServer: serverToken,
-      outputDir: outputdirectory,
-    })
+    return overwritePrompt(serverToken, outputdirectory)
   }
+
+  return fetchTemplateList({
+    sourceServer: serverToken,
+    outputDir: outputdirectory,
+  })
+}
+
+/**
+ * Ask user to confirm overwrite
+ */
+const overwritePrompt = (serverToken: string, outputdirectory: string) => {
+  return prompt([
+    {
+      type: 'confirm',
+      name: 'overwrite',
+      default: false,
+      message: `Are you sure you want to overwrite the files in ${outputdirectory}?`,
+    },
+  ]).then((answer: { overwrite?: boolean }) => {
+    if (answer.overwrite) {
+      return fetchTemplateList({
+        sourceServer: serverToken,
+        outputDir: outputdirectory,
+      })
+    }
+  })
 }
 
 /**
@@ -101,6 +97,7 @@ const fetchTemplateList = (options: TemplateListOptions) => {
       if (response.TotalCount === 0) {
         spinner.stop()
         log('There are no templates on this server.', { error: true })
+        process.exit(1)
       } else {
         processTemplates({
           spinner,

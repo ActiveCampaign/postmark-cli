@@ -1,9 +1,10 @@
 import chalk from 'chalk'
-import * as ora from 'ora'
+import ora from 'ora'
 import { join } from 'path'
 import { find } from 'lodash'
 import { prompt } from 'inquirer'
 import { table, getBorderCharacters } from 'table'
+import untildify from 'untildify'
 import {
   readJsonSync,
   readFileSync,
@@ -18,7 +19,7 @@ import {
   TemplatePushResults,
   TemplatePushReview,
 } from '../../types'
-import { pluralize, untildify, log } from '../../utils'
+import { pluralize, log, validateToken } from '../../utils'
 
 interface Types {
   serverToken: string
@@ -40,46 +41,38 @@ export const builder = {
     alias: 'f',
   },
 }
-export const handler = (argv: Types) => {
-  const templateDir = untildify(argv.templatesdirectory)
-
-  // Check if directory exists
-  if (!existsSync(templateDir)) {
-    log('Could not find the template directory provided', { error: true })
-    process.exit(1)
-  }
-
-  // Ask for server token
-  if (!argv.serverToken) {
-    prompt([
-      {
-        type: 'password',
-        name: 'serverTokenAnswer',
-        message: 'Please enter your server token',
-        mask: '•',
-      },
-    ]).then((answer: any) => {
-      const { serverTokenAnswer } = answer
-
-      if (serverTokenAnswer) {
-        execute(serverTokenAnswer, templateDir, argv.force)
-      } else {
-        log('Invalid server token', { error: true })
-        process.exit(1)
-      }
-    })
-  } else {
-    // Execute command if server token was found in environment vars
-    execute(argv.serverToken, templateDir, argv.force)
-  }
-}
+export const handler = (args: Types) => exec(args)
 
 /**
  * Execute the command
  */
-const execute = (serverToken: string, templateDir: string, force: boolean) => {
+const exec = (args: Types) => {
+  const { serverToken } = args
+
+  return validateToken(serverToken).then(token => {
+    validateDirectory(token, args)
+  })
+}
+
+/**
+ * Check if directory exists before pushing
+ */
+const validateDirectory = (serverToken: string, args: Types) => {
+  if (!existsSync(untildify(args.templatesdirectory))) {
+    log('Could not find the template directory provided', { error: true })
+    return process.exit(1)
+  }
+
+  return push(serverToken, args)
+}
+
+/**
+ * Begin pushing the templates
+ */
+const push = (serverToken: string, args: Types) => {
+  const { templatesdirectory, force } = args
   const spinner = ora('Fetching templates...').start()
-  const manifest = createManifest(templateDir)
+  const manifest = createManifest(templatesdirectory)
   const client = new ServerClient(serverToken)
 
   // Make sure manifest isn't empty

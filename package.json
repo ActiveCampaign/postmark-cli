@@ -12,6 +12,7 @@
     "postmark": "^2.2.4",
     "request": "^2.88.0",
     "table": "^5.2.0",
+    "untildify": "^4.0.0",
     "yargonaut": "^1.1.4",
     "yargs": "^13.2.4"
   },

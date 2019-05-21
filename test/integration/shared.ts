@@ -1,4 +1,4 @@
-import * as nconf from "nconf";
+import nconf from "nconf";
 
 export const testingKeys = nconf.env().file({ file: __dirname + "/../config/testing_keys.json" });
 export const accountToken: string = testingKeys.get("ACCOUNT_TOKEN");

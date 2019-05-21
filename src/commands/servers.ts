@@ -1,9 +1,3 @@
-import { Argv } from 'yargs'
+import { cmd } from '../utils'
 
-const namespace = 'servers'
-
-export const command = `${namespace} <command> [options]`
-export const desc = 'Manage your servers'
-export const builder = (yargs: Argv) => {
-  return yargs.commandDir(`${namespace}`)
-}
+export const { command, desc, builder } = cmd('servers', 'Manage your servers')

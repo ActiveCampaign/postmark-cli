@@ -1,7 +1,6 @@
-import * as ora from 'ora'
-import { prompt } from 'inquirer'
+import ora from 'ora'
 import { ServerClient } from 'postmark'
-import { log } from '../../utils'
+import { log, validateToken } from '../../utils'
 
 interface Types {
   serverToken: string
@@ -48,34 +47,23 @@ export const builder = {
     alias: 'm',
   },
 }
-export const handler = (argv: Types) => {
-  if (!argv.serverToken) {
-    prompt([
-      {
-        type: 'password',
-        name: 'serverTokenAnswer',
-        message: 'Please enter your server token',
-        mask: '•',
-      },
-    ]).then((answer: any) => {
-      const { serverTokenAnswer } = answer
-
-      if (serverTokenAnswer) {
-        execute(serverTokenAnswer, argv)
-      } else {
-        log('Invalid server token', { error: true })
-        process.exit(1)
-      }
-    })
-  } else {
-    execute(argv.serverToken, argv)
-  }
-}
+export const handler = (args: Types) => exec(args)
 
 /**
  * Execute the command
  */
-const execute = (serverToken: string, args: Types) => {
+const exec = (args: Types) => {
+  const { serverToken } = args
+
+  return validateToken(serverToken).then(token => {
+    send(token, args)
+  })
+}
+
+/**
+ * Send the email
+ */
+const send = (serverToken: string, args: Types) => {
   const { id, alias, from, to, model } = args
   const spinner = ora('Sending an email').start()
   const client = new ServerClient(serverToken)

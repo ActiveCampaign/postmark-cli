@@ -5,16 +5,14 @@
 
 <p align="center">
   <a href="https://travis-ci.org/wildbit/postmark-cli"><img src="https://travis-ci.org/wildbit/postmark-cli.svg?branch=master" alt="TravisCI"></a>
+  <a href="http://www.opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-brightgreen.svg" alt="License: MIT"></a>
   <a href="https://badge.fury.io/js/postmark-cli"><img src="https://badge.fury.io/js/postmark-cli.svg" alt="npm version"></a>
 </p>
 
 ## Usage
 
-Please see the [wiki](https://github.com/wildbit/postmark-cli/wiki) for detailed instructions about how to use the library. 
-For quick start after installing the library, you can type `postmark` in your command line, which should show you the CLI tool available options.
-
-Check out wiki for instructions how to [send email](https://github.com/wildbit/postmark-cli/wiki/email-command), 
-[manage templates](https://github.com/wildbit/postmark-cli/wiki/templates-command) or [list servers](https://github.com/wildbit/postmark-cli/wiki/servers-command).
+After installation, type `postmark` in your command line to see a list of available commands. Check out the [wiki](https://github.com/wildbit/postmark-cli/wiki) for instructions on how to [send emails](https://github.com/wildbit/postmark-cli/wiki/email-command),
+[manage templates](https://github.com/wildbit/postmark-cli/wiki/templates-command), or [list servers](https://github.com/wildbit/postmark-cli/wiki/servers-command).
 
 ```bash
 $ postmark
@@ -37,7 +35,7 @@ $ postmark
 
 ## Issues & Comments
 
-Feel free to contact us if you encounter any issues with the library. 
+Feel free to contact us if you encounter any issues with the library.
 Please leave all comments, bugs, requests and issues on the Issues page.
 
 ## License
