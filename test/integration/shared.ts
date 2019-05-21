@@ -8,4 +8,4 @@ export const toAddress: string = testingKeys.get("TO_ADDRESS");
 
 export const CLICommand: string = './dist/index.js';
 export const TestDataFolder: string = './test/data';
-export const packageJson: any = require("../../package.json");
+export const PackageJson: any = require("../../package.json");
