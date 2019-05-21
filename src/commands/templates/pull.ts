@@ -96,6 +96,7 @@ const fetchTemplateList = (options: TemplateListOptions) => {
       if (response.TotalCount === 0) {
         spinner.stop()
         log('There are no templates on this server.', { error: true })
+        process.exit(1)
       } else {
         processTemplates({
           spinner,
