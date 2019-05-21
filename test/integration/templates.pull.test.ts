@@ -1,67 +1,57 @@
-import { expect } from 'chai'
-import 'mocha'
+import {expect} from "chai";
+import "mocha";
 import * as execa from 'execa'
-import * as nconf from 'nconf'
-import * as fs from 'fs-extra'
-import { Provider } from 'nconf'
+import * as fs from 'fs-extra';
 
-const dirTree = require('directory-tree')
-const testingKeys: Provider = nconf
-  .env()
-  .file({ file: __dirname + '/../config/testing_keys.json' })
+const dirTree = require("directory-tree");
+import {serverToken, CLICommand, TestDataFolder} from "./shared";
 
-describe('Templates command', () => {
-  const serverToken: string = testingKeys.get('SERVER_TOKEN')
-  const options: execa.CommonOptions = {
-    env: { POSTMARK_SERVER_TOKEN: serverToken },
-  }
-  const CLICommand: string = './dist/index.js'
-  const pullFolder: string = './test/data'
-  const commandParameters: string[] = ['templates', 'pull', pullFolder]
+describe("Templates command", () => {
+    const options: execa.CommonOptions = {env: {'POSTMARK_SERVER_TOKEN': serverToken}};
+    const pullFolder: string = TestDataFolder;
+    const commandParameters: string[] = ['templates', 'pull', pullFolder];
 
-  afterEach(() => {
-    fs.removeSync(pullFolder)
-  })
+    afterEach(() => {
+        fs.removeSync(pullFolder);
+    });
 
-  describe('Pull', () => {
-    it('console out', async () => {
-      const { stdout } = await execa(CLICommand, commandParameters, options)
-      expect(stdout).to.include('All done')
-    })
 
-    describe('Folder', () => {
-      it('templates', async () => {
-        await execa(CLICommand, commandParameters, options)
-        const templateFolders = dirTree(pullFolder)
-        expect(templateFolders.children.length).to.be.gt(0)
-      })
+    describe("Pull", () => {
+        it('console out', async () => {
+            const {stdout} = await execa(CLICommand, commandParameters, options);
+            expect(stdout).to.include('All done');
+        });
 
-      it('single template - file names', async () => {
-        await execa(CLICommand, commandParameters, options)
-        const templateFolders = dirTree(pullFolder)
+        describe("Folder", () => {
+            it('templates', async () => {
+                await execa(CLICommand, commandParameters, options);
+                const templateFolders = dirTree(pullFolder);
+                expect(templateFolders.children.length).to.be.gt(0);
+            });
 
-        const files = templateFolders.children[0].children
-        const names: string[] = files.map((f: any) => {
-          return f.name
-        })
+            it('single template - file names', async () => {
+                await execa(CLICommand, commandParameters, options);
+                const templateFolders = dirTree(pullFolder);
 
-        expect(names).to.members(['content.txt', 'content.html', 'meta.json'])
-      })
+                const files = templateFolders.children[0].children;
+                const names: string[] = files.map((f: any) => {
+                    return f.name;
+                });
 
-      it('single template files - not zero size', async () => {
-        await execa(CLICommand, commandParameters, options)
-        const templateFolders = dirTree(pullFolder)
+                expect(names).to.members(['content.txt', 'content.html', 'meta.json']);
+            });
 
-        const files = templateFolders.children[0].children
-        const sizes: string[] = files.map((f: any) => {
-          return f.size
-        })
+            it('single template files - not zero size', async () => {
+                await execa(CLICommand, commandParameters, options);
+                const templateFolders = dirTree(pullFolder);
 
-        let result = files.findIndex((f: any) => {
-          return f.size <= 0
-        })
-        expect(result).to.eq(-1)
-      })
-    })
-  })
-})
+                const files = templateFolders.children[0].children;
+                const sizes: string[] = files.map((f: any) => { return f.size; });
+
+                let result = files.findIndex( (f:any) => { return f.size <= 0})
+                expect(result).to.eq(-1);
+            });
+        });
+    });
+});
+

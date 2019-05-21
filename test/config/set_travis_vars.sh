@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 echo "Clearing Environment Variables"
 travis env clear --no-interactive
 echo "Setting Variables"
