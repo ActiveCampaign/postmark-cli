@@ -1,6 +1,6 @@
 {
 	"SERVER_TOKEN" : "<token>",
-	"ACCOUNT_TOKEN" : "<token>"
-	"FROM_ADDRESS" : "<from_email@address>"
+	"ACCOUNT_TOKEN" : "<token>",
+	"FROM_ADDRESS" : "<from_email@address>",
 	"TO_ADDRESS" : "<to_email@address>"
 }
