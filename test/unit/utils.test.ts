@@ -1,6 +1,5 @@
 import { expect } from 'chai'
 import 'mocha'
-import { homedir } from 'os'
 import * as utils from '../../src/utils'
 
 describe('Utilities', () => {
