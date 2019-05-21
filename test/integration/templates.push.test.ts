@@ -1,18 +1,15 @@
 import {expect} from "chai";
 import "mocha";
 import * as execa from 'execa'
-import * as nconf from "nconf";
 import * as fs from 'fs-extra';
 import {DirectoryTree} from "directory-tree";
 
 const dirTree = require("directory-tree");
-const testingKeys = nconf.env().file({file: __dirname + "/../config/testing_keys.json"});
+import {serverToken, CLICommand, TestDataFolder} from "./shared";
 
 describe("Templates command", () => {
-    const serverToken: string = testingKeys.get("SERVER_TOKEN");
     const options: execa.CommonOptions = {env: {'POSTMARK_SERVER_TOKEN': serverToken}};
-    const CLICommand: string = './dist/index.js';
-    const pullFolder: string = './test/data';
+    const pullFolder: string = TestDataFolder;
     const pushCommandParameters: string[] = ['templates', 'push', pullFolder, '--force'];
     const pullCommandParameters: string[] = ['templates', 'pull', pullFolder];
 

@@ -1,11 +1,9 @@
 import { expect } from "chai";
 import "mocha";
 import * as execa from 'execa'
+import {CLICommand, packageJson} from "./shared";
 
 describe("Default command", () => {
-    const CLICommand: string = './dist/index.js';
-    const packageJson: any = require("../../package.json");
-
     describe("parameters", () => {
         it('help', async () => {
             const {stdout} = await execa(CLICommand, ['--help']);
