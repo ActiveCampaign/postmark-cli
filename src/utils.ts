@@ -14,13 +14,6 @@ export const cmd = (name: string, desc: string) => ({
 })
 
 /**
- * Convert a string to compatible template alias
- * @returns the formatted string
- */
-export const convertToAlias = (name: string) =>
-  name.replace(/[^a-z0-9_\-.]+/i, '_').toLowerCase()
-
-/**
  * Pluralize a string
  * @returns The proper string depending on the count
  */
