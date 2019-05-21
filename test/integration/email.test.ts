@@ -9,7 +9,8 @@ describe("Email send command", () => {
     const htmlBodyParameter = '--html="test html body"';
     const toParameter = `--to=${toAddress}`;
     const fromParameter = `--from=${fromAddress}`;
-    const defaultParameters = [ 'email', 'raw', toParameter, fromParameter, '--subject="test sending"'];
+    const baseParameters = ['email', 'raw'];
+    const defaultParameters = baseParameters.concat([toParameter, fromParameter, '--subject="test sending"']);
 
     describe("not valid", () => {
         it('no arguments', () => {
@@ -22,7 +23,7 @@ describe("Email send command", () => {
 
         describe("no mandatory arguments", () => {
             it("missing :to, :from, :subject", () => {
-                return execa(CLICommand, ['email','raw'], options).then((result) => {
+                return execa(CLICommand, baseParameters, options).then((result) => {
                     expect(result).to.equal(null);
                 }, (error) => {
                     expect(error.message).to.include('Missing required arguments:');
@@ -62,7 +63,6 @@ describe("Email send command", () => {
             })
         });
     });
-
 
     describe("valid", () => {
         it('html message', async () => {

@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import "mocha";
 import execa from 'execa'
-import {CLICommand, packageJson} from "./shared";
+import {CLICommand, PackageJson} from "./shared";
 
 describe("Default command", () => {
     describe("parameters", () => {
@@ -13,7 +13,7 @@ describe("Default command", () => {
 
         it('version', async () => {
             const {stdout} = await execa(CLICommand, ['--version']);
-            expect(stdout).to.include(packageJson.version);
+            expect(stdout).to.include(PackageJson.version);
         });
 
         it('no parameters', async () => {
