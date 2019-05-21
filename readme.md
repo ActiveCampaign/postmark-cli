@@ -11,11 +11,8 @@
 
 ## Usage
 
-Please see the [wiki](https://github.com/wildbit/postmark-cli/wiki) for detailed instructions about how to use the library.
-For quick start after installing the library, you can type `postmark` in your command line, which should show you the CLI tool available options.
-
-Check out wiki for instructions how to [send email](https://github.com/wildbit/postmark-cli/wiki/email-command),
-[manage templates](https://github.com/wildbit/postmark-cli/wiki/templates-command) or [list servers](https://github.com/wildbit/postmark-cli/wiki/servers-command).
+After installation, type `postmark` in your command line to see a list of available commands. Check out the [wiki](https://github.com/wildbit/postmark-cli/wiki) for instructions on how to [send emails](https://github.com/wildbit/postmark-cli/wiki/email-command),
+[manage templates](https://github.com/wildbit/postmark-cli/wiki/templates-command), or [list servers](https://github.com/wildbit/postmark-cli/wiki/servers-command).
 
 ```bash
 $ postmark
