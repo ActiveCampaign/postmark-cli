@@ -9,9 +9,22 @@ describe('Servers list command', () => {
     env: { POSTMARK_ACCOUNT_TOKEN: accountToken },
   }
   const commandParameters: string[] = ['servers', 'list']
+  const JsonCommandParameters: string[] = ['servers', 'list', '-j']
 
-  it('list', async () => {
+  it('list - headings', async () => {
     const { stdout } = await execa(CLICommand, commandParameters, options)
+    expect(stdout).to.include('Server')
+    expect(stdout).to.include('Settings')
+    expect(stdout).to.include('Server Tokens')
+  })
+
+  it('list - masked token', async () => {
+    const { stdout } = await execa(CLICommand, commandParameters, options)
+    expect(stdout).to.include('•'.repeat(36))
+  })
+
+  it('list - JSON arg', async () => {
+    const { stdout } = await execa(CLICommand, JsonCommandParameters, options)
     const servers = JSON.parse(stdout)
     expect(servers.TotalCount).to.be.gte(0)
   })
