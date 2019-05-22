@@ -1,9 +1,9 @@
 import { Argv } from 'yargs'
 import chalk from 'chalk'
 import { prompt } from 'inquirer'
-import {CommandOptions, LogSettings} from "./types/index"
-import {Ora} from "ora";
-import ora = require("ora");
+import { CommandOptions, LogSettings } from './types/index'
+import { Ora } from 'ora'
+import ora = require('ora')
 
 /**
  * Bootstrap commands
@@ -20,8 +20,11 @@ export const cmd = (name: string, desc: string): CommandOptions => ({
  * Pluralize a string
  * @returns The proper string depending on the count
  */
-export const pluralize = (count: number, singular: string, plural: string): string =>
-  count > 1 ? plural : singular
+export const pluralize = (
+  count: number,
+  singular: string,
+  plural: string
+): string => (count > 1 ? plural : singular)
 
 /**
  * Log stuff to the console
@@ -46,7 +49,6 @@ export const log = (text: string, settings?: LogSettings): void => {
   // Default
   return console.log(text)
 }
-
 
 /**
  * Prompt for server or account tokens
@@ -80,7 +82,10 @@ export const serverTokenPrompt = (account: boolean): Promise<string> =>
  * Validates the presence of a server or account token
  * @return Promise
  */
-export const validateToken = (token: string, account: boolean = false): Promise<string> =>
+export const validateToken = (
+  token: string,
+  account: boolean = false
+): Promise<string> =>
   new Promise<string>(resolve => {
     // Missing token
     if (!token) {
@@ -93,14 +98,14 @@ export const validateToken = (token: string, account: boolean = false): Promise<
   })
 
 export class CommandResponse {
-  private spinner: Ora;
+  private spinner: Ora
 
   public constructor() {
-    this.spinner = ora().clear();
+    this.spinner = ora().clear()
   }
 
   public initResponse(message: string) {
-    this.spinner = ora(message).start();
+    this.spinner = ora(message).start()
   }
 
   public response(text: string, settings?: LogSettings): void {

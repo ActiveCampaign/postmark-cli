@@ -1,6 +1,6 @@
 import { AccountClient } from 'postmark'
-import { validateToken, CommandResponse} from '../../utils'
-import {ServerListArguments} from '../../types'
+import { validateToken, CommandResponse } from '../../utils'
+import { ServerListArguments } from '../../types'
 
 export const command = 'list [options]'
 export const desc = 'List the servers on your account'
@@ -42,7 +42,7 @@ const exec = (args: ServerListArguments) => {
  * Fetch the servers
  */
 const fetch = (accountToken: string, args: ServerListArguments) => {
-  const command: CommandResponse = new CommandResponse();
+  const command: CommandResponse = new CommandResponse()
   command.initResponse('Fetching servers...')
   const client = new AccountClient(accountToken)
   const options = {

@@ -1,7 +1,7 @@
 import { ServerClient } from 'postmark'
-import {validateToken, CommandResponse} from '../../utils'
-import {RawEmailArguments} from "../../types";
-import {MessageSendingResponse} from "postmark/dist/client/models";
+import { validateToken, CommandResponse } from '../../utils'
+import { RawEmailArguments } from '../../types'
+import { MessageSendingResponse } from 'postmark/dist/client/models'
 
 export const command = 'raw [options]'
 export const desc = 'Send a raw email'
@@ -55,7 +55,7 @@ const exec = (args: RawEmailArguments): Promise<void> => {
  */
 const sendCommand = (serverToken: string, args: RawEmailArguments): void => {
   const { from, to, subject, html, text } = args
-  const command: CommandResponse = new CommandResponse();
+  const command: CommandResponse = new CommandResponse()
   command.initResponse('Sending an email')
   const client = new ServerClient(serverToken)
 
@@ -73,8 +73,14 @@ const sendCommand = (serverToken: string, args: RawEmailArguments): void => {
  *
  * @return - Promised sending response
  */
-const sendEmail = (client: ServerClient, from: string, to: string, subject: string,
-  html: string | undefined, text: string | undefined): Promise<MessageSendingResponse>  => {
+const sendEmail = (
+  client: ServerClient,
+  from: string,
+  to: string,
+  subject: string,
+  html: string | undefined,
+  text: string | undefined
+): Promise<MessageSendingResponse> => {
   return client.sendEmail({
     From: from,
     To: to,

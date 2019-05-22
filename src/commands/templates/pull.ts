@@ -8,7 +8,8 @@ import { ServerClient } from 'postmark'
 import {
   ProcessTemplatesOptions,
   Template,
-  TemplateListOptions, TemplatePullArguments
+  TemplateListOptions,
+  TemplatePullArguments,
 } from '../../types'
 import { log, validateToken, pluralize } from '../../utils'
 

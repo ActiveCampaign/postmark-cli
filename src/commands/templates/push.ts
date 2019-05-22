@@ -17,13 +17,14 @@ import { ServerClient } from 'postmark'
 import {
   TemplateManifest,
   TemplatePushResults,
-  TemplatePushReview, TemplatePushArguments
+  TemplatePushReview,
+  TemplatePushArguments,
 } from '../../types'
 import { pluralize, log, validateToken } from '../../utils'
 
-
 export const command = 'push <templates directory> [options]'
-export const desc = 'Push templates from <templates directory> to a Postmark server'
+export const desc =
+  'Push templates from <templates directory> to a Postmark server'
 
 export const builder = {
   'server-token': {
@@ -52,7 +53,10 @@ const exec = (args: TemplatePushArguments) => {
 /**
  * Check if directory exists before pushing
  */
-const validateDirectory = (serverToken: string, args: TemplatePushArguments) => {
+const validateDirectory = (
+  serverToken: string,
+  args: TemplatePushArguments
+) => {
   if (!existsSync(untildify(args.templatesdirectory))) {
     log('Could not find the template directory provided', { error: true })
     return process.exit(1)

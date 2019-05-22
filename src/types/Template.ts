@@ -62,4 +62,3 @@ export interface TemplatePushArguments {
   templatesdirectory: string
   force: boolean
 }
-

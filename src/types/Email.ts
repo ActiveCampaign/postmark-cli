@@ -4,7 +4,7 @@ interface EmailArguments {
   to: string
 }
 
-export interface RawEmailArguments extends EmailArguments{
+export interface RawEmailArguments extends EmailArguments {
   subject: string
   html: string
   text: string

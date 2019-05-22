@@ -1,7 +1,7 @@
 import { ServerClient } from 'postmark'
-import {validateToken, CommandResponse} from '../../utils'
-import {TemplatedEmailArguments} from "../../types";
-import {MessageSendingResponse} from "postmark/dist/client/models";
+import { validateToken, CommandResponse } from '../../utils'
+import { TemplatedEmailArguments } from '../../types'
+import { MessageSendingResponse } from 'postmark/dist/client/models'
 
 export const command = 'template [options]'
 export const desc = 'Send a templated email'
@@ -57,7 +57,7 @@ const exec = (args: TemplatedEmailArguments) => {
  */
 const sendCommand = (serverToken: string, args: TemplatedEmailArguments) => {
   const { id, alias, from, to, model } = args
-  const command: CommandResponse = new CommandResponse();
+  const command: CommandResponse = new CommandResponse()
   command.initResponse('Sending an email')
   const client = new ServerClient(serverToken)
 
@@ -75,8 +75,14 @@ const sendCommand = (serverToken: string, args: TemplatedEmailArguments) => {
  *
  * @return - Promised sending response
  */
-const sendEmailWithTemplate = (client: ServerClient, id: number | undefined, alias: string | undefined, from: string,
-  to: string | undefined, model: any | undefined): Promise<MessageSendingResponse>  => {
+const sendEmailWithTemplate = (
+  client: ServerClient,
+  id: number | undefined,
+  alias: string | undefined,
+  from: string,
+  to: string | undefined,
+  model: any | undefined
+): Promise<MessageSendingResponse> => {
   return client.sendEmailWithTemplate({
     TemplateId: id || undefined,
     TemplateAlias: alias || undefined,
