@@ -3,3 +3,8 @@ src
 .circleci
 .vscode
 .DS_Store
+test
+testing_keys.json
+media
+.eslintrc.js
+.travis.yml
