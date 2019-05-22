@@ -110,7 +110,7 @@ const serverJson = (servers: Servers, showTokens: boolean): string => {
  * Create a table with server info
  */
 const serverTable = (servers: Servers, showTokens: boolean): string => {
-  let headings = ['Server', 'Settings', 'Server Tokens']
+  let headings = ['Server', 'Settings']
   let serverTable: any[] = [headings]
 
   // Create server rows
@@ -125,13 +125,21 @@ const serverTable = (servers: Servers, showTokens: boolean): string => {
  */
 const serverRow = (server: Server, showTokens: boolean): string[] => {
   let row = []
+  let tokens = ''
+
+  server.ApiTokens.forEach((token, index) => {
+    tokens += showTokens ? token : tokenMask()
+    if (server.ApiTokens.length > index + 1) tokens += '\n'
+  })
 
   // Name column
   const name =
     chalk.white.bgHex(colorMap[server.Color])('  ') +
-    chalk.bold(` ${server.Name}`) +
+    chalk.bold.white(server.Name) +
     chalk.gray(`\nID: ${server.ID}`) +
-    `\n${server.ServerLink}`
+    `\n${chalk.gray(server.ServerLink)}` +
+    `\n\n${chalk.bold.white('Server API Tokens')}\n\n` +
+    tokens
   row.push(name)
 
   // Settings column
@@ -141,13 +149,6 @@ const serverRow = (server: Server, showTokens: boolean): string[] => {
     `\nLink Tracking: ${linkTrackingStateLabel(server.TrackLinks)}` +
     `\nInbound: ${stateLabel(server.InboundHookUrl !== '')}`
   row.push(settings)
-
-  // Token column
-  let tokens = ''
-  server.ApiTokens.forEach(token => {
-    tokens += `${showTokens ? token : tokenMask()}\n`
-  })
-  row.push(tokens)
 
   return row
 }

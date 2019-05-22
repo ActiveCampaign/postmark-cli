@@ -15,7 +15,7 @@ describe('Servers list command', () => {
     const { stdout } = await execa(CLICommand, commandParameters, options)
     expect(stdout).to.include('Server')
     expect(stdout).to.include('Settings')
-    expect(stdout).to.include('Server Tokens')
+    expect(stdout).to.include('Server API Tokens')
   })
 
   it('list - masked token', async () => {
