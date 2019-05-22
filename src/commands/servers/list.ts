@@ -138,7 +138,7 @@ const serverRow = (server: Server, showTokens: boolean): string[] => {
     ` ${chalk.bold.white(server.Name)}` +
     chalk.gray(`\nID: ${server.ID}`) +
     `\n${chalk.gray(server.ServerLink)}` +
-    `\n\n${chalk.bold.white('Server API Tokens')}\n\n` +
+    `\n\n${chalk.bold.white('Server API Tokens')}\n` +
     tokens
   row.push(name)
 
