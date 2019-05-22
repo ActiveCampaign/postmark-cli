@@ -64,7 +64,8 @@
     "postmark": "./dist/index.js"
   },
   "precommit": [
-    "build"
+    "build",
+    "lint"
   ],
   "keywords": [
     "postmark",
