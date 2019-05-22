@@ -1,7 +1,7 @@
 {
   "name": "postmark-cli",
   "version": "1.0.0",
-  "description": "",
+  "description": "A CLI tool for managing templates, sending emails, and fetching servers on Postmark.",
   "main": "./dist/index.js",
   "dependencies": {
     "chalk": "^2.4.2",
