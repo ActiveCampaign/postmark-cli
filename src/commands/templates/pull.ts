@@ -9,14 +9,9 @@ import {
   ProcessTemplatesOptions,
   Template,
   TemplateListOptions,
+  TemplatePullArguments,
 } from '../../types'
 import { log, validateToken, pluralize } from '../../utils'
-
-interface Types {
-  serverToken: string
-  outputdirectory: string
-  overwrite: boolean
-}
 
 export const command = 'pull <output directory> [options]'
 export const desc = 'Pull templates from a server to <output directory>'
@@ -32,12 +27,12 @@ export const builder = {
     describe: 'Overwrite templates if they already exist',
   },
 }
-export const handler = (args: Types) => exec(args)
+export const handler = (args: TemplatePullArguments) => exec(args)
 
 /**
  * Execute the command
  */
-const exec = (args: Types) => {
+const exec = (args: TemplatePullArguments) => {
   const { serverToken } = args
 
   return validateToken(serverToken).then(token => {
@@ -48,7 +43,7 @@ const exec = (args: Types) => {
 /**
  * Begin pulling the templates
  */
-const pull = (serverToken: string, args: Types) => {
+const pull = (serverToken: string, args: TemplatePullArguments) => {
   const { outputdirectory, overwrite } = args
 
   // Check if directory exists

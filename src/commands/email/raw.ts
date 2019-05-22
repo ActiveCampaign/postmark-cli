@@ -1,15 +1,7 @@
-import ora from 'ora'
 import { ServerClient } from 'postmark'
-import { log, validateToken } from '../../utils'
-
-interface Types {
-  serverToken: string
-  from: string
-  to: string
-  subject: string
-  html: string
-  text: string
-}
+import { validateToken, CommandResponse } from '../../utils'
+import { RawEmailArguments } from '../../types'
+import { MessageSendingResponse } from 'postmark/dist/client/models'
 
 export const command = 'raw [options]'
 export const desc = 'Send a raw email'
@@ -45,42 +37,55 @@ export const builder = {
     describe: 'The text version of the email',
   },
 }
-export const handler = (args: Types) => exec(args)
+export const handler = (args: RawEmailArguments): Promise<void> => exec(args)
 
 /**
  * Execute the command
  */
-const exec = (args: Types) => {
+const exec = (args: RawEmailArguments): Promise<void> => {
   const { serverToken } = args
 
   return validateToken(serverToken).then(token => {
-    send(token, args)
+    sendCommand(token, args)
   })
 }
 
 /**
- * Send the email
+ * Execute send command in shell
  */
-const send = (serverToken: string, args: Types) => {
+const sendCommand = (serverToken: string, args: RawEmailArguments): void => {
   const { from, to, subject, html, text } = args
-  const spinner = ora('Sending an email').start()
+  const command: CommandResponse = new CommandResponse()
+  command.initResponse('Sending an email')
   const client = new ServerClient(serverToken)
 
-  client
-    .sendEmail({
-      From: from,
-      To: to,
-      Subject: subject,
-      HtmlBody: html || undefined,
-      TextBody: text || undefined,
-    })
+  sendEmail(client, from, to, subject, html, text)
     .then(response => {
-      spinner.stop()
-      log(JSON.stringify(response))
+      command.response(JSON.stringify(response))
     })
     .catch(error => {
-      spinner.stop()
-      log(error, { error: true })
-      process.exit(1)
+      command.errorResponse(error)
     })
+}
+
+/**
+ * Send the email
+ *
+ * @return - Promised sending response
+ */
+const sendEmail = (
+  client: ServerClient,
+  from: string,
+  to: string,
+  subject: string,
+  html: string | undefined,
+  text: string | undefined
+): Promise<MessageSendingResponse> => {
+  return client.sendEmail({
+    From: from,
+    To: to,
+    Subject: subject,
+    HtmlBody: html || undefined,
+    TextBody: text || undefined,
+  })
 }

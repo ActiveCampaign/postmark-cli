@@ -1,15 +1,7 @@
-import ora from 'ora'
 import { ServerClient } from 'postmark'
-import { log, validateToken } from '../../utils'
-
-interface Types {
-  serverToken: string
-  id: number
-  alias: string
-  from: string
-  to: string
-  model: string
-}
+import { validateToken, CommandResponse } from '../../utils'
+import { TemplatedEmailArguments } from '../../types'
+import { MessageSendingResponse } from 'postmark/dist/client/models'
 
 export const command = 'template [options]'
 export const desc = 'Send a templated email'
@@ -47,42 +39,55 @@ export const builder = {
     alias: 'm',
   },
 }
-export const handler = (args: Types) => exec(args)
+export const handler = (args: TemplatedEmailArguments) => exec(args)
 
 /**
  * Execute the command
  */
-const exec = (args: Types) => {
+const exec = (args: TemplatedEmailArguments) => {
   const { serverToken } = args
 
   return validateToken(serverToken).then(token => {
-    send(token, args)
+    sendCommand(token, args)
   })
 }
 
 /**
- * Send the email
+ * Execute templated email send command in shell
  */
-const send = (serverToken: string, args: Types) => {
+const sendCommand = (serverToken: string, args: TemplatedEmailArguments) => {
   const { id, alias, from, to, model } = args
-  const spinner = ora('Sending an email').start()
+  const command: CommandResponse = new CommandResponse()
+  command.initResponse('Sending an email')
   const client = new ServerClient(serverToken)
 
-  client
-    .sendEmailWithTemplate({
-      TemplateId: id || undefined,
-      TemplateAlias: alias || undefined,
-      From: from,
-      To: to,
-      TemplateModel: model ? JSON.parse(model) : undefined,
-    })
+  sendEmailWithTemplate(client, id, alias, from, to, model)
     .then((response: any) => {
-      spinner.stop()
-      log(JSON.stringify(response))
+      command.response(JSON.stringify(response))
     })
     .catch((error: any) => {
-      spinner.stop()
-      log(error, { error: true })
-      process.exit(1)
+      command.errorResponse(error)
     })
+}
+
+/**
+ * Send the email
+ *
+ * @return - Promised sending response
+ */
+const sendEmailWithTemplate = (
+  client: ServerClient,
+  id: number | undefined,
+  alias: string | undefined,
+  from: string,
+  to: string | undefined,
+  model: any | undefined
+): Promise<MessageSendingResponse> => {
+  return client.sendEmailWithTemplate({
+    TemplateId: id || undefined,
+    TemplateAlias: alias || undefined,
+    From: from,
+    To: to,
+    TemplateModel: model ? JSON.parse(model) : undefined,
+  })
 }

@@ -1,12 +1,15 @@
 import { Argv } from 'yargs'
 import chalk from 'chalk'
 import { prompt } from 'inquirer'
+import { CommandOptions, LogSettings } from './types/index'
+import { Ora } from 'ora'
+import ora = require('ora')
 
 /**
  * Bootstrap commands
  * @returns yargs compatible command options
  */
-export const cmd = (name: string, desc: string) => ({
+export const cmd = (name: string, desc: string): CommandOptions => ({
   name: name,
   command: `${name} <command> [options]`,
   desc: desc,
@@ -17,14 +20,17 @@ export const cmd = (name: string, desc: string) => ({
  * Pluralize a string
  * @returns The proper string depending on the count
  */
-export const pluralize = (count: number, singular: string, plural: string) =>
-  count > 1 ? plural : singular
+export const pluralize = (
+  count: number,
+  singular: string,
+  plural: string
+): string => (count > 1 ? plural : singular)
 
 /**
  * Log stuff to the console
  * @returns Logging with fancy colors
  */
-export const log = (text: string, settings?: LogSettings) => {
+export const log = (text: string, settings?: LogSettings): void => {
   // Errors
   if (settings && settings.error) {
     return console.error(chalk.red(text))
@@ -44,17 +50,11 @@ export const log = (text: string, settings?: LogSettings) => {
   return console.log(text)
 }
 
-interface LogSettings {
-  error?: boolean
-  warn?: boolean
-  color?: 'green' | 'red' | 'blue' | 'yellow'
-}
-
 /**
  * Prompt for server or account tokens
  * @returns Promise
  */
-export const serverTokenPrompt = (account: boolean) =>
+export const serverTokenPrompt = (account: boolean): Promise<string> =>
   new Promise<string>((resolve, reject) => {
     const tokenType = account ? 'account' : 'server'
 
@@ -82,7 +82,10 @@ export const serverTokenPrompt = (account: boolean) =>
  * Validates the presence of a server or account token
  * @return Promise
  */
-export const validateToken = (token: string, account: boolean = false) =>
+export const validateToken = (
+  token: string,
+  account: boolean = false
+): Promise<string> =>
   new Promise<string>(resolve => {
     // Missing token
     if (!token) {
@@ -93,3 +96,33 @@ export const validateToken = (token: string, account: boolean = false) =>
 
     return resolve(token)
   })
+
+/**
+ * Handle starting/stopping spinner and console output
+ */
+export class CommandResponse {
+  private spinner: Ora
+
+  public constructor() {
+    this.spinner = ora().clear()
+  }
+
+  public initResponse(message: string) {
+    this.spinner = ora(message).start()
+  }
+
+  public response(text: string, settings?: LogSettings): void {
+    this.spinner.stop()
+    log(text, settings)
+  }
+
+  public errorResponse(error: any, showJsonError: boolean = false): void {
+    this.spinner.stop()
+    if (showJsonError === true) {
+      log(JSON.stringify(error), { error: true })
+    }
+
+    log(error, { error: true })
+    process.exit(1)
+  }
+}
