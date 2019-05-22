@@ -1,7 +1,7 @@
 import { Argv } from 'yargs'
 import chalk from 'chalk'
 import { prompt } from 'inquirer'
-import { CommandOptions, LogSettings } from './types/index'
+import { CommandOptions, LogSettings } from './types/'
 import { Ora } from 'ora'
 import ora = require('ora')
 
