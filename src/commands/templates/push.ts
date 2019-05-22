@@ -17,19 +17,14 @@ import { ServerClient } from 'postmark'
 import {
   TemplateManifest,
   TemplatePushResults,
-  TemplatePushReview,
+  TemplatePushReview, TemplatePushArguments
 } from '../../types'
 import { pluralize, log, validateToken } from '../../utils'
 
-interface Types {
-  serverToken: string
-  templatesdirectory: string
-  force: boolean
-}
 
 export const command = 'push <templates directory> [options]'
-export const desc =
-  'Push templates from <templates directory> to a Postmark server'
+export const desc = 'Push templates from <templates directory> to a Postmark server'
+
 export const builder = {
   'server-token': {
     type: 'string',
@@ -41,12 +36,12 @@ export const builder = {
     alias: 'f',
   },
 }
-export const handler = (args: Types) => exec(args)
+export const handler = (args: TemplatePushArguments) => exec(args)
 
 /**
  * Execute the command
  */
-const exec = (args: Types) => {
+const exec = (args: TemplatePushArguments) => {
   const { serverToken } = args
 
   return validateToken(serverToken).then(token => {
@@ -57,7 +52,7 @@ const exec = (args: Types) => {
 /**
  * Check if directory exists before pushing
  */
-const validateDirectory = (serverToken: string, args: Types) => {
+const validateDirectory = (serverToken: string, args: TemplatePushArguments) => {
   if (!existsSync(untildify(args.templatesdirectory))) {
     log('Could not find the template directory provided', { error: true })
     return process.exit(1)
@@ -69,7 +64,7 @@ const validateDirectory = (serverToken: string, args: Types) => {
 /**
  * Begin pushing the templates
  */
-const push = (serverToken: string, args: Types) => {
+const push = (serverToken: string, args: TemplatePushArguments) => {
   const { templatesdirectory, force } = args
   const spinner = ora('Fetching templates...').start()
   const manifest = createManifest(templatesdirectory)

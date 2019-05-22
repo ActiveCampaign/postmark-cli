@@ -17,8 +17,12 @@ describe("Servers list command", () => {
     it('list - invalid token', async () => {
         const invalidOptions: execa.CommonOptions = { env: {'POSTMARK_ACCOUNT_TOKEN': 'test'} };
 
-        const {stderr} = await execa(CLICommand, commandParameters, invalidOptions);
-        expect(stderr).to.include('InvalidAPIKeyError');
+        try {
+            await execa(CLICommand, commandParameters, invalidOptions);
+            throw Error('make sure error is thrown')
+        }catch (error) {
+            expect(error.message).to.include('InvalidAPIKeyError');
+        }
     });
 });
 

@@ -1,13 +1,6 @@
-import ora from 'ora'
 import { AccountClient } from 'postmark'
-import { log, validateToken } from '../../utils'
-
-interface Types {
-  accountToken: string
-  count: number
-  offset: number
-  name: string
-}
+import { validateToken, CommandResponse} from '../../utils'
+import {ServerListArguments} from '../../types'
 
 export const command = 'list [options]'
 export const desc = 'List the servers on your account'
@@ -32,12 +25,12 @@ export const builder = {
     alias: ['n'],
   },
 }
-export const handler = (args: Types) => exec(args)
+export const handler = (args: ServerListArguments) => exec(args)
 
 /**
  * Execute the command
  */
-const exec = (args: Types) => {
+const exec = (args: ServerListArguments) => {
   const { accountToken } = args
 
   return validateToken(accountToken, true).then(token => {
@@ -48,8 +41,9 @@ const exec = (args: Types) => {
 /**
  * Fetch the servers
  */
-const fetch = (accountToken: string, args: Types) => {
-  const spinner = ora('Fetching servers...').start()
+const fetch = (accountToken: string, args: ServerListArguments) => {
+  const command: CommandResponse = new CommandResponse();
+  command.initResponse('Fetching servers...')
   const client = new AccountClient(accountToken)
   const options = {
     ...(args.count && { count: args.count }),
@@ -60,12 +54,9 @@ const fetch = (accountToken: string, args: Types) => {
   client
     .getServers(options)
     .then(response => {
-      spinner.stop()
-      log(JSON.stringify(response, null, 2))
+      command.response(JSON.stringify(response, null, 2))
     })
     .catch(error => {
-      spinner.stop()
-      log(JSON.stringify(error), { error: true })
-      log(error, { error: true })
+      command.errorResponse(error)
     })
 }

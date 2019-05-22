@@ -50,3 +50,16 @@ export interface TemplateListOptions {
   sourceServer: string
   outputDir: string
 }
+
+export interface TemplatePullArguments {
+  serverToken: string
+  outputdirectory: string
+  overwrite: boolean
+}
+
+export interface TemplatePushArguments {
+  serverToken: string
+  templatesdirectory: string
+  force: boolean
+}
+
