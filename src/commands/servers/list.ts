@@ -125,8 +125,8 @@ const serverTable = (servers: Servers, showTokens: boolean): string => {
  */
 const serverRow = (server: Server, showTokens: boolean): string[] => {
   let row = []
-  let tokens = ''
 
+  let tokens = ''
   server.ApiTokens.forEach((token, index) => {
     tokens += showTokens ? token : tokenMask()
     if (server.ApiTokens.length > index + 1) tokens += '\n'
@@ -135,7 +135,7 @@ const serverRow = (server: Server, showTokens: boolean): string[] => {
   // Name column
   const name =
     chalk.white.bgHex(colorMap[server.Color])('  ') +
-    chalk.bold.white(server.Name) +
+    ` ${chalk.bold.white(server.Name)}` +
     chalk.gray(`\nID: ${server.ID}`) +
     `\n${chalk.gray(server.ServerLink)}` +
     `\n\n${chalk.bold.white('Server API Tokens')}\n\n` +
