@@ -1,6 +1,9 @@
+import chalk from 'chalk'
 import { AccountClient } from 'postmark'
+import { table, getBorderCharacters } from 'table'
 import { validateToken, CommandResponse } from '../../utils'
-import { ServerListArguments } from '../../types'
+import { ServerListArguments, ColorMap } from '../../types'
+import { Servers, Server } from 'postmark/dist/client/models'
 
 export const command = 'list [options]'
 export const desc = 'List the servers on your account'
@@ -24,39 +27,157 @@ export const builder = {
     describe: 'Filter servers by name',
     alias: ['n'],
   },
+  json: {
+    type: 'boolean',
+    describe: 'Return server list as JSON',
+    alias: ['j'],
+  },
+  'show-tokens': {
+    type: 'boolean',
+    describe: 'Show server tokens with server info',
+    alias: ['t'],
+  },
 }
-export const handler = (args: ServerListArguments) => exec(args)
+export const handler = (args: ServerListArguments): Promise<void> => exec(args)
 
 /**
  * Execute the command
  */
-const exec = (args: ServerListArguments) => {
+const exec = (args: ServerListArguments): Promise<void> => {
   const { accountToken } = args
 
   return validateToken(accountToken, true).then(token => {
-    fetch(token, args)
+    listCommand(token, args)
   })
 }
 
 /**
- * Fetch the servers
+ * Get list of servers
  */
-const fetch = (accountToken: string, args: ServerListArguments) => {
+const listCommand = (accountToken: string, args: ServerListArguments): void => {
+  const { count, offset, name, showTokens } = args
   const command: CommandResponse = new CommandResponse()
   command.initResponse('Fetching servers...')
   const client = new AccountClient(accountToken)
-  const options = {
-    ...(args.count && { count: args.count }),
-    ...(args.offset && { offset: args.offset }),
-    ...(args.name && { name: args.name }),
-  }
 
-  client
-    .getServers(options)
+  getServers(client, count, offset, name)
     .then(response => {
-      command.response(JSON.stringify(response, null, 2))
+      if (args.json) {
+        return command.response(serverJson(response, showTokens))
+      }
+
+      return command.response(serverTable(response, showTokens))
     })
     .catch(error => {
-      command.errorResponse(error)
+      return command.errorResponse(error)
     })
+}
+
+/**
+ * Fetch servers from Postmark
+ */
+const getServers = (
+  client: AccountClient,
+  count: number,
+  offset: number,
+  name: string
+): Promise<Servers> => {
+  const options = {
+    ...(count && { count: count }),
+    ...(offset && { offset: offset }),
+    ...(name && { name: name }),
+  }
+  return client.getServers(options)
+}
+
+/**
+ * Return server as JSON
+ */
+const serverJson = (servers: Servers, showTokens: boolean): string => {
+  if (showTokens) return JSON.stringify(servers, null, 2)
+
+  servers.Servers.forEach(item => {
+    item.ApiTokens.forEach(
+      (token, index) => (item.ApiTokens[index] = tokenMask())
+    )
+    return item
+  })
+
+  return JSON.stringify(servers, null, 2)
+}
+
+/**
+ * Create a table with server info
+ */
+const serverTable = (servers: Servers, showTokens: boolean): string => {
+  let headings = ['Server', 'Settings', 'Server Tokens']
+  let serverTable: any[] = [headings]
+
+  // Create server rows
+  servers.Servers.forEach(server =>
+    serverTable.push(serverRow(server, showTokens))
+  )
+  return table(serverTable, { border: getBorderCharacters('norc') })
+}
+
+/**
+ * Create server row
+ */
+const serverRow = (server: Server, showTokens: boolean): string[] => {
+  let row = []
+
+  // Name column
+  const name =
+    chalk.white.bgHex(colorMap[server.Color])('  ') +
+    chalk.bold(` ${server.Name}`) +
+    chalk.gray(`\nID: ${server.ID}`) +
+    `\n${server.ServerLink}`
+  row.push(name)
+
+  // Outbound column
+  const outbound =
+    `SMTP: ${stateLabel(server.SmtpApiActivated)}` +
+    `\nOpen Tracking: ${stateLabel(server.TrackOpens)}` +
+    `\nLink Tracking: ${linkTrackingStateLabel(server.TrackLinks)}` +
+    `\nInbound: ${stateLabel(server.InboundHookUrl !== '')}`
+  row.push(outbound)
+
+  // Token column
+  let tokens = ''
+  server.ApiTokens.forEach(token => {
+    tokens += `${showTokens ? token : tokenMask()}\n`
+  })
+  row.push(tokens)
+
+  return row
+}
+
+const tokenMask = (): string => '•'.repeat(36)
+
+export const stateLabel = (state: boolean | undefined): string => {
+  return state ? chalk.green('Enabled') : chalk.gray('Disabled')
+}
+
+export const linkTrackingStateLabel = (state: string): string => {
+  switch (state) {
+    case 'TextOnly':
+      return chalk.green('Text')
+    case 'HtmlOnly':
+      return chalk.green('HTML')
+    case 'HtmlAndText':
+      return chalk.green('HTML and Text')
+    default:
+      return chalk.gray('Disabled')
+  }
+}
+
+const colorMap: ColorMap = {
+  purple: '#9C73D2',
+  blue: '#21CDFE',
+  turquoise: '#52F3ED',
+  green: '#3BE380',
+  red: '#F35A3D',
+  orange: '#FE8421',
+  yellow: '#FFDE00',
+  grey: '#929292',
 }
