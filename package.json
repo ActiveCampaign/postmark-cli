@@ -69,6 +69,8 @@
   "keywords": [
     "postmark",
     "cli",
-    "templates"
+    "templates",
+    "email",
+    "transactional"
   ]
 }
