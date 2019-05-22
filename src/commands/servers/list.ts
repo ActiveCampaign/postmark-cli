@@ -134,13 +134,13 @@ const serverRow = (server: Server, showTokens: boolean): string[] => {
     `\n${server.ServerLink}`
   row.push(name)
 
-  // Outbound column
-  const outbound =
+  // Settings column
+  const settings =
     `SMTP: ${stateLabel(server.SmtpApiActivated)}` +
     `\nOpen Tracking: ${stateLabel(server.TrackOpens)}` +
     `\nLink Tracking: ${linkTrackingStateLabel(server.TrackLinks)}` +
     `\nInbound: ${stateLabel(server.InboundHookUrl !== '')}`
-  row.push(outbound)
+  row.push(settings)
 
   // Token column
   let tokens = ''
