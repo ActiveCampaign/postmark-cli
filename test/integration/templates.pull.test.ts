@@ -19,7 +19,7 @@ describe("Templates command", () => {
     describe("Pull", () => {
         it('console out', async () => {
             const {stdout} = await execa(CLICommand, commandParameters, options);
-            expect(stdout).to.include('All done');
+            expect(stdout).to.include('All finished');
         });
 
         describe("Folder", () => {
