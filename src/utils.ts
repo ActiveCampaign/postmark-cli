@@ -97,6 +97,9 @@ export const validateToken = (
     return resolve(token)
   })
 
+/**
+ * Handle starting/stopping spinner and console output
+ */
 export class CommandResponse {
   private spinner: Ora
 
