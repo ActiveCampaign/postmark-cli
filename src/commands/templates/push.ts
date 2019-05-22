@@ -261,11 +261,11 @@ const pushComplete = (
     spinner.stop()
 
     log(
-      `Pushed ${results.success} ${pluralize(
+      `All finished! ${results.success} ${pluralize(
         results.success,
-        'template',
-        'templates'
-      )} successfully.`,
+        'template was',
+        'templates were'
+      )} pushed to Postmark.`,
       { color: 'green' }
     )
 

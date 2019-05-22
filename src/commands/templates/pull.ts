@@ -158,7 +158,7 @@ const processTemplates = (options: ProcessTemplatesOptions) => {
           spinner.stop()
 
           log(
-            `All done! ${totalDownloaded} ${pluralize(
+            `All finished! ${totalDownloaded} ${pluralize(
               totalDownloaded,
               'template has',
               'templates have'
