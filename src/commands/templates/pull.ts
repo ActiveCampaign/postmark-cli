@@ -10,6 +10,7 @@ import {
   Template,
   TemplateListOptions,
   TemplatePullArguments,
+  MetaFile,
 } from '../../types'
 import { log, validateToken, pluralize } from '../../utils'
 
@@ -122,6 +123,9 @@ const processTemplates = (options: ProcessTemplatesOptions) => {
   // keep track of templates downloaded
   let totalDownloaded = 0
 
+  // Create empty template and layout directories
+  createDirectories(outputDir)
+
   // Iterate through each template and fetch content
   templates.forEach(template => {
     // Show warning if template doesn't have an alias
@@ -174,10 +178,12 @@ const processTemplates = (options: ProcessTemplatesOptions) => {
  * @return An object containing the HTML and Text body
  */
 const saveTemplate = (outputDir: string, template: Template) => {
-  template = pruneTemplateObject(template)
-
   // Create the directory
-  const path: string = untildify(join(outputDir, template.Alias))
+  const typePath =
+    template.TemplateType === 'Standard' ? 'templates' : 'layouts'
+  const path: string = untildify(
+    join(join(outputDir, typePath), template.Alias)
+  )
 
   ensureDirSync(path)
 
@@ -191,21 +197,18 @@ const saveTemplate = (outputDir: string, template: Template) => {
     outputFileSync(join(path, 'content.txt'), template.TextBody)
   }
 
-  // Create metadata JSON
-  delete template.HtmlBody
-  delete template.TextBody
-
-  outputFileSync(join(path, 'meta.json'), JSON.stringify(template, null, 2))
+  const meta: MetaFile = {
+    Name: template.Name,
+    Alias: template.Alias,
+    ...(template.Subject && { Subject: template.Subject }),
+    ...(template.TemplateType === 'Standard' && {
+      LayoutTemplate: template.LayoutTemplate,
+    }),
+  }
+  outputFileSync(join(path, 'meta.json'), JSON.stringify(meta, null, 2))
 }
 
-/**
- * Remove unneeded fields on the template object
- * @returns the pruned object
- */
-const pruneTemplateObject = (template: Template) => {
-  delete template.AssociatedServerId
-  delete template.Active
-  delete template.TemplateId
-
-  return template
+const createDirectories = (outputDir: string) => {
+  ensureDirSync(untildify(join(outputDir, 'templates')))
+  ensureDirSync(untildify(join(outputDir, 'layouts')))
 }

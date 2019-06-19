@@ -5,6 +5,8 @@ export interface TemplateManifest {
   TextBody?: string
   Alias?: string
   New?: boolean
+  TemplateType?: string
+  LayoutTemplate?: string | null
 }
 
 export interface Template extends TemplateManifest {
@@ -13,6 +15,8 @@ export interface Template extends TemplateManifest {
   AssociatedServerId?: number
   Active: boolean
   Alias: string
+  TemplateType: string
+  LayoutTemplate: string | null
 }
 
 export interface ListTemplate {
@@ -61,4 +65,11 @@ export interface TemplatePushArguments {
   serverToken: string
   templatesdirectory: string
   force: boolean
+}
+
+export interface MetaFile {
+  Name: string
+  Alias: string
+  Subject?: string
+  LayoutTemplate?: string | null
 }

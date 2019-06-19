@@ -57,8 +57,25 @@ const validateDirectory = (
   serverToken: string,
   args: TemplatePushArguments
 ) => {
-  if (!existsSync(untildify(args.templatesdirectory))) {
-    log('Could not find the template directory provided', { error: true })
+  const rootPath: string = untildify(args.templatesdirectory)
+
+  // Check if path exists
+  if (!existsSync(rootPath)) {
+    log('The provided path does not exist', { error: true })
+    return process.exit(1)
+  }
+
+  // Check if path is missing templates and layouts folders
+  if (
+    !existsSync(join(rootPath, 'templates')) &&
+    !existsSync(join(rootPath, 'layouts'))
+  ) {
+    log(
+      'The "templates" and "layouts" folder do not exist in the path provided',
+      {
+        error: true,
+      }
+    )
     return process.exit(1)
   }
 
@@ -88,6 +105,7 @@ const push = (serverToken: string, args: TemplatePushArguments) => {
             template.New ? chalk.green('Added') : chalk.yellow('Modified'),
             template.Name,
             template.Alias,
+            template.TemplateType === 'Standard' ? 'Template' : 'Layout',
           ])
         })
 
@@ -125,6 +143,7 @@ const push = (serverToken: string, args: TemplatePushArguments) => {
         process.exit(1)
       })
   } else {
+    spinner.stop()
     log('No templates were found in this directory', { error: true })
     process.exit(1)
   }
@@ -135,16 +154,32 @@ const push = (serverToken: string, args: TemplatePushArguments) => {
  * @returns An object containing all locally stored templates
  */
 const createManifest = (path: string) => {
+  const templatesPath = join(path, 'templates')
+  const layoutsPath = join(path, 'layouts')
+
+  return parseDirectory('layouts', layoutsPath).concat(
+    parseDirectory('templates', templatesPath)
+  )
+}
+
+/**
+ * Gathers and parses directory of templates or layouts
+ * @returns An object containing locally stored templates or layouts
+ */
+const parseDirectory = (type: string, path: string) => {
   let manifest: TemplateManifest[] = []
-  const dirs = readdirSync(path).filter(f =>
+
+  const list = readdirSync(path).filter(f =>
     statSync(join(path, f)).isDirectory()
   )
 
-  dirs.forEach(dir => {
+  list.forEach(dir => {
     const metaPath = join(path, join(dir, 'meta.json'))
     const htmlPath = join(path, join(dir, 'content.html'))
     const textPath = join(path, join(dir, 'content.txt'))
     let template: TemplateManifest = {}
+
+    template.TemplateType = type === 'templates' ? 'Standard' : 'Layout'
 
     if (existsSync(metaPath)) {
       template.HtmlBody = existsSync(htmlPath)
@@ -169,7 +204,12 @@ const createManifest = (path: string) => {
  */
 const printReview = (review: TemplatePushReview) => {
   const { files, added, modified } = review
-  const head = [chalk.gray('Type'), chalk.gray('Name'), chalk.gray('Alias')]
+  const head = [
+    chalk.gray('Change'),
+    chalk.gray('Name'),
+    chalk.gray('Alias'),
+    chalk.gray('Type'),
+  ]
 
   log(table([head, ...files], { border: getBorderCharacters('norc') }))
 
