@@ -16,7 +16,7 @@ module.exports = {
     'no-console': 'off',
     eqeqeq: ['error', 'always'],
     'linebreak-style': ['error', 'unix'],
-    '@typescript-eslint/indent': ['error', 2],
+    '@typescript-eslint/indent': 'off',
     '@typescript-eslint/member-delimiter-style': [
       'error',
       { multiline: { delimiter: 'none' } },
