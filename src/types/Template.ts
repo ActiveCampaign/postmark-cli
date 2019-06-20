@@ -5,7 +5,7 @@ export interface TemplateManifest {
   TextBody?: string
   Alias?: string
   New?: boolean
-  TemplateType?: string
+  TemplateType: string
   LayoutTemplate?: string | null
 }
 
@@ -37,9 +37,8 @@ export interface TemplatePushResults {
 }
 
 export interface TemplatePushReview {
-  files: any[]
-  added: number
-  modified: number
+  layouts: any[]
+  templates: any[]
 }
 
 export interface ProcessTemplatesOptions {

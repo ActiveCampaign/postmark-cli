@@ -100,13 +100,25 @@ const push = (serverToken: string, args: TemplatePushArguments) => {
         // Compare local templates with server
         manifest.forEach(template => {
           template.New = !find(response.Templates, { Alias: template.Alias })
-          template.New ? review.added++ : review.modified++
-          review.files.push([
+
+          let reviewData = [
             template.New ? chalk.green('Added') : chalk.yellow('Modified'),
             template.Name,
             template.Alias,
-            template.TemplateType === 'Standard' ? 'Template' : 'Layout',
-          ])
+          ]
+
+          if (template.TemplateType === 'Standard') {
+            // Add layout template column
+            reviewData.push(
+              template.LayoutTemplate
+                ? template.LayoutTemplate
+                : chalk.gray('None')
+            )
+
+            review.templates.push(reviewData)
+          } else {
+            review.layouts.push(reviewData)
+          }
         })
 
         spinner.stop()
@@ -125,7 +137,7 @@ const push = (serverToken: string, args: TemplatePushArguments) => {
             type: 'confirm',
             name: 'confirm',
             default: false,
-            message: `Are you sure you want to push these templates to Postmark?`,
+            message: `Would you like to proceed?`,
           },
         ]).then((answer: any) => {
           if (answer.confirm) {
@@ -212,33 +224,46 @@ const parseDirectory = (type: string, path: string) => {
  * Show which templates will change after the publish
  */
 const printReview = (review: TemplatePushReview) => {
-  const { files, added, modified } = review
-  const head = [
-    chalk.gray('Change'),
-    chalk.gray('Name'),
-    chalk.gray('Alias'),
-    chalk.gray('Type'),
-  ]
+  const { templates, layouts } = review
 
-  log(table([head, ...files], { border: getBorderCharacters('norc') }))
+  // Table headers
+  const header = [chalk.gray('Change'), chalk.gray('Name'), chalk.gray('Alias')]
+  const templatesHeader = [...header, chalk.gray('Layout used')]
 
-  if (added > 0) {
+  // Labels
+  const templatesLabel =
+    templates.length > 0
+      ? `${templates.length} ${pluralize(
+          templates.length,
+          'template',
+          'templates'
+        )}`
+      : ''
+  const layoutsLabel =
+    layouts.length > 0
+      ? `${layouts.length} ${pluralize(layouts.length, 'layout', 'layouts')}`
+      : ''
+
+  // Log template and layout files
+  if (templates.length > 0) {
+    log(`\n${templatesLabel}`)
     log(
-      `${added} ${pluralize(added, 'template', 'templates')} will be added.`,
-      { color: 'green' }
+      table([templatesHeader, ...templates], {
+        border: getBorderCharacters('norc'),
+      })
     )
   }
-
-  if (modified > 0) {
-    log(
-      `${modified} ${pluralize(
-        modified,
-        'template',
-        'templates'
-      )} will be modified.`,
-      { color: 'yellow' }
-    )
+  if (layouts.length > 0) {
+    log(`\n${layoutsLabel}`)
+    log(table([header, ...layouts], { border: getBorderCharacters('norc') }))
   }
+
+  // Log summary
+  log(
+    `${templatesLabel}${
+      templates.length > 0 && layouts.length > 0 ? ' and ' : ''
+    }${layoutsLabel} will be pushed to Postmark.`
+  )
 }
 
 /**
@@ -301,26 +326,19 @@ const pushComplete = (
   // Log any errors to the console
   if (!success) {
     spinner.stop()
-    log(`\n${template.Name}: ${response.toString()}`, { error: true })
+    log(`\n${template.Alias}: ${response.toString()}`, { error: true })
     spinner.start()
   }
 
   if (completed === total) {
     spinner.stop()
 
-    log(
-      `All finished! ${results.success} ${pluralize(
-        results.success,
-        'template was',
-        'templates were'
-      )} pushed to Postmark.`,
-      { color: 'green' }
-    )
+    log('✅ All finished!', { color: 'green' })
 
     // Show failures
     if (results.failed) {
       log(
-        `Failed to push ${results.failed} ${pluralize(
+        `⚠️ Failed to push ${results.failed} ${pluralize(
           results.failed,
           'template',
           'templates'
@@ -337,7 +355,6 @@ let results: TemplatePushResults = {
 }
 
 let review: TemplatePushReview = {
-  files: [],
-  added: 0,
-  modified: 0,
+  layouts: [],
+  templates: [],
 }

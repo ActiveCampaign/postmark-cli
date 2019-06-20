@@ -24,7 +24,7 @@ export const pluralize = (
   count: number,
   singular: string,
   plural: string
-): string => (count > 1 ? plural : singular)
+): string => (count > 1 || count === 0 ? plural : singular)
 
 /**
  * Log stuff to the console
