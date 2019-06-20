@@ -3,6 +3,7 @@ import 'mocha'
 import execa from 'execa'
 import * as fs from 'fs-extra'
 import { DirectoryTree } from 'directory-tree'
+import { join } from 'path'
 
 const dirTree = require('directory-tree')
 import { serverToken, CLICommand, TestDataFolder } from './shared'
@@ -30,7 +31,7 @@ describe('Templates command', () => {
     })
 
     it('console out', async () => {
-      const templateFolders = dirTree(dataFolder)
+      const templateFolders = dirTree(join(dataFolder, 'templates'))
       const files = templateFolders.children[0].children
       const file: DirectoryTree = files.find((f: DirectoryTree) => {
         return f.path.includes('txt')
@@ -44,7 +45,7 @@ describe('Templates command', () => {
     })
 
     it('file content', async () => {
-      let templateFolders = dirTree(dataFolder)
+      let templateFolders = dirTree(join(dataFolder, 'templates'))
       let files = templateFolders.children[0].children
       let file: DirectoryTree = files.find((f: DirectoryTree) => {
         return f.path.includes('txt')
@@ -57,7 +58,7 @@ describe('Templates command', () => {
       fs.removeSync(dataFolder)
       await execa(CLICommand, pullCommandParameters, options)
 
-      templateFolders = dirTree(dataFolder)
+      templateFolders = dirTree(join(dataFolder, 'templates'))
       files = templateFolders.children[0].children
       file = files.find((f: DirectoryTree) => {
         return f.path.includes('txt')
