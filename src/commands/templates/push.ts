@@ -169,19 +169,26 @@ const createManifest = (path: string) => {
 const parseDirectory = (type: string, path: string) => {
   let manifest: TemplateManifest[] = []
 
+  // Do not parse if directory does not exist
+  if (!existsSync(path)) return manifest
+
+  // Get top level directory names
   const list = readdirSync(path).filter(f =>
     statSync(join(path, f)).isDirectory()
   )
 
+  // Parse each directory
   list.forEach(dir => {
     const metaPath = join(path, join(dir, 'meta.json'))
     const htmlPath = join(path, join(dir, 'content.html'))
     const textPath = join(path, join(dir, 'content.txt'))
-    let template: TemplateManifest = {}
+    let template: TemplateManifest = {
+      TemplateType: type === 'templates' ? 'Standard' : 'Layout',
+    }
 
-    template.TemplateType = type === 'templates' ? 'Standard' : 'Layout'
-
+    // Check if meta file exists
     if (existsSync(metaPath)) {
+      // Read HTML and Text content from files
       template.HtmlBody = existsSync(htmlPath)
         ? readFileSync(htmlPath, 'utf-8')
         : ''
@@ -189,7 +196,9 @@ const parseDirectory = (type: string, path: string) => {
         ? readFileSync(textPath, 'utf-8')
         : ''
 
+      // Ensure HTML body or Text content exists
       if (template.HtmlBody !== '' || template.TextBody !== '') {
+        // Assign contents of meta.json to object
         template = Object.assign(template, readJsonSync(metaPath))
         manifest.push(template)
       }
