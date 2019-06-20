@@ -205,9 +205,13 @@ const saveTemplate = (outputDir: string, template: Template) => {
       LayoutTemplate: template.LayoutTemplate,
     }),
   }
+
   outputFileSync(join(path, 'meta.json'), JSON.stringify(meta, null, 2))
 }
 
+/**
+ * Creates empty template and layout directories
+ */
 const createDirectories = (outputDir: string) => {
   ensureDirSync(untildify(join(outputDir, 'templates')))
   ensureDirSync(untildify(join(outputDir, 'layouts')))
