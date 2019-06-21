@@ -24,6 +24,8 @@ export interface ListTemplate {
   TemplateId: number
   Name: string
   Alias?: string | null
+  TemplateType: string
+  LayoutTemplate: string | null
 }
 
 export interface Templates {

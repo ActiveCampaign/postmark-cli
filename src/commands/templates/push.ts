@@ -19,6 +19,7 @@ import {
   TemplatePushResults,
   TemplatePushReview,
   TemplatePushArguments,
+  Templates,
 } from '../../types'
 import { pluralize, log, validateToken } from '../../utils'
 
@@ -97,29 +98,7 @@ const push = (serverToken: string, args: TemplatePushArguments) => {
     client
       .getTemplates()
       .then(response => {
-        // Compare local templates with server
-        manifest.forEach(template => {
-          template.New = !find(response.Templates, { Alias: template.Alias })
-
-          let reviewData = [
-            template.New ? chalk.green('Added') : chalk.yellow('Modified'),
-            template.Name,
-            template.Alias,
-          ]
-
-          if (template.TemplateType === 'Standard') {
-            // Add layout template column
-            reviewData.push(
-              template.LayoutTemplate
-                ? template.LayoutTemplate
-                : chalk.gray('None')
-            )
-
-            review.templates.push(reviewData)
-          } else {
-            review.layouts.push(reviewData)
-          }
-        })
+        compareTemplates(response, manifest)
 
         spinner.stop()
         printReview(review)
@@ -137,7 +116,7 @@ const push = (serverToken: string, args: TemplatePushArguments) => {
             type: 'confirm',
             name: 'confirm',
             default: false,
-            message: `Would you like to proceed?`,
+            message: `Would you like to continue?`,
           },
         ]).then((answer: any) => {
           if (answer.confirm) {
@@ -156,30 +135,77 @@ const push = (serverToken: string, args: TemplatePushArguments) => {
       })
   } else {
     spinner.stop()
-    log('No templates were found in this directory', { error: true })
+    log('No templates or layouts were found.', { error: true })
     process.exit(1)
   }
 }
 
 /**
- * Gather up templates on the file system
- * @returns An object containing all locally stored templates
+ * Compare templates on server against local
  */
-const createManifest = (path: string) => {
-  const templatesPath = join(path, 'templates')
-  const layoutsPath = join(path, 'layouts')
+const compareTemplates = (
+  response: Templates,
+  manifest: TemplateManifest[]
+): void => {
+  // Iterate through manifest
+  manifest.forEach(template => {
+    // See if this local template exists on the server
+    const match = find(response.Templates, { Alias: template.Alias })
+    template.New = !match
 
-  return parseDirectory('layouts', layoutsPath).concat(
-    parseDirectory('templates', templatesPath)
-  )
+    let reviewData = [
+      template.New ? chalk.green('Added') : chalk.yellow('Modified'),
+      template.Name,
+      template.Alias,
+    ]
+
+    if (template.TemplateType === 'Standard') {
+      // Add layout used column
+      reviewData.push(
+        layoutUsedLabel(
+          template.LayoutTemplate,
+          match ? match.LayoutTemplate : template.LayoutTemplate
+        )
+      )
+
+      review.templates.push(reviewData)
+    } else {
+      review.layouts.push(reviewData)
+    }
+  })
 }
 
 /**
- * Gathers and parses directory of templates or layouts
- * @returns An object containing locally stored templates or layouts
+ * Render the "Layout used" column for Standard templates
  */
-const parseDirectory = (type: string, path: string) => {
+const layoutUsedLabel = (localLayout: any, serverLayout: any): string => {
+  let label: string = localLayout ? localLayout : chalk.gray('None')
+
+  // If layout template on server doesn't match local template
+  if (localLayout !== serverLayout) {
+    serverLayout = serverLayout ? serverLayout : 'None'
+
+    // Append old server layout to label
+    label += chalk.red(`  ✘ ${serverLayout}`)
+  }
+
+  return label
+}
+
+/**
+ * Gather up templates on the file system
+ */
+const createManifest = (path: string): TemplateManifest[] => [
+  ...parseDirectory('layouts', path),
+  ...parseDirectory('templates', path),
+]
+
+/**
+ * Gathers and parses directory of templates or layouts
+ */
+const parseDirectory = (type: string, rootPath: string) => {
   let manifest: TemplateManifest[] = []
+  const path = join(rootPath, type)
 
   // Do not parse if directory does not exist
   if (!existsSync(path)) return manifest
@@ -196,6 +222,7 @@ const parseDirectory = (type: string, path: string) => {
     const textPath = join(path, join(dir, 'content.txt'))
     let template: TemplateManifest = {
       TemplateType: type === 'templates' ? 'Standard' : 'Layout',
+      ...(type === 'templates' && { LayoutTemplate: null }),
     }
 
     // Check if meta file exists
@@ -260,9 +287,11 @@ const printReview = (review: TemplatePushReview) => {
 
   // Log summary
   log(
-    `${templatesLabel}${
-      templates.length > 0 && layouts.length > 0 ? ' and ' : ''
-    }${layoutsLabel} will be pushed to Postmark.`
+    chalk.yellow(
+      `${templatesLabel}${
+        templates.length > 0 && layouts.length > 0 ? ' and ' : ''
+      }${layoutsLabel} will be pushed to Postmark.`
+    )
   )
 }
 
