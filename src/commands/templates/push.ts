@@ -178,7 +178,10 @@ const compareTemplates = (
 /**
  * Render the "Layout used" column for Standard templates
  */
-const layoutUsedLabel = (localLayout: any, serverLayout: any): string => {
+const layoutUsedLabel = (
+  localLayout: string | null | undefined,
+  serverLayout: string | null | undefined
+): string => {
   let label: string = localLayout ? localLayout : chalk.gray('None')
 
   // If layout template on server doesn't match local template
