@@ -15,8 +15,6 @@ export interface Template extends TemplateManifest {
   AssociatedServerId?: number
   Active: boolean
   Alias: string
-  TemplateType: string
-  LayoutTemplate: string | null
 }
 
 export interface ListTemplate {
