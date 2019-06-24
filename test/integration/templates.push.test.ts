@@ -39,9 +39,7 @@ describe('Templates command', () => {
 
       fs.writeFileSync(file.path, `test data ${Date.now().toString()}`, 'utf-8')
       const { stdout } = await execa(CLICommand, pushCommandParameters, options)
-      expect(stdout).to.include(
-        'All finished! 1 template was pushed to Postmark.'
-      )
+      expect(stdout).to.include('All finished!')
     })
 
     it('file content', async () => {
