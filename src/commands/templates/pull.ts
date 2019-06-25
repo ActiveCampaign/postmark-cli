@@ -69,7 +69,7 @@ const overwritePrompt = (serverToken: string, outputdirectory: string) => {
       default: false,
       message: `Are you sure you want to overwrite the files in ${outputdirectory}?`,
     },
-  ]).then((answer: { overwrite?: boolean }) => {
+  ]).then((answer: any) => {
     if (answer.overwrite) {
       return fetchTemplateList({
         sourceServer: serverToken,

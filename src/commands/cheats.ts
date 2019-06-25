@@ -48,7 +48,7 @@ const cheatInput = (hideMessage: boolean): Promise<string> =>
         choices: choices,
         message: hideMessage ? '\n' : title,
       },
-    ]).then((answer: { code?: string }) => {
+    ]).then((answer: any) => {
       return resolve(answer.code)
     })
   })

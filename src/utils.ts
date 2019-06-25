@@ -65,7 +65,7 @@ export const serverTokenPrompt = (account: boolean): Promise<string> =>
         message: `Please enter your ${tokenType} token`,
         mask: '•',
       },
-    ]).then((answer: { token?: string }) => {
+    ]).then((answer: any) => {
       const { token } = answer
 
       if (!token) {
