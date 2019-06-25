@@ -25,7 +25,7 @@ describe('Utilities', () => {
     const plural = 'templates'
 
     it('should return plural', () => {
-      expect(utils.pluralize(0, singular, plural)).to.eq(singular)
+      expect(utils.pluralize(0, singular, plural)).to.eq(plural)
       expect(utils.pluralize(2, singular, plural)).to.eq(plural)
       expect(utils.pluralize(5, singular, plural)).to.eq(plural)
       expect(utils.pluralize(10, singular, plural)).to.eq(plural)
