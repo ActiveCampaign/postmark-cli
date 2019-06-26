@@ -187,21 +187,18 @@ const createManifest = (path: string): TemplateManifest[] => {
   // Do not parse if directory does not exist
   if (!existsSync(path)) return manifest
 
-  // Get directory tree
-  const tree = dirTree(path)
-
   // Find meta files and flatten into collection
-  const list: MetaTraverse[] = traverse(tree).reduce((acc, file) => {
+  const list: MetaTraverse[] = traverse(dirTree(path)).reduce((acc, file) => {
     if (file.name === 'meta.json') acc.push(file)
     return acc
   }, [])
 
   // Parse each directory
   list.forEach(file => {
-    const { path } = file
-    const rootPath = dirname(path)
-    const htmlPath = join(rootPath, 'content.html')
-    const textPath = join(rootPath, 'content.txt')
+    const { path } = file // Path to meta file
+    const rootPath = dirname(path) // Folder path
+    const htmlPath = join(rootPath, 'content.html') // HTML path
+    const textPath = join(rootPath, 'content.txt') // Text path
 
     // Check if meta file exists
     if (existsSync(path)) {
