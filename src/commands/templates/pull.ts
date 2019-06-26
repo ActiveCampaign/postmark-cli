@@ -123,9 +123,6 @@ const processTemplates = (options: ProcessTemplatesOptions) => {
   // keep track of templates downloaded
   let totalDownloaded = 0
 
-  // Create empty template and layout directories
-  createDirectories(outputDir)
-
   // Iterate through each template and fetch content
   templates.forEach(template => {
     // Show warning if template doesn't have an alias
@@ -144,7 +141,7 @@ const processTemplates = (options: ProcessTemplatesOptions) => {
     }
 
     client
-      .getTemplate(template.TemplateId)
+      .getTemplate(template.Alias)
       .then((response: Template) => {
         requestCount++
 
@@ -178,12 +175,9 @@ const processTemplates = (options: ProcessTemplatesOptions) => {
  * @return An object containing the HTML and Text body
  */
 const saveTemplate = (outputDir: string, template: Template) => {
-  // Create the directory
-  const typePath =
-    template.TemplateType === 'Standard' ? 'templates' : 'layouts'
-  const path: string = untildify(
-    join(join(outputDir, typePath), template.Alias)
-  )
+  outputDir =
+    template.TemplateType === 'Layout' ? join(outputDir, '_layouts') : outputDir
+  const path: string = untildify(join(outputDir, template.Alias))
 
   ensureDirSync(path)
 
@@ -207,12 +201,4 @@ const saveTemplate = (outputDir: string, template: Template) => {
   }
 
   outputFileSync(join(path, 'meta.json'), JSON.stringify(meta, null, 2))
-}
-
-/**
- * Creates empty template and layout directories
- */
-const createDirectories = (outputDir: string) => {
-  ensureDirSync(untildify(join(outputDir, 'templates')))
-  ensureDirSync(untildify(join(outputDir, 'layouts')))
 }

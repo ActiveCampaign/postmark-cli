@@ -66,20 +66,6 @@ const validateDirectory = (
     return process.exit(1)
   }
 
-  // Check if path is missing templates and layouts folders
-  if (
-    !existsSync(join(rootPath, 'templates')) &&
-    !existsSync(join(rootPath, 'layouts'))
-  ) {
-    log(
-      'The "templates" and "layouts" folder do not exist in the path provided',
-      {
-        error: true,
-      }
-    )
-    return process.exit(1)
-  }
-
   return push(serverToken, args)
 }
 
@@ -199,16 +185,16 @@ const layoutUsedLabel = (
  * Gather up templates on the file system
  */
 const createManifest = (path: string): TemplateManifest[] => [
-  ...parseDirectory('layouts', path),
-  ...parseDirectory('templates', path),
+  ...parseDirectory('Layout', path),
+  ...parseDirectory('Standard', path),
 ]
 
 /**
- * Gathers and parses directory of templates or layouts
+ * Parses directory of templates or layouts
  */
-const parseDirectory = (type: string, rootPath: string) => {
+const parseDirectory = (type: 'Layout' | 'Standard', rootPath: string) => {
   let manifest: TemplateManifest[] = []
-  const path = join(rootPath, type)
+  const path = type === 'Layout' ? join(rootPath, '_layouts') : rootPath
 
   // Do not parse if directory does not exist
   if (!existsSync(path)) return manifest
@@ -224,8 +210,8 @@ const parseDirectory = (type: string, rootPath: string) => {
     const htmlPath = join(path, join(dir, 'content.html'))
     const textPath = join(path, join(dir, 'content.txt'))
     let template: TemplateManifest = {
-      TemplateType: type === 'templates' ? 'Standard' : 'Layout',
-      ...(type === 'templates' && { LayoutTemplate: null }),
+      TemplateType: type,
+      ...(type === 'Standard' && { LayoutTemplate: null }),
     }
 
     // Check if meta file exists
