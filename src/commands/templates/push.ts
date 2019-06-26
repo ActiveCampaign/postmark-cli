@@ -183,7 +183,6 @@ const layoutUsedLabel = (
  */
 const createManifest = (path: string): TemplateManifest[] => {
   let manifest: TemplateManifest[] = []
-  // const path = type === 'Layout' ? join(rootPath, '_layouts') : rootPath
 
   // Do not parse if directory does not exist
   if (!existsSync(path)) return manifest
@@ -196,9 +195,6 @@ const createManifest = (path: string): TemplateManifest[] => {
     if (file.name === 'meta.json') acc.push(file)
     return acc
   }, [])
-
-  // console.log(util.inspect(tree, false, null, true))
-  // console.log(util.inspect(list, false, null, true))
 
   // Parse each directory
   list.forEach(file => {
