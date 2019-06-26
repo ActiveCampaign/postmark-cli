@@ -6,64 +6,103 @@ import { DirectoryTree } from 'directory-tree'
 import { join } from 'path'
 
 const dirTree = require('directory-tree')
-import { serverToken, CLICommand, TestDataFolder } from './shared'
+import {serverToken, CLICommand, TestDataFolder, createTemplateData, deleteTemplateData} from './shared'
 
 describe('Templates command', () => {
-  const options: execa.CommonOptions = {
-    env: { POSTMARK_SERVER_TOKEN: serverToken },
-  }
+  const options: execa.CommonOptions = { env: { POSTMARK_SERVER_TOKEN: serverToken }}
   const dataFolder: string = TestDataFolder
-  const pushCommandParameters: string[] = [
-    'templates',
-    'push',
-    dataFolder,
-    '--force',
-  ]
+  const pushCommandParameters: string[] = ['templates', 'push', dataFolder, '--force']
   const pullCommandParameters: string[] = ['templates', 'pull', dataFolder]
+
+  before(async () => {
+    await deleteTemplateData()
+    return createTemplateData()
+  })
+
+  after(async () =>  {
+    await deleteTemplateData()
+  })
 
   afterEach(() => {
     fs.removeSync(dataFolder)
   })
 
   describe('Push', () => {
+    function retrieveFiles(path: string) {
+      const folderTree = dirTree(path)
+      return folderTree.children[0].children
+    }
+
     beforeEach(async () => {
       await execa(CLICommand, pullCommandParameters, options)
     })
 
-    it('console out', async () => {
-      const templateFolders = dirTree(join(dataFolder, 'templates'))
-      const files = templateFolders.children[0].children
-      const file: DirectoryTree = files.find((f: DirectoryTree) => {
-        return f.path.includes('txt')
+    describe('Templates', () => {
+      const filesPath = join(dataFolder, 'templates')
+
+      it('console out', async () => {
+        const files = retrieveFiles(filesPath)
+        const file: DirectoryTree = files.find((f: DirectoryTree) => {
+          return f.path.includes('txt')
+        })
+
+        fs.writeFileSync(file.path, `test data ${Date.now().toString()}`, 'utf-8')
+        const { stdout } = await execa(CLICommand, pushCommandParameters, options)
+        expect(stdout).to.include('All finished!')
       })
 
-      fs.writeFileSync(file.path, `test data ${Date.now().toString()}`, 'utf-8')
-      const { stdout } = await execa(CLICommand, pushCommandParameters, options)
-      expect(stdout).to.include('All finished!')
+      it('file content', async () => {
+        let files = retrieveFiles(filesPath)
+        let file: DirectoryTree = files.find((f: DirectoryTree) => {
+          return f.path.includes('txt')
+        })
+        const contentToPush: string = `test data ${Date.now().toString()}`
+
+        fs.writeFileSync(file.path, contentToPush, 'utf-8')
+        await execa(CLICommand, pushCommandParameters, options)
+
+        fs.removeSync(dataFolder)
+        await execa(CLICommand, pullCommandParameters, options)
+
+        files = retrieveFiles(filesPath)
+        file = files.find((f: DirectoryTree) => { return f.path.includes('txt') })
+
+        const content: string = fs.readFileSync(file.path).toString('utf-8')
+        expect(content).to.equal(contentToPush)
+      })
     })
 
-    it('file content', async () => {
-      let templateFolders = dirTree(join(dataFolder, 'templates'))
-      let files = templateFolders.children[0].children
-      let file: DirectoryTree = files.find((f: DirectoryTree) => {
-        return f.path.includes('txt')
+    describe('Layouts', () => {
+      const filesPath = join(dataFolder, 'layouts')
+
+      it('console out', async () => {
+        const files = retrieveFiles(filesPath)
+        const file: DirectoryTree = files.find((f: DirectoryTree) => { return f.path.includes('txt') })
+
+        fs.writeFileSync(file.path, `test data ${Date.now().toString()} {{{@content}}}`, 'utf-8')
+        const { stdout } = await execa(CLICommand, pushCommandParameters, options)
+        expect(stdout).to.include('All finished!')
       })
-      const contentToPush: string = `test data ${Date.now().toString()}`
 
-      fs.writeFileSync(file.path, contentToPush, 'utf-8')
-      await execa(CLICommand, pushCommandParameters, options)
+      it('file content', async () => {
+        let files = retrieveFiles(filesPath)
+        let file: DirectoryTree = files.find((f: DirectoryTree) => {
+          return f.path.includes('txt')
+        })
+        const contentToPush: string = `test data ${Date.now().toString()} {{{@content}}}`
 
-      fs.removeSync(dataFolder)
-      await execa(CLICommand, pullCommandParameters, options)
+        fs.writeFileSync(file.path, contentToPush, 'utf-8')
+        await execa(CLICommand, pushCommandParameters, options)
 
-      templateFolders = dirTree(join(dataFolder, 'templates'))
-      files = templateFolders.children[0].children
-      file = files.find((f: DirectoryTree) => {
-        return f.path.includes('txt')
+        fs.removeSync(dataFolder)
+        await execa(CLICommand, pullCommandParameters, options)
+
+        files = retrieveFiles(filesPath)
+        file = files.find((f: DirectoryTree) => { return f.path.includes('txt') })
+
+        const content: string = fs.readFileSync(file.path).toString('utf-8')
+        expect(content).to.equal(contentToPush)
       })
-      const content: string = fs.readFileSync(file.path).toString('utf-8')
-
-      expect(content).to.equal(contentToPush)
     })
   })
 })
