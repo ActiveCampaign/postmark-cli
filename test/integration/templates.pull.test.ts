@@ -1,14 +1,22 @@
-import {expect} from 'chai'
+import { expect } from 'chai'
 import 'mocha'
 import execa from 'execa'
 import * as fs from 'fs-extra'
-import {join} from 'path'
+import { join } from 'path'
 
 const dirTree = require('directory-tree')
-import {serverToken, CLICommand, TestDataFolder, createTemplateData, deleteTemplateData} from './shared'
+import {
+  serverToken,
+  CLICommand,
+  TestDataFolder,
+  createTemplateData,
+  deleteTemplateData,
+} from './shared'
 
 describe('Templates command', () => {
-  const options: execa.CommonOptions = { env: {POSTMARK_SERVER_TOKEN: serverToken} }
+  const options: execa.CommonOptions = {
+    env: { POSTMARK_SERVER_TOKEN: serverToken },
+  }
   const dataFolder: string = TestDataFolder
   const commandParameters: string[] = ['templates', 'pull', dataFolder]
 
@@ -17,7 +25,7 @@ describe('Templates command', () => {
     return createTemplateData()
   })
 
-  after(async () =>  {
+  after(async () => {
     await deleteTemplateData()
   })
 
@@ -32,7 +40,7 @@ describe('Templates command', () => {
     }
 
     it('console out', async () => {
-      const {stdout} = await execa(CLICommand, commandParameters, options)
+      const { stdout } = await execa(CLICommand, commandParameters, options)
       expect(stdout).to.include('All finished')
     })
 
