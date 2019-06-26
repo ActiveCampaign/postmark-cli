@@ -67,7 +67,7 @@ const overwritePrompt = (serverToken: string, outputdirectory: string) => {
       type: 'confirm',
       name: 'overwrite',
       default: false,
-      message: `Are you sure you want to overwrite the files in ${outputdirectory}?`,
+      message: `Overwrite the files in ${outputdirectory}?`,
     },
   ]).then((answer: any) => {
     if (answer.overwrite) {
@@ -195,6 +195,7 @@ const saveTemplate = (outputDir: string, template: Template) => {
     Name: template.Name,
     Alias: template.Alias,
     ...(template.Subject && { Subject: template.Subject }),
+    TemplateType: template.TemplateType,
     ...(template.TemplateType === 'Standard' && {
       LayoutTemplate: template.LayoutTemplate,
     }),

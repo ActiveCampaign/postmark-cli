@@ -69,6 +69,15 @@ export interface TemplatePushArguments {
 export interface MetaFile {
   Name: string
   Alias: string
+  TemplateType: string
   Subject?: string
   LayoutTemplate?: string | null
+}
+
+export interface MetaTraverse {
+  path: string
+  name: string
+  size: number
+  extension: string
+  type: string
 }

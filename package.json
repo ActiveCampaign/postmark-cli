@@ -4,6 +4,7 @@
   "description": "A CLI tool for managing templates, sending emails, and fetching servers on Postmark.",
   "main": "./dist/index.js",
   "dependencies": {
+    "@types/traverse": "^0.6.32",
     "chalk": "^2.4.2",
     "fs-extra": "^7.0.1",
     "inquirer": "^6.2.1",
@@ -12,6 +13,7 @@
     "postmark": "^2.2.7",
     "request": "^2.88.0",
     "table": "^5.2.0",
+    "traverse": "^0.6.6",
     "untildify": "^4.0.0",
     "yargonaut": "^1.1.4",
     "yargs": "^13.2.4"

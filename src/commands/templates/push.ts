@@ -1,18 +1,13 @@
 import chalk from 'chalk'
 import ora from 'ora'
-import { join } from 'path'
+import { join, dirname } from 'path'
 import { find } from 'lodash'
 import { prompt } from 'inquirer'
+import traverse from 'traverse'
 import { table, getBorderCharacters } from 'table'
 import untildify from 'untildify'
-import {
-  readJsonSync,
-  readFileSync,
-  readdirSync,
-  existsSync,
-  statSync,
-} from 'fs-extra'
-
+import { readJsonSync, readFileSync, existsSync } from 'fs-extra'
+import dirTree from 'directory-tree'
 import { ServerClient } from 'postmark'
 import {
   TemplateManifest,
@@ -20,6 +15,8 @@ import {
   TemplatePushReview,
   TemplatePushArguments,
   Templates,
+  MetaTraverse,
+  MetaFile,
 } from '../../types'
 import { pluralize, log, validateToken } from '../../utils'
 
@@ -182,54 +179,49 @@ const layoutUsedLabel = (
 }
 
 /**
- * Gather up templates on the file system
- */
-const createManifest = (path: string): TemplateManifest[] => [
-  ...parseDirectory('Layout', path),
-  ...parseDirectory('Standard', path),
-]
-
-/**
  * Parses directory of templates or layouts
  */
-const parseDirectory = (type: 'Layout' | 'Standard', rootPath: string) => {
+const createManifest = (path: string): TemplateManifest[] => {
   let manifest: TemplateManifest[] = []
-  const path = type === 'Layout' ? join(rootPath, '_layouts') : rootPath
+  // const path = type === 'Layout' ? join(rootPath, '_layouts') : rootPath
 
   // Do not parse if directory does not exist
   if (!existsSync(path)) return manifest
 
-  // Get top level directory names
-  const list = readdirSync(path).filter(f =>
-    statSync(join(path, f)).isDirectory()
-  )
+  // Get directory tree
+  const tree = dirTree(path)
+
+  // Find meta files and flatten into collection
+  const list: MetaTraverse[] = traverse(tree).reduce((acc, file) => {
+    if (file.name === 'meta.json') acc.push(file)
+    return acc
+  }, [])
+
+  // console.log(util.inspect(tree, false, null, true))
+  // console.log(util.inspect(list, false, null, true))
 
   // Parse each directory
-  list.forEach(dir => {
-    const metaPath = join(path, join(dir, 'meta.json'))
-    const htmlPath = join(path, join(dir, 'content.html'))
-    const textPath = join(path, join(dir, 'content.txt'))
-    let template: TemplateManifest = {
-      TemplateType: type,
-      ...(type === 'Standard' && { LayoutTemplate: null }),
-    }
+  list.forEach(file => {
+    const { path } = file
+    const rootPath = dirname(path)
+    const htmlPath = join(rootPath, 'content.html')
+    const textPath = join(rootPath, 'content.txt')
 
     // Check if meta file exists
-    if (existsSync(metaPath)) {
-      // Read HTML and Text content from files
-      template.HtmlBody = existsSync(htmlPath)
+    if (existsSync(path)) {
+      const metaFile: MetaFile = readJsonSync(path)
+      const htmlFile: string = existsSync(htmlPath)
         ? readFileSync(htmlPath, 'utf-8')
         : ''
-      template.TextBody = existsSync(textPath)
+      const textFile: string = existsSync(textPath)
         ? readFileSync(textPath, 'utf-8')
         : ''
 
-      // Ensure HTML body or Text content exists
-      if (template.HtmlBody !== '' || template.TextBody !== '') {
-        // Assign contents of meta.json to object
-        template = Object.assign(template, readJsonSync(metaPath))
-        manifest.push(template)
-      }
+      manifest.push({
+        HtmlBody: htmlFile,
+        TextBody: textFile,
+        ...metaFile,
+      })
     }
   })
 
