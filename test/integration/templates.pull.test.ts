@@ -34,8 +34,13 @@ describe('Templates command', () => {
   })
 
   describe('Pull', () => {
-    function retrieveFiles(path: string) {
-      const folderTree = dirTree(path)
+    function retrieveFiles(path: string, excludeLayouts?: boolean) {
+      const folderTree = dirTree(
+        path,
+        excludeLayouts && {
+          exclude: /_layouts$/,
+        }
+      )
       return folderTree.children[0].children
     }
 
@@ -45,18 +50,17 @@ describe('Templates command', () => {
     })
 
     describe('Templates', () => {
-      const filesPath = join(dataFolder, 'templates')
-
       it('templates', async () => {
         await execa(CLICommand, commandParameters, options)
-        const folderTree = dirTree(filesPath)
+        const folderTree = dirTree(dataFolder, {
+          exclude: /_layouts$/,
+        })
         expect(folderTree.children.length).to.be.gt(0)
       })
 
       it('single template - file names', async () => {
         await execa(CLICommand, commandParameters, options)
-        const files = retrieveFiles(filesPath)
-
+        const files = retrieveFiles(dataFolder, true)
         const names: string[] = files.map((f: any) => {
           return f.name
         })
@@ -66,7 +70,7 @@ describe('Templates command', () => {
 
       it('single template files - none empty', async () => {
         await execa(CLICommand, commandParameters, options)
-        const files = retrieveFiles(filesPath)
+        const files = retrieveFiles(dataFolder)
 
         let result = files.findIndex((f: any) => {
           return f.size <= 0
@@ -76,7 +80,7 @@ describe('Templates command', () => {
     })
 
     describe('Layouts', () => {
-      const filesPath = join(dataFolder, 'layouts')
+      const filesPath = join(dataFolder, '_layouts')
 
       it('layouts', async () => {
         await execa(CLICommand, commandParameters, options)

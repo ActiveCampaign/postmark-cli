@@ -41,8 +41,13 @@ describe('Templates command', () => {
   })
 
   describe('Push', () => {
-    function retrieveFiles(path: string) {
-      const folderTree = dirTree(path)
+    function retrieveFiles(path: string, excludeLayouts?: boolean) {
+      const folderTree = dirTree(
+        path,
+        excludeLayouts && {
+          exclude: /_layouts$/,
+        }
+      )
       return folderTree.children[0].children
     }
 
@@ -51,10 +56,8 @@ describe('Templates command', () => {
     })
 
     describe('Templates', () => {
-      const filesPath = join(dataFolder, 'templates')
-
       it('console out', async () => {
-        const files = retrieveFiles(filesPath)
+        const files = retrieveFiles(dataFolder, true)
         const file: DirectoryTree = files.find((f: DirectoryTree) => {
           return f.path.includes('txt')
         })
@@ -73,7 +76,7 @@ describe('Templates command', () => {
       })
 
       it('file content', async () => {
-        let files = retrieveFiles(filesPath)
+        let files = retrieveFiles(dataFolder, true)
         let file: DirectoryTree = files.find((f: DirectoryTree) => {
           return f.path.includes('txt')
         })
@@ -85,7 +88,7 @@ describe('Templates command', () => {
         fs.removeSync(dataFolder)
         await execa(CLICommand, pullCommandParameters, options)
 
-        files = retrieveFiles(filesPath)
+        files = retrieveFiles(dataFolder, true)
         file = files.find((f: DirectoryTree) => {
           return f.path.includes('txt')
         })
@@ -96,7 +99,7 @@ describe('Templates command', () => {
     })
 
     describe('Layouts', () => {
-      const filesPath = join(dataFolder, 'layouts')
+      const filesPath = join(dataFolder, '_layouts')
 
       it('console out', async () => {
         const files = retrieveFiles(filesPath)
