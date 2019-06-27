@@ -15,7 +15,7 @@ import {
   TemplatePushReview,
   TemplatePushArguments,
   Templates,
-  MetaTraverse,
+  MetaFileTraverse,
   MetaFile,
 } from '../../types'
 import { pluralize, log, validateToken } from '../../utils'
@@ -83,25 +83,19 @@ const push = (serverToken: string, args: TemplatePushArguments) => {
       .then(response => {
         compareTemplates(response, manifest)
 
+        // Show which templates are changing
         spinner.stop()
         printReview(review)
 
-        // Push templates
+        // Push templates if force arg is present
         if (force) {
           spinner.text = 'Pushing templates to Postmark...'
           spinner.start()
           return pushTemplates(spinner, client, manifest)
         }
 
-        // User confirmation before pushing
-        prompt([
-          {
-            type: 'confirm',
-            name: 'confirm',
-            default: false,
-            message: `Would you like to continue?`,
-          },
-        ]).then((answer: any) => {
+        // Ask for user confirmation
+        confirmation().then(answer => {
           if (answer.confirm) {
             spinner.text = 'Pushing templates to Postmark...'
             spinner.start()
@@ -122,6 +116,23 @@ const push = (serverToken: string, args: TemplatePushArguments) => {
     process.exit(1)
   }
 }
+
+/**
+ * Ask user to confirm the push
+ */
+const confirmation = (): Promise<any> =>
+  new Promise<string>((resolve, reject) => {
+    prompt([
+      {
+        type: 'confirm',
+        name: 'confirm',
+        default: false,
+        message: `Would you like to continue?`,
+      },
+    ])
+      .then((answer: any) => resolve(answer))
+      .catch((err: any) => reject(err))
+  })
 
 /**
  * Compare templates on server against local
@@ -179,47 +190,63 @@ const layoutUsedLabel = (
 }
 
 /**
- * Parses directory of templates or layouts
+ * Parses templates folder and files
  */
 const createManifest = (path: string): TemplateManifest[] => {
   let manifest: TemplateManifest[] = []
 
-  // Do not parse if directory does not exist
+  // Return empty array if path does not exist
   if (!existsSync(path)) return manifest
 
   // Find meta files and flatten into collection
-  const list: MetaTraverse[] = traverse(dirTree(path)).reduce((acc, file) => {
-    if (file.name === 'meta.json') acc.push(file)
-    return acc
-  }, [])
+  const list: MetaFileTraverse[] = FindMetaFiles(path)
 
   // Parse each directory
   list.forEach(file => {
-    const { path } = file // Path to meta file
-    const rootPath = dirname(path) // Folder path
-    const htmlPath = join(rootPath, 'content.html') // HTML path
-    const textPath = join(rootPath, 'content.txt') // Text path
-
-    // Check if meta file exists
-    if (existsSync(path)) {
-      const metaFile: MetaFile = readJsonSync(path)
-      const htmlFile: string = existsSync(htmlPath)
-        ? readFileSync(htmlPath, 'utf-8')
-        : ''
-      const textFile: string = existsSync(textPath)
-        ? readFileSync(textPath, 'utf-8')
-        : ''
-
-      manifest.push({
-        HtmlBody: htmlFile,
-        TextBody: textFile,
-        ...metaFile,
-      })
-    }
+    const item = createManifestItem(file)
+    if (item) manifest.push(item)
   })
 
   return manifest
 }
+
+/**
+ * Gathers the template's content and metadata based on the metadata file location
+ */
+const createManifestItem = (file: any): MetaFile | null => {
+  const { path } = file // Path to meta file
+  const rootPath = dirname(path) // Folder path
+  const htmlPath = join(rootPath, 'content.html') // HTML path
+  const textPath = join(rootPath, 'content.txt') // Text path
+
+  // Check if meta file exists
+  if (existsSync(path)) {
+    const metaFile: MetaFile = readJsonSync(path)
+    const htmlFile: string = existsSync(htmlPath)
+      ? readFileSync(htmlPath, 'utf-8')
+      : ''
+    const textFile: string = existsSync(textPath)
+      ? readFileSync(textPath, 'utf-8')
+      : ''
+
+    return {
+      HtmlBody: htmlFile,
+      TextBody: textFile,
+      ...metaFile,
+    }
+  }
+
+  return null
+}
+
+/**
+ * Searches for all metadata files and flattens into a collection
+ */
+const FindMetaFiles = (path: string): MetaFileTraverse[] =>
+  traverse(dirTree(path)).reduce((acc, file) => {
+    if (file.name === 'meta.json') acc.push(file)
+    return acc
+  }, [])
 
 /**
  * Show which templates will change after the publish
@@ -277,9 +304,9 @@ const pushTemplates = (
   client: any,
   templates: TemplateManifest[]
 ) => {
-  templates.forEach(template => {
+  templates.forEach(template =>
     pushTemplate(spinner, client, template, templates.length)
-  })
+  )
 }
 
 /**
@@ -290,9 +317,9 @@ const pushTemplate = (
   client: any,
   template: TemplateManifest,
   total: number
-) => {
+): void => {
   if (template.New) {
-    client
+    return client
       .createTemplate(template)
       .then((response: object) =>
         pushComplete(true, response, template, spinner, total)
@@ -300,16 +327,16 @@ const pushTemplate = (
       .catch((response: object) =>
         pushComplete(false, response, template, spinner, total)
       )
-  } else {
-    client
-      .editTemplate(template.Alias, template)
-      .then((response: object) =>
-        pushComplete(true, response, template, spinner, total)
-      )
-      .catch((response: object) =>
-        pushComplete(false, response, template, spinner, total)
-      )
   }
+
+  return client
+    .editTemplate(template.Alias, template)
+    .then((response: object) =>
+      pushComplete(true, response, template, spinner, total)
+    )
+    .catch((response: object) =>
+      pushComplete(false, response, template, spinner, total)
+    )
 }
 
 /**

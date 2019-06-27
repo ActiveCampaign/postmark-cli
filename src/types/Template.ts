@@ -72,9 +72,11 @@ export interface MetaFile {
   TemplateType: string
   Subject?: string
   LayoutTemplate?: string | null
+  HtmlBody?: string
+  TextBody?: string
 }
 
-export interface MetaTraverse {
+export interface MetaFileTraverse {
   path: string
   name: string
   size: number
