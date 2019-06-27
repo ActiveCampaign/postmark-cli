@@ -6,6 +6,7 @@
   "dependencies": {
     "@types/traverse": "^0.6.32",
     "chalk": "^2.4.2",
+    "directory-tree": "^2.2.3",
     "fs-extra": "^7.0.1",
     "inquirer": "^6.2.1",
     "lodash": "^4.17.11",
@@ -32,7 +33,6 @@
     "@typescript-eslint/eslint-plugin": "^1.6.0",
     "@typescript-eslint/parser": "^1.6.0",
     "chai": "^4.1.2",
-    "directory-tree": "^2.2.3",
     "eslint": "^5.16.0",
     "execa": "^1.0.0",
     "mocha": "^5.2.0",
