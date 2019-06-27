@@ -10,6 +10,7 @@ import {
   Template,
   TemplateListOptions,
   TemplatePullArguments,
+  MetaFile,
 } from '../../types'
 import { log, validateToken, pluralize } from '../../utils'
 
@@ -66,9 +67,9 @@ const overwritePrompt = (serverToken: string, outputdirectory: string) => {
       type: 'confirm',
       name: 'overwrite',
       default: false,
-      message: `Are you sure you want to overwrite the files in ${outputdirectory}?`,
+      message: `Overwrite the files in ${outputdirectory}?`,
     },
-  ]).then((answer: { overwrite?: boolean }) => {
+  ]).then((answer: any) => {
     if (answer.overwrite) {
       return fetchTemplateList({
         sourceServer: serverToken,
@@ -140,7 +141,7 @@ const processTemplates = (options: ProcessTemplatesOptions) => {
     }
 
     client
-      .getTemplate(template.TemplateId)
+      .getTemplate(template.Alias)
       .then((response: Template) => {
         requestCount++
 
@@ -174,9 +175,8 @@ const processTemplates = (options: ProcessTemplatesOptions) => {
  * @return An object containing the HTML and Text body
  */
 const saveTemplate = (outputDir: string, template: Template) => {
-  template = pruneTemplateObject(template)
-
-  // Create the directory
+  outputDir =
+    template.TemplateType === 'Layout' ? join(outputDir, '_layouts') : outputDir
   const path: string = untildify(join(outputDir, template.Alias))
 
   ensureDirSync(path)
@@ -191,21 +191,15 @@ const saveTemplate = (outputDir: string, template: Template) => {
     outputFileSync(join(path, 'content.txt'), template.TextBody)
   }
 
-  // Create metadata JSON
-  delete template.HtmlBody
-  delete template.TextBody
+  const meta: MetaFile = {
+    Name: template.Name,
+    Alias: template.Alias,
+    ...(template.Subject && { Subject: template.Subject }),
+    TemplateType: template.TemplateType,
+    ...(template.TemplateType === 'Standard' && {
+      LayoutTemplate: template.LayoutTemplate,
+    }),
+  }
 
-  outputFileSync(join(path, 'meta.json'), JSON.stringify(template, null, 2))
-}
-
-/**
- * Remove unneeded fields on the template object
- * @returns the pruned object
- */
-const pruneTemplateObject = (template: Template) => {
-  delete template.AssociatedServerId
-  delete template.Active
-  delete template.TemplateId
-
-  return template
+  outputFileSync(join(path, 'meta.json'), JSON.stringify(meta, null, 2))
 }

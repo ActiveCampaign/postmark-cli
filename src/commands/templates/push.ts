@@ -1,24 +1,22 @@
 import chalk from 'chalk'
 import ora from 'ora'
-import { join } from 'path'
+import { join, dirname } from 'path'
 import { find } from 'lodash'
 import { prompt } from 'inquirer'
+import traverse from 'traverse'
 import { table, getBorderCharacters } from 'table'
 import untildify from 'untildify'
-import {
-  readJsonSync,
-  readFileSync,
-  readdirSync,
-  existsSync,
-  statSync,
-} from 'fs-extra'
-
+import { readJsonSync, readFileSync, existsSync } from 'fs-extra'
+import dirTree from 'directory-tree'
 import { ServerClient } from 'postmark'
 import {
   TemplateManifest,
   TemplatePushResults,
   TemplatePushReview,
   TemplatePushArguments,
+  Templates,
+  MetaFileTraverse,
+  MetaFile,
 } from '../../types'
 import { pluralize, log, validateToken } from '../../utils'
 
@@ -57,8 +55,11 @@ const validateDirectory = (
   serverToken: string,
   args: TemplatePushArguments
 ) => {
-  if (!existsSync(untildify(args.templatesdirectory))) {
-    log('Could not find the template directory provided', { error: true })
+  const rootPath: string = untildify(args.templatesdirectory)
+
+  // Check if path exists
+  if (!existsSync(rootPath)) {
+    log('The provided path does not exist', { error: true })
     return process.exit(1)
   }
 
@@ -80,36 +81,21 @@ const push = (serverToken: string, args: TemplatePushArguments) => {
     client
       .getTemplates()
       .then(response => {
-        // Compare local templates with server
-        manifest.forEach(template => {
-          template.New = !find(response.Templates, { Alias: template.Alias })
-          template.New ? review.added++ : review.modified++
-          review.files.push([
-            template.New ? chalk.green('Added') : chalk.yellow('Modified'),
-            template.Name,
-            template.Alias,
-          ])
-        })
+        compareTemplates(response, manifest)
 
+        // Show which templates are changing
         spinner.stop()
         printReview(review)
 
-        // Push templates
+        // Push templates if force arg is present
         if (force) {
           spinner.text = 'Pushing templates to Postmark...'
           spinner.start()
           return pushTemplates(spinner, client, manifest)
         }
 
-        // User confirmation before pushing
-        prompt([
-          {
-            type: 'confirm',
-            name: 'confirm',
-            default: false,
-            message: `Are you sure you want to push these templates to Postmark?`,
-          },
-        ]).then((answer: any) => {
+        // Ask for user confirmation
+        confirmation().then(answer => {
           if (answer.confirm) {
             spinner.text = 'Pushing templates to Postmark...'
             spinner.start()
@@ -125,71 +111,189 @@ const push = (serverToken: string, args: TemplatePushArguments) => {
         process.exit(1)
       })
   } else {
-    log('No templates were found in this directory', { error: true })
+    spinner.stop()
+    log('No templates or layouts were found.', { error: true })
     process.exit(1)
   }
 }
 
 /**
- * Gather up templates on the file system
- * @returns An object containing all locally stored templates
+ * Ask user to confirm the push
  */
-const createManifest = (path: string) => {
-  let manifest: TemplateManifest[] = []
-  const dirs = readdirSync(path).filter(f =>
-    statSync(join(path, f)).isDirectory()
-  )
+const confirmation = (): Promise<any> =>
+  new Promise<string>((resolve, reject) => {
+    prompt([
+      {
+        type: 'confirm',
+        name: 'confirm',
+        default: false,
+        message: `Would you like to continue?`,
+      },
+    ])
+      .then((answer: any) => resolve(answer))
+      .catch((err: any) => reject(err))
+  })
 
-  dirs.forEach(dir => {
-    const metaPath = join(path, join(dir, 'meta.json'))
-    const htmlPath = join(path, join(dir, 'content.html'))
-    const textPath = join(path, join(dir, 'content.txt'))
-    let template: TemplateManifest = {}
+/**
+ * Compare templates on server against local
+ */
+const compareTemplates = (
+  response: Templates,
+  manifest: TemplateManifest[]
+): void => {
+  // Iterate through manifest
+  manifest.forEach(template => {
+    // See if this local template exists on the server
+    const match = find(response.Templates, { Alias: template.Alias })
+    template.New = !match
 
-    if (existsSync(metaPath)) {
-      template.HtmlBody = existsSync(htmlPath)
-        ? readFileSync(htmlPath, 'utf-8')
-        : ''
-      template.TextBody = existsSync(textPath)
-        ? readFileSync(textPath, 'utf-8')
-        : ''
+    let reviewData = [
+      template.New ? chalk.green('Added') : chalk.yellow('Modified'),
+      template.Name,
+      template.Alias,
+    ]
 
-      if (template.HtmlBody !== '' || template.TextBody !== '') {
-        template = Object.assign(template, readJsonSync(metaPath))
-        manifest.push(template)
-      }
+    if (template.TemplateType === 'Standard') {
+      // Add layout used column
+      reviewData.push(
+        layoutUsedLabel(
+          template.LayoutTemplate,
+          match ? match.LayoutTemplate : template.LayoutTemplate
+        )
+      )
+
+      review.templates.push(reviewData)
+    } else {
+      review.layouts.push(reviewData)
     }
+  })
+}
+
+/**
+ * Render the "Layout used" column for Standard templates
+ */
+const layoutUsedLabel = (
+  localLayout: string | null | undefined,
+  serverLayout: string | null | undefined
+): string => {
+  let label: string = localLayout ? localLayout : chalk.gray('None')
+
+  // If layout template on server doesn't match local template
+  if (localLayout !== serverLayout) {
+    serverLayout = serverLayout ? serverLayout : 'None'
+
+    // Append old server layout to label
+    label += chalk.red(`  ✘ ${serverLayout}`)
+  }
+
+  return label
+}
+
+/**
+ * Parses templates folder and files
+ */
+const createManifest = (path: string): TemplateManifest[] => {
+  let manifest: TemplateManifest[] = []
+
+  // Return empty array if path does not exist
+  if (!existsSync(path)) return manifest
+
+  // Find meta files and flatten into collection
+  const list: MetaFileTraverse[] = FindMetaFiles(path)
+
+  // Parse each directory
+  list.forEach(file => {
+    const item = createManifestItem(file)
+    if (item) manifest.push(item)
   })
 
   return manifest
 }
 
 /**
+ * Gathers the template's content and metadata based on the metadata file location
+ */
+const createManifestItem = (file: any): MetaFile | null => {
+  const { path } = file // Path to meta file
+  const rootPath = dirname(path) // Folder path
+  const htmlPath = join(rootPath, 'content.html') // HTML path
+  const textPath = join(rootPath, 'content.txt') // Text path
+
+  // Check if meta file exists
+  if (existsSync(path)) {
+    const metaFile: MetaFile = readJsonSync(path)
+    const htmlFile: string = existsSync(htmlPath)
+      ? readFileSync(htmlPath, 'utf-8')
+      : ''
+    const textFile: string = existsSync(textPath)
+      ? readFileSync(textPath, 'utf-8')
+      : ''
+
+    return {
+      HtmlBody: htmlFile,
+      TextBody: textFile,
+      ...metaFile,
+    }
+  }
+
+  return null
+}
+
+/**
+ * Searches for all metadata files and flattens into a collection
+ */
+const FindMetaFiles = (path: string): MetaFileTraverse[] =>
+  traverse(dirTree(path)).reduce((acc, file) => {
+    if (file.name === 'meta.json') acc.push(file)
+    return acc
+  }, [])
+
+/**
  * Show which templates will change after the publish
  */
 const printReview = (review: TemplatePushReview) => {
-  const { files, added, modified } = review
-  const head = [chalk.gray('Type'), chalk.gray('Name'), chalk.gray('Alias')]
+  const { templates, layouts } = review
 
-  log(table([head, ...files], { border: getBorderCharacters('norc') }))
+  // Table headers
+  const header = [chalk.gray('Change'), chalk.gray('Name'), chalk.gray('Alias')]
+  const templatesHeader = [...header, chalk.gray('Layout used')]
 
-  if (added > 0) {
+  // Labels
+  const templatesLabel =
+    templates.length > 0
+      ? `${templates.length} ${pluralize(
+          templates.length,
+          'template',
+          'templates'
+        )}`
+      : ''
+  const layoutsLabel =
+    layouts.length > 0
+      ? `${layouts.length} ${pluralize(layouts.length, 'layout', 'layouts')}`
+      : ''
+
+  // Log template and layout files
+  if (templates.length > 0) {
+    log(`\n${templatesLabel}`)
     log(
-      `${added} ${pluralize(added, 'template', 'templates')} will be added.`,
-      { color: 'green' }
+      table([templatesHeader, ...templates], {
+        border: getBorderCharacters('norc'),
+      })
     )
   }
-
-  if (modified > 0) {
-    log(
-      `${modified} ${pluralize(
-        modified,
-        'template',
-        'templates'
-      )} will be modified.`,
-      { color: 'yellow' }
-    )
+  if (layouts.length > 0) {
+    log(`\n${layoutsLabel}`)
+    log(table([header, ...layouts], { border: getBorderCharacters('norc') }))
   }
+
+  // Log summary
+  log(
+    chalk.yellow(
+      `${templatesLabel}${
+        templates.length > 0 && layouts.length > 0 ? ' and ' : ''
+      }${layoutsLabel} will be pushed to Postmark.`
+    )
+  )
 }
 
 /**
@@ -200,9 +304,9 @@ const pushTemplates = (
   client: any,
   templates: TemplateManifest[]
 ) => {
-  templates.forEach(template => {
+  templates.forEach(template =>
     pushTemplate(spinner, client, template, templates.length)
-  })
+  )
 }
 
 /**
@@ -213,9 +317,9 @@ const pushTemplate = (
   client: any,
   template: TemplateManifest,
   total: number
-) => {
+): void => {
   if (template.New) {
-    client
+    return client
       .createTemplate(template)
       .then((response: object) =>
         pushComplete(true, response, template, spinner, total)
@@ -223,16 +327,16 @@ const pushTemplate = (
       .catch((response: object) =>
         pushComplete(false, response, template, spinner, total)
       )
-  } else {
-    client
-      .editTemplate(template.Alias, template)
-      .then((response: object) =>
-        pushComplete(true, response, template, spinner, total)
-      )
-      .catch((response: object) =>
-        pushComplete(false, response, template, spinner, total)
-      )
   }
+
+  return client
+    .editTemplate(template.Alias, template)
+    .then((response: object) =>
+      pushComplete(true, response, template, spinner, total)
+    )
+    .catch((response: object) =>
+      pushComplete(false, response, template, spinner, total)
+    )
 }
 
 /**
@@ -252,26 +356,19 @@ const pushComplete = (
   // Log any errors to the console
   if (!success) {
     spinner.stop()
-    log(`\n${template.Name}: ${response.toString()}`, { error: true })
+    log(`\n${template.Alias}: ${response.toString()}`, { error: true })
     spinner.start()
   }
 
   if (completed === total) {
     spinner.stop()
 
-    log(
-      `All finished! ${results.success} ${pluralize(
-        results.success,
-        'template was',
-        'templates were'
-      )} pushed to Postmark.`,
-      { color: 'green' }
-    )
+    log('✅ All finished!', { color: 'green' })
 
     // Show failures
     if (results.failed) {
       log(
-        `Failed to push ${results.failed} ${pluralize(
+        `⚠️ Failed to push ${results.failed} ${pluralize(
           results.failed,
           'template',
           'templates'
@@ -288,7 +385,6 @@ let results: TemplatePushResults = {
 }
 
 let review: TemplatePushReview = {
-  files: [],
-  added: 0,
-  modified: 0,
+  layouts: [],
+  templates: [],
 }

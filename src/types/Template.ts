@@ -5,6 +5,8 @@ export interface TemplateManifest {
   TextBody?: string
   Alias?: string
   New?: boolean
+  TemplateType: string
+  LayoutTemplate?: string | null
 }
 
 export interface Template extends TemplateManifest {
@@ -20,6 +22,8 @@ export interface ListTemplate {
   TemplateId: number
   Name: string
   Alias?: string | null
+  TemplateType: string
+  LayoutTemplate: string | null
 }
 
 export interface Templates {
@@ -33,9 +37,8 @@ export interface TemplatePushResults {
 }
 
 export interface TemplatePushReview {
-  files: any[]
-  added: number
-  modified: number
+  layouts: any[]
+  templates: any[]
 }
 
 export interface ProcessTemplatesOptions {
@@ -61,4 +64,22 @@ export interface TemplatePushArguments {
   serverToken: string
   templatesdirectory: string
   force: boolean
+}
+
+export interface MetaFile {
+  Name: string
+  Alias: string
+  TemplateType: string
+  Subject?: string
+  LayoutTemplate?: string | null
+  HtmlBody?: string
+  TextBody?: string
+}
+
+export interface MetaFileTraverse {
+  path: string
+  name: string
+  size: number
+  extension: string
+  type: string
 }
