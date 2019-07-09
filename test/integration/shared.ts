@@ -13,7 +13,7 @@ export const CLICommand: string = './dist/index.js'
 export const TestDataFolder: string = './test/data'
 export const PackageJson: any = require('../../package.json')
 
-// In order to test template syncing, data needs to be created by postmark.js client
+// In order to test template syncing, data needs to be created by postmark.js handler
 
 const templatePrefix: string = "testing-template-cli";
 

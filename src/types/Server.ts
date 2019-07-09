@@ -1,4 +1,6 @@
-export interface ServerListArguments {
+export interface Arguments {}
+
+export interface ServerListArguments extends Arguments{
   accountToken: string
   count: number
   offset: number
