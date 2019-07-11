@@ -66,6 +66,11 @@ export interface TemplatePushArguments {
   force: boolean
 }
 
+export interface TemplatePreviewArguments {
+  templatesdirectory: string
+  port: number
+}
+
 export interface MetaFile {
   Name: string
   Alias: string
