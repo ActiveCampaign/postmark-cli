@@ -1,70 +1,37 @@
 <!doctype html>
 <html>
-<head>
-  <meta charset="utf-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <title>Postmark template preview</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link href="https://fonts.googleapis.com/css?family=Roboto+Mono:400,700|Roboto:400,500,700,900&display=swap" rel="stylesheet">
-  <link href="styles.css" rel="stylesheet" type="text/css" media="all">
-
-
-</head>
+<%- include("partials/head.html") %>
 <body>
-  <div class="toolbar">
-    <a href="/" class="toolbar_back">←</a>
-    <h1 class="toolbar_title">
-      <%- template.Name %>
-      <span class="toolbar_alias f-code"><%- template.Alias %></span>
-    </h1>
-    <div class="toggle">
-      <a href="#" class="js-toggle-mode toggle_item toggle_item--active" data-mode="html">HTML</a>
-      <a href="#" class="js-toggle-mode toggle_item" data-mode="text">Text</a>
+  <div class="toolbar toolbar--<%- template.TemplateType.toLowerCase() %>">
+    <div class="toolbar_column">
+      <a href="/" class="toolbar_back">←</a>
+    </div>
+    <div class="toolbar_column">
+      <h1 class="toolbar_title">
+        <%- template.Name %>
+        <span class="toolbar_alias f-code"><%- template.Alias %></span>
+      </h1>
+    </div>
+    <div class="toolbar_column">
+      <div class="toggle">
+        <a href="#" class="js-toggle-mode toggle_item toggle_item--active" data-mode="html">HTML</a>
+        <a href="#" class="js-toggle-mode toggle_item" data-mode="text">Text</a>
+      </div>
     </div>
   </div>
-  <iframe class="js-html preview-iframe" frameborder="0" src="/html/<%- template.Alias %>"></iframe>
-  <iframe class="js-text preview-iframe hidden" frameborder="0" src="/text/<%- template.Alias %>"></iframe>
+  <% if (template.TemplateType === 'Standard') {%>
+  <div class="sub-toolbar">
+    <div class="subject">
+      <span class="subject_label">Subject:</span>
+      <span class="subject_line"><%- template.Subject || '<em>No subject</em>' %></span>
+    </div>
+  </div>
+  <% } %>
 
+  <iframe class="js-html preview-iframe preview-frame--<%- template.TemplateType.toLowerCase() %>" frameborder="0" src="/html/<%- template.Alias %>"></iframe>
+  <iframe class="js-text preview-iframe preview-frame----<%- template.TemplateType.toLowerCase() %> hidden" frameborder="0" src="/text/<%- template.Alias %>"></iframe>
 
-  <script type="text/javascript">
-    var template = <%- JSON.stringify(template) %>;
-
-    // var w = Math.max(document.documentElement.clientWidth, window.innerWidth || 0);
-    // var h = Math.max(document.documentElement.clientHeight, window.innerHeight || 0);
-    var html = document.querySelector('.js-html');
-
-    // html.setAttribute('width', w + 'px')
-    // html.setAttribute('height', h + 'px')
-    // console.log(html)
-
-    var toggles = document.querySelectorAll('.js-toggle-mode');
-    var activeToggleClass = 'toggle_item--active'
-
-    toggles.forEach(function(toggle) {
-      toggle.addEventListener('click', function(event) {
-        event.preventDefault();
-        // Reset state
-        resetMode();
-
-        // Add active class
-        this.classList.add(activeToggleClass);
-
-        // Show preview
-        document.querySelector('.js-' + this.dataset.mode).classList.remove('hidden');
-      })
-    })
-
-    function resetMode() {
-      toggles.forEach(function(toggle) {
-        toggle.classList.remove(activeToggleClass)
-        document.querySelector('.js-'+ toggle.dataset.mode).classList.add('hidden');
-      })
-    }
-
-
-
-
-  </script>
-  <!-- <script src="preview.js" type="text/javascript"></script> -->
+  <script type="text/javascript">var template = <%- JSON.stringify(template) %>;</script>
+  <script src="preview.js" type="text/javascript"></script>
 </body>
 </html>

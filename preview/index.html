@@ -1,32 +1,55 @@
 <!doctype html>
 <html>
-<head>
-  <title>Postmark template preview</title>
-  <link href="https://fonts.googleapis.com/css?family=Roboto+Mono:400,700|Roboto:400,700&display=swap" rel="stylesheet">
-  <link href="styles.css" rel="stylesheet" type="text/css" media="all">
-
-  <script type="text/javascript">
-
-  </script>
-  <script src="preview.js" type="text/javascript"></script>
-</head>
+<%- include("partials/head.html") %>
 <body>
-  <h2>Templates</h2>
-  <ul>
-    <% templates.forEach(function(template){ %>
-      <li>
-        <a href="/<%- template.Alias %>"><%- template.Name %></a>
-      </li>
-    <% }); %>
-  </ul>
+  <div class="toolbar">
+    <h1 class="toolbar_title"><span class="icon toolbar_icon"></span> Postmark Templates</h1>
+    <span class="toolbar_path f-code"><%- path %></span>
+  </div>
 
-  <h2>Layouts</h2>
-  <ul>
-    <% layouts.forEach(function(layout){ %>
-      <li>
-        <a href="/<%- layout.Alias %>"><%- layout.Name %></a>
-      </li>
-    <% }); %>
-  </ul>
+  <section class="list-body">
+    <h2><span class="count"><%- layouts.length %></span> Layouts</h2>
+    <ul class="template-list">
+      <% layouts.forEach(function(layout){ %>
+        <li>
+          <a href="/<%- layout.Alias %>" class="template-link">
+            <span>
+              <%- layout.Name %>
+              <span class="toolbar_alias f-code"><%- layout.Alias %></span>
+            </span>
+          </a>
+        </li>
+      <% }); %>
+    </ul>
+
+    <h2><span class="count"><%- templates.length %></span> Templates</h2>
+
+    <% if (templates.length > 0) { %>
+      <ul class="template-list">
+        <% templates.forEach(function(template){ %>
+          <li>
+            <a href="/<%- template.Alias %>" class="template-link">
+              <span>
+                <%- template.Name %>
+                <span class="toolbar_alias f-code"><%- template.Alias %></span>
+              </span>
+              <span class="template-layout f-code">Layout: <%- template.LayoutTemplate %></span>
+            </a>
+          </li>
+        <% }); %>
+      </ul>
+    <% } else { %>
+      <span>meta.json</span>
+      <pre>
+{
+  "Name": "Welcome",
+  "Alias": "welcome",
+  "Subject": "Your subject line",
+  "TemplateType": "Standard",
+  "LayoutTemplate": "Enter the layout alias"
+}
+      </pre>
+    <% } %>
+  </section>
 </body>
 </html>

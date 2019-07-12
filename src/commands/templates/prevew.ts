@@ -62,6 +62,7 @@ const preview = (args: TemplatePreviewArguments) => {
       {
         templates: filter(templates, { TemplateType: 'Standard' }),
         layouts: filter(templates, { TemplateType: 'Layout' }),
+        path: untildify(args.templatesdirectory),
       },
       (err, html) => {
         if (err) res.send(err)
