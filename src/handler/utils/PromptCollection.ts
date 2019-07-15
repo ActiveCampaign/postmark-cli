@@ -12,22 +12,16 @@ export class PromptCollection {
   }
 
   public overwrite(directory: string): Promise<any> {
-    return prompt([
-      {
-        type: 'confirm',
-        name: 'overwrite',
-        default: false,
-        message: `Overwrite the files in ${directory}?`,
-      }]);
+    return this.confirmation(`Overwrite the files in ${directory}?`, 'ovewrite');
   }
 
-  public confirmation(): Promise<any> {
+  public confirmation(message: string, name: string = 'confirm'): Promise<any> {
     return prompt([
       {
         type: 'confirm',
-        name: 'confirm',
+        name: name,
         default: false,
-        message: `Would you like to continue?`,
+        message: message,
       },
     ])
   }

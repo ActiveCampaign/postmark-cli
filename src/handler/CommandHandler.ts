@@ -75,7 +75,7 @@ export abstract class CommandHandler {
 
   protected async authenticateByToken(token: string, tokenType: TokenType): Promise<string> {
     if (this.isValueInvalid(token)) {
-      return this.retrieveTokenByPrompt(tokenType).then( token => { return token; });
+      return this.retrieveTokenByPrompt(tokenType).then( token => { return token; })
     }
     else {
       return token;
@@ -94,6 +94,19 @@ export abstract class CommandHandler {
 
   protected isValueInvalid(text: string): boolean {
     return (text === undefined || text.toString().length == 0);
+  }
+
+
+  protected confirmation(message: string = 'Would you like to continue?', cancelMessage: string = 'Cancelled. Have a good day!'): Promise<boolean> {
+    return this.prompts.confirmation(message).then(answer => {
+      if (answer.confirm !== true) {
+        this.response.respond(cancelMessage);
+        return answer.confirm;
+      }
+      return answer.confirm;
+    }).catch(e => {
+      return false;
+    });
   }
 }
 

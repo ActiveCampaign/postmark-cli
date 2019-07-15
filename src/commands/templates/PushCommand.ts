@@ -34,21 +34,21 @@ class PushCommand extends TemplateCommand {
     this.setServerClientToUse(serverToken);
 
     try {
-      this.validateLocalTemplatesDirectoryExists(templatesdirectory);
+      this.validateTemplatesDirectoryExists(templatesdirectory);
       this.validateLocalTemplatesExist(templatesdirectory);
 
-      const templatesToPush: TemplateManifest[] = this.retrieveLocalTemplatesToPush(templatesdirectory);
+      const templatesToPush: TemplateManifest[] = this.retrieveTemplatesFromDirectory(templatesdirectory);
       const templatesOnServer: Templates = await this.retrieveTemplatesFromServer();
 
       this.showTemplatesComparisonOverview(templatesOnServer, templatesToPush);
-      if (force || await this.confirmPushResult()) { await this.pushTemplates(templatesToPush) }
+      if (force || await this.confirmation()) { await this.pushTemplatesFromDirectory(templatesToPush) }
     } catch (error) {
       this.response.error(error.message)
     }
   }
-  
-  private validateLocalTemplatesDirectoryExists(directory: string): void {
-    if (!this.fileUtils.directoryExists(directory)) {
+
+  private validateTemplatesDirectoryExists(path: string): void {
+    if (!this.fileUtils.directoryExists(path)) {
       throw Error('Templates folder does not exist');
     }
   }
@@ -59,11 +59,20 @@ class PushCommand extends TemplateCommand {
     }
   }
 
-  private retrieveTemplatesFromServer(): Promise<Templates> {
+  /**
+   * Get all the templates from server in Postmark account.
+   * @return {Promise<Templates>} - list of templates
+   */
+  public retrieveTemplatesFromServer(): Promise<Templates> {
     return this.spinnerResponse.respond<Templates>('Fetching templates...', this.serverClient.getTemplates());
   }
 
-  private retrieveLocalTemplatesToPush(path: string): TemplateManifest[] {
+  /**
+   * Get all the local templates details on your machine.
+   * @param {string} path - folder where templates are stored
+   * @return {TemplateManifest[]} - list of templates
+   */
+  public retrieveTemplatesFromDirectory(path: string): TemplateManifest[] {
     let localTemplatesToPush: TemplateManifest[] = [];
     const metaFiles: FileDetails[] = this.fileUtils.findFiles(path, this.metadataFilename);
 
@@ -75,7 +84,12 @@ class PushCommand extends TemplateCommand {
     return localTemplatesToPush;
   }
 
-  private retrieveTemplateFromFile(directory: string): TemplateMetaFile | null {
+  /**
+   * Get details of the template stored in a directory.
+   * @param {string} directory - where template is stored
+   * @return {TemplateMetaFile | null} - template details
+   */
+  public retrieveTemplateFromFile(directory: string): TemplateMetaFile | null {
     const metaFilePath: string = join(directory, this.metadataFilename);
     const htmlPath: string = join(directory, this.htmlContentFilename);
     const textPath: string = join(directory, this.textContentFilename);
@@ -139,29 +153,27 @@ class PushCommand extends TemplateCommand {
     return number > 0 ? `${number} ${pluralize(number, name)}` : '';
   }
 
-  private confirmPushResult(): Promise<boolean> {
-    return this.prompts.confirmation().then(answer => {
-      if (answer.confirm !== true) {
-        this.response.respond('Canceling push. Have a good day!');
-        return answer.confirm;
-      }
-      return answer.confirm;
-    }).catch(e => {
-      return false;
-    });
-  }
-
-  private async pushTemplates(templates: TemplateManifest[]): Promise<void> {
+  /**
+   * Push all local template details one by one to Postmark server.
+   * @param {TemplateManifest[]} templates - changes to push
+   * @return {Promise<void>}
+   */
+  private async pushTemplatesFromDirectory(templates: TemplateManifest[]): Promise<void> {
     let successfulPushes: number = 0;
 
     await Promise.all(templates.map( async template => {
-      return this.pushTemplate(template).then(result => { if (result === true) { successfulPushes++; }});
+      return this.pushTemplateFromDirectory(template).then(result => { if (result === true) { successfulPushes++; }});
     }));
 
-    this.pushTemplatesResponse(successfulPushes, templates.length - successfulPushes, templates.length)
+    this.pushTemplatesFromDirectoryResponse(successfulPushes, templates.length - successfulPushes, templates.length);
   }
 
-  private async pushTemplate(template: any): Promise<boolean> {
+  /**
+   * Push single local template details to Postmark server.
+   * @param template - changes to push
+   * @return {Promise<boolean>}
+   */
+  private async pushTemplateFromDirectory(template: any): Promise<boolean> {
     try {
       if (template.New) {
         await this.serverClient.createTemplate(template) }
@@ -176,13 +188,13 @@ class PushCommand extends TemplateCommand {
     }
   }
 
-  private pushTemplatesResponse(successfulPushes: number, failedPushes: number, templatesCount: number): void {
-    if (successfulPushes === templatesCount) {
+  private pushTemplatesFromDirectoryResponse(pushes: number, failedPushes: number, templatesCount: number): void {
+    if (pushes === templatesCount) {
       this.response.respond('✅ All finished!', {color: 'green'})
     }
     else {
       this.response.error(
-        `⚠️ Failed to push ${failedPushes} ${pluralize(failedPushes, 'template', 'templates')}. ` +
+        `⚠️ Failed to push ${failedPushes} ${pluralize(failedPushes, 'template')}. ` +
         `Please see the output above for more details.`)
     }
   }
