@@ -1,7 +1,7 @@
 import {Server, Servers} from "postmark/dist/client/models";
 import chalk from "chalk";
-import {ColorMap} from "../../../types/index";
 import {getBorderCharacters, table} from "table";
+import {ColorMap} from "../../../types/index";
 import {DataFormat} from "../../../handler/data/DataFormat";
 
 export class ServerTableFormat extends DataFormat {
@@ -64,11 +64,11 @@ export class ServerTableFormat extends DataFormat {
   private linkTrackingStateLabel(state: string): string  {
     switch (state) {
       case 'TextOnly':
-        return chalk.green('Text')
+        return chalk.green('Text');
       case 'HtmlOnly':
-        return chalk.green('HTML')
+        return chalk.green('HTML');
       case 'HtmlAndText':
-        return chalk.green('HTML and Text')
+        return chalk.green('HTML and Text');
       default:
         return chalk.gray('Disabled')
     }

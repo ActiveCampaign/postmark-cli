@@ -9,14 +9,6 @@ export interface TemplateManifest {
   LayoutTemplate?: string | null
 }
 
-export interface Template extends TemplateManifest {
-  Name: string
-  TemplateId: number
-  AssociatedServerId?: number
-  Active: boolean
-  Alias: string
-}
-
 export interface ListTemplate {
   Active: boolean
   TemplateId: number
@@ -31,27 +23,9 @@ export interface Templates {
   Templates: ListTemplate[]
 }
 
-export interface TemplatePushResults {
-  success: number
-  failed: number
-}
-
 export interface TemplatePushReview {
   layouts: any[]
   templates: any[]
-}
-
-export interface ProcessTemplatesOptions {
-  spinner: any
-  client: any
-  outputDir: string
-  totalCount: number
-  templates: ListTemplate[]
-}
-
-export interface TemplateListOptions {
-  sourceServer: string
-  outputDir: string
 }
 
 export interface TemplatePullArguments {
@@ -66,7 +40,7 @@ export interface TemplatePushArguments {
   force: boolean
 }
 
-export interface MetaFile {
+export interface TemplateMetaFile {
   Name: string
   Alias: string
   TemplateType: string
@@ -76,7 +50,7 @@ export interface MetaFile {
   TextBody?: string
 }
 
-export interface MetaFileTraverse {
+export interface FileDetails {
   path: string
   name: string
   size: number

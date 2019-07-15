@@ -1,10 +1,7 @@
 import {ServerListArguments} from "../../types";
-import {AccountRequest} from "../../handler/requests/AccountRequest";
-import {TokenType} from "../../handler/requests/ServerRequest";
-import {CommandHandler} from "../../handler/CommandHandler";
-import {Servers} from "postmark/dist/client/models";
+import {CommandHandler, TokenType} from "../../handler/CommandHandler";
 import {ServerTableFormat} from "./data/ServerTableFormat";
-import {DataFormat} from "../../handler/data/DataFormat";
+import {Servers} from "postmark/dist/client/models";
 
 class ServerCommand extends CommandHandler {
   public constructor(command: string, description: string, options: any) {
@@ -14,18 +11,28 @@ class ServerCommand extends CommandHandler {
   public async execute(args: ServerListArguments): Promise<void> {
     let {count, offset, name, showTokens, json, accountToken} = args;
     accountToken = await this.authenticateByToken(accountToken, TokenType.Account);
+    this.setAccountClientToUse(accountToken);
 
-    const data: Servers|undefined = await this.executeRequest<Servers>('Fetching data...',
-      new AccountRequest(accountToken).getServers(count, offset, name));
+    try {
+      const data: Servers = await this.spinnerResponse.respond<Servers>('Fetching data...',
+        this.accountClient.getServers({count: count, offset: offset, name: name}));
 
-    if (data !== undefined) {
       this.adjustContent(data, showTokens);
-      this.response.respond(this.getDataFormat(json).format(data));
+      this.showServerList(data, json);
+
+    } catch (error) {
+      this.response.error(error.message);
     }
+
   }
 
-  protected getDataFormat(json: boolean):DataFormat {
-    return (json === true) ? super.getDataFormat(json): new ServerTableFormat();
+  private showServerList(data: any, json: boolean) {
+    const formattedData: string = this.getFormattedData(data, json);
+    this.response.respond(formattedData);
+  }
+
+  protected getFormattedData(data: Servers, json: boolean): string {
+    return (json === true) ? super.getFormattedData(data) : new ServerTableFormat().format(data)
   }
 
   private adjustContent(data: Servers, showTokens: boolean): void {

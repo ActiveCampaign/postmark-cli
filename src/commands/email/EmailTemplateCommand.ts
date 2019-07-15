@@ -1,7 +1,6 @@
 import {TemplatedEmailArguments} from "../../types";
-import {ServerRequest, TokenType} from "../../handler/requests/ServerRequest";
+import {CommandHandler, TokenType} from "../../handler/CommandHandler";
 import {MessageSendingResponse} from "postmark/dist/client/models";
-import {CommandHandler} from "../../handler/CommandHandler";
 
 class EmailTemplateCommand extends CommandHandler {
   public constructor(command: string, description: string, options: any) {
@@ -12,13 +11,21 @@ class EmailTemplateCommand extends CommandHandler {
     let {serverToken} = args;
     const { id, alias, from, to, model } = args;
     serverToken = await this.authenticateByToken(serverToken, TokenType.Server);
+    this.setServerClientToUse(serverToken);
 
-    const data: MessageSendingResponse|undefined = await this.executeRequest<MessageSendingResponse>('Sending an email ...',
-      new ServerRequest(serverToken).sendEmailWithTemplate(id, alias, from, to, model));
+    try {
+      const data: MessageSendingResponse = await this.spinnerResponse.respond<MessageSendingResponse>
+      ('Sending an email ...', this.serverClient.sendEmailWithTemplate({
+          TemplateId: id || undefined, TemplateAlias: alias || undefined,
+          From: from, To: to, TemplateModel: model ? JSON.parse(model) : undefined }));
 
-    if (data !== undefined) {
-      this.response.respond(this.getDataFormat().format(data));
+      if (data !== undefined) {
+        this.response.respond(this.getFormattedData(data));
+      }
+    }catch (error) {
+      this.response.error(error.message);
     }
+
   }
 }
 
@@ -57,7 +64,8 @@ const options: any = {
   },
 }
 
-const commandHandler: EmailTemplateCommand = new EmailTemplateCommand('template [options]', 'Send a templated email', options);
+const commandHandler: EmailTemplateCommand = new EmailTemplateCommand('template [options]',
+                                                                      'Send a templated email', options);
 
 export const command = commandHandler.details.command;
 export const desc = commandHandler.details.description;

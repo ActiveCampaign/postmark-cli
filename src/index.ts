@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import chalk from 'chalk'
+import {logoString} from './logo';
 
 require('yargonaut')
   .style('yellow')
@@ -12,10 +13,5 @@ require('yargs')
   .demandCommand()
   .help()
   .usage(
-    chalk.yellow(`
-              ____           _                        _    
- _________   |  _ \\ ___  ___| |_ _ __ ___   __ _ _ __| | __
-| \\     / |  | |_) / _ \\/ __| __| '_ ' _ \\ / _\` | '__| |/ /
-|  '...'  |  |  __/ (_) \\__ \\ |_| | | | | | (_| | |  |   < 
-|__/___\\__|  |_|   \\___/|___/\\__|_| |_| |_|\\__,_|_|  |_|\\_\\`)
-  ).argv
+    chalk.yellow(logoString)
+  ).argv;

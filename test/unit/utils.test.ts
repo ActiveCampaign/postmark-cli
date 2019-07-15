@@ -1,6 +1,6 @@
 import { expect } from 'chai'
 import 'mocha'
-import * as utils from '../../src/utils'
+import * as utils from '../../src/handler/utils/Various'
 
 describe('Utilities', () => {
   describe('cmd', () => {

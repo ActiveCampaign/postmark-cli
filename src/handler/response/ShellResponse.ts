@@ -1,36 +1,29 @@
-import {log} from "../../utils";
 import {LogSettings} from "../../types/index";
-import ora = require("ora");
-import {Ora} from "ora";
+import chalk from "chalk";
 
 export class ShellResponse {
-  private spinner:Ora|null;
-
-  constructor() {
-    this.spinner = null;
-  }
-
-  public respondWithSpinner(message: string): void {
-    this.spinner = ora(message).start()
-  }
-
   public respond(message: string, settings?: LogSettings): void {
-    this.baseResponse(message, settings);
+    this.log(message, settings)
   }
 
   public error(message: string) {
-    this.baseResponse(message, { error: true });
+    this.respond(message, { error: true });
     process.exit(1);
   }
 
-  private baseResponse(message: string, settings?: LogSettings) {
-    this.spinnerCheck();
-    log(message, settings)
-  }
-
-  private spinnerCheck() {
-    if (this.spinner !== null) {
-      this.spinner.stop();
+  private log(text: string, settings?: LogSettings): void {
+    if (settings && settings.error) {
+      return console.error(chalk.red(text))
     }
+
+    if (settings && settings.warn) {
+      return console.warn(chalk.yellow(text))
+    }
+
+    if (settings && settings.color) {
+      return console.log(chalk[settings.color](text))
+    }
+
+    return console.log(text)
   }
 }

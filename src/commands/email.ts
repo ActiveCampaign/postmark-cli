@@ -1,3 +1,3 @@
-import { cmd } from '../utils'
+import { cmd } from './command';
 
-export const { command, desc, builder } = cmd('email', 'Send an email')
+export const { command, desc, builder } = cmd('email', 'Send an email');

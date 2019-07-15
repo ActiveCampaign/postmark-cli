@@ -1,100 +1,122 @@
-import {ServerRequest, TokenType} from "../../handler/requests/ServerRequest";
-import {CommandHandler} from "../../handler/CommandHandler";
+import {TemplateMetaFile} from "../../types";
 import {TemplatePullArguments} from "../../types/Template";
-import {Templates} from "postmark/dist/client/models";
+import {TokenType} from "../../handler/CommandHandler";
+import {TemplateCommand} from "./TemplateCommand";
+import {Templates, Template, TemplateTypes} from "postmark/dist/client/models";
+import {pluralize} from "../../handler/utils/Various";
 import {join} from "path";
-import untildify from "untildify";
-import {MetaFile} from "../../types";
-import {ensureDirSync, outputFileSync} from "fs-extra";
-import {pluralize} from "../../utils";
-import {Template} from "../../types/Template";
 
-class PullCommand extends CommandHandler {
+class PullCommand extends TemplateCommand {
   public constructor(command: string, description: string, options: any) {
     super(command, description, options);
   }
 
   public async execute(args: TemplatePullArguments): Promise<void> {
-    let {serverToken} = args;
-    const { outputdirectory, overwrite } = args;
+    let {serverToken, overwrite, outputdirectory} = args;
+
     serverToken = await this.authenticateByToken(serverToken, TokenType.Server);
+    this.setServerClientToUse(serverToken);
 
-    const data: Templates|undefined = await this.executeRequest<Templates>('Fetching data...',
-      new ServerRequest(serverToken).getTemplates());
+    const pullTemplates: boolean = await this.isPullTemplatesPossible(outputdirectory, overwrite);
+    if (pullTemplates === true) { return this.pullTemplatesToDirectory(outputdirectory); }
+  }
 
-    if (data!== undefined) {
-      if (data.TotalCount === 0) {
-        this.response.error('There are no templates on this server.')
+  private isPullTemplatesPossible(directory: string, overwrite: boolean): Promise<boolean> {
+    return new Promise( (resolve, reject) => {
+      if (this.fileUtils.directoryExists(directory) && !overwrite) {
+        this.prompts.overwrite(directory).then( answer => { (!!answer.overwrite) ? resolve(true) : reject(false) })
       }
       else {
-        this.templatesWithNoAliasCheck(data);
-
-        const templatesWithAlias = this.templatesWithAlias(data);
-        await this.saveTemplates(templatesWithAlias, outputdirectory, serverToken);
-
-        this.response.respond(`All finished! ${templatesWithAlias.length} ${
-          pluralize(templatesWithAlias.length, 'template has', 'templates have')} been saved to ${outputdirectory}.`)
+        resolve(true)
       }
+    })
+  }
+
+  private async pullTemplatesToDirectory(outputDirectory: string): Promise<void> {
+    try {
+      const templates: Templates = await this.spinnerResponse.respond<Templates>('Fetching templates...',
+        this.serverClient.getTemplates());
+      const templatesWithAlias = this.templatesWithAlias(templates);
+      const templateNamesWithNoAlias = this.templateNamesWithNoAlias(templates);
+
+      this.validateTemplatesExistOnServer(templates);
+      this.showTemplatesWithNoAliasWarning(templateNamesWithNoAlias);
+      await this.saveTemplatesAction(templatesWithAlias, outputDirectory)
+    } catch (error) {
+      this.response.error(error.message)
     }
   }
 
-  private templatesWithNoAliasCheck(data: Templates): void {
-    const templatesWithNoAlias = this.templatesWithNoAlias(data);
-    if (templatesWithNoAlias.length > 0) {
-      const message = 'Templates with following names will not be downloaded because they are missing an alias:\n';
+  private templateNamesWithNoAlias(templates: Templates):string[] {
+    return templates.Templates.filter( template => !template.Alias ).map( template => template.Name)
+  }
+
+  private templatesWithAlias(templates: Templates): any[] {
+    return templates.Templates.filter( template => !!template.Alias )
+  }
+
+  private validateTemplatesExistOnServer(templates: Templates): void {
+    if (templates.TotalCount === 0) {
+      throw Error('There are no templates on this server.');
+    }
+  }
+
+  private showTemplatesWithNoAliasWarning(templateNamesWithNoAlias: string[]): void {
+    if (templateNamesWithNoAlias.length > 0) {
+      let message = 'Templates with following names will not be downloaded because they are missing an alias:\n';
+      message += templateNamesWithNoAlias.join("\n");
       this.response.respond(message, {warn: true});
-      this.response.respond(this.templatesWithNoAlias(data).join("\n"), {warn: true});
     }
   }
 
-  private templatesWithNoAlias(data: Templates):string[] {
-    return data.Templates.filter( template => !template.Alias ).map( template => template.Name)
+  private async saveTemplatesAction(templates: any, outputDirectory: string) {
+    await this.spinnerResponse.respond<void>(`Saving templates to folder '${outputDirectory}'...`,
+      this.saveTemplatesToDirectory(templates, outputDirectory));
+
+    const message: string = `All finished! ${templates.length} ` +
+                            `${pluralize(templates.length, 'template has', 'templates have')}` +
+                            ` been saved to ${outputDirectory}.`;
+    this.response.respond(message, {color: 'green'})
   }
 
-  private templatesWithAlias(data: Templates): any[] {
-    return data.Templates.filter( template => !!template.Alias )
-  }
-
-  private async saveTemplates(templates: any[], outputDir: string, serverToken: string):Promise<void> {
-    this.response.respondWithSpinner(`Save templates to folder '${outputDir}'`);
-
+  private async saveTemplatesToDirectory(templates: any[], outputDir: string):Promise<void> {
     for(let i=0;i<templates.length;i++) {
-      const templateDetails: any = await new ServerRequest(serverToken).getTemplate(templates[i].TemplateId);
-
-      if (templateDetails !== undefined) {
-        this.saveTemplate(outputDir, templateDetails);
-      }
+      const templateDetails: Template = await this.serverClient.getTemplate(templates[i].TemplateId);
+      this.saveTemplateToDirectory(outputDir, templateDetails);
     }
   }
 
+  private saveTemplateToDirectory(outputDirBase: string, template: Template):void {
+    const outputDir = this.retrieveOutputDir(outputDirBase, template.TemplateType);
+    const alias: string = (template.Alias !== null && template.Alias !== undefined) ? template.Alias: '';
+    const templatePath = this.fileUtils.directoryFullPath(join(outputDir, alias));
 
-  private saveTemplate(outputDir: string, template: Template) {
-    outputDir = template.TemplateType === 'Layout' ? join(outputDir, '_layouts') : outputDir;
+    this.fileUtils.ensureDirectoryExists(templatePath);
+    this.saveTemplateContentToDirectory(templatePath, template.HtmlBody, template.TextBody);
+    this.saveTemplateMetadataToDirectory(templatePath, template);
+  }
 
-    let alias: string = '';
-    if (template.Alias !== null && template.Alias !== undefined) {
-      alias = template.Alias;
-    }
+  private saveTemplateContentToDirectory(path: string, htmlContent: string | undefined, textContent: string | undefined) {
+    if (htmlContent !== '') { this.fileUtils.saveFile(join(path, this.htmlContentFilename), htmlContent) }
+    if (textContent !== '') { this.fileUtils.saveFile(join(path, this.textContentFilename), textContent) }
+  }
 
-    const path = untildify(join(outputDir, alias));
+  private saveTemplateMetadataToDirectory(path: string, template: Template) {
+    const alias: string = (template.Alias !== null && template.Alias !== undefined) ? template.Alias: '';
 
-    ensureDirSync(path);
-
-    // Save HTML version
-    if (template.HtmlBody !== '') { outputFileSync(join(path, 'content.html'), template.HtmlBody) }
-
-    // Save Text version
-    if (template.TextBody !== '') { outputFileSync(join(path, 'content.txt'), template.TextBody) }
-
-    const meta: MetaFile = { Name: template.Name, Alias: alias,
+    const meta: TemplateMetaFile = { Name: template.Name, Alias: alias,
       ...(template.Subject && { Subject: template.Subject }),
-      TemplateType: template.TemplateType,
+      TemplateType: template.TemplateType ? template.TemplateType : '',
       ...(template.TemplateType === 'Standard' && {
         LayoutTemplate: template.LayoutTemplate,
       }),
-    }
+    };
 
-    outputFileSync(join(path, 'meta.json'), JSON.stringify(meta, null, 2))
+    this.fileUtils.saveFile(join(path, this.metadataFilename), this.getFormattedData(meta))
+  }
+
+  private retrieveOutputDir(outputDir: string, templateType: TemplateTypes = TemplateTypes.Standard): string {
+    return templateType === TemplateTypes.Layout ? join(outputDir,this.layoutDirectory) : outputDir;
   }
 
 }
@@ -110,10 +132,10 @@ const options: any = {
     default: false,
     describe: 'Overwrite templates if they already exist',
   },
-}
+};
 
-const commandHandler: PullCommand = new PullCommand('pull2 <output directory> [options]',
-                                                    'Pull2 templates from a server to <output directory>', options);
+const commandHandler: PullCommand = new PullCommand('pull <output directory> [options]',
+                                                    'Pull templates from a server to <output directory>', options);
 
 export const command = commandHandler.details.command;
 export const desc = commandHandler.details.description;
