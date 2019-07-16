@@ -1,10 +1,7 @@
-import {TemplateMetaFile} from "../../types";
-import {TemplatePullArguments} from "../../types/Template";
-import {TokenType} from "../../handler/CommandHandler";
 import {TemplateCommand} from "./TemplateCommand";
+import {LogTypes, TemplateMetaFile, TemplatePullArguments} from "../../types";
+import {pluralize, join} from "../../handler/utils";
 import {Templates, Template, TemplateTypes} from "postmark/dist/client/models";
-import {pluralize} from "../../handler/utils/Various";
-import {join} from "path";
 
 class PullCommand extends TemplateCommand {
   public constructor(command: string, description: string, options: any) {
@@ -14,22 +11,21 @@ class PullCommand extends TemplateCommand {
   public async execute(args: TemplatePullArguments): Promise<void> {
     let {serverToken, overwrite, outputdirectory} = args;
 
-    serverToken = await this.authenticateByToken(serverToken, TokenType.Server);
+    serverToken = await this.authenticateByToken(serverToken);
     this.setServerClientToUse(serverToken);
 
-    const pullTemplates: boolean = await this.isPullTemplatesPossible(outputdirectory, overwrite);
-    if (pullTemplates === true) { return this.pullTemplatesToDirectory(outputdirectory); }
+    if (await this.isPullTemplatesPossible(outputdirectory, overwrite)) {
+      return this.pullTemplatesToDirectory(outputdirectory);
+    }
   }
 
-  private isPullTemplatesPossible(directory: string, overwrite: boolean): Promise<boolean> {
-    return new Promise( (resolve, reject) => {
-      if (this.fileUtils.directoryExists(directory) && !overwrite) {
-        this.prompts.overwrite(directory).then( answer => { (!!answer.overwrite) ? resolve(true) : reject(false) })
-      }
-      else {
-        resolve(true)
-      }
-    })
+  private async isPullTemplatesPossible(directory: string, overwrite: boolean): Promise<boolean> {
+    if (this.fileUtils.directoryExists(directory) && !overwrite) {
+      return this.confirmation(`Overwrite the files in ${directory}?`)
+    }
+    else {
+      return false;
+    }
   }
 
   private async pullTemplatesToDirectory(outputDirectory: string): Promise<void> {
@@ -65,7 +61,7 @@ class PullCommand extends TemplateCommand {
     if (templateNamesWithNoAlias.length > 0) {
       let message = 'Templates with following names will not be downloaded because they are missing an alias:\n';
       message += templateNamesWithNoAlias.join("\n");
-      this.response.respond(message, {warn: true});
+      this.response.respond(message, LogTypes.Warning);
     }
   }
 
@@ -76,7 +72,7 @@ class PullCommand extends TemplateCommand {
     const message: string = `All finished! ${templates.length} ` +
                             `${pluralize(templates.length, 'template has', 'templates have')}` +
                             ` been saved to ${outputDirectory}.`;
-    this.response.respond(message, {color: 'green'})
+    this.response.respond(message, LogTypes.Success)
   }
 
   private async saveTemplatesToDirectory(templates: any[], outputDir: string):Promise<void> {

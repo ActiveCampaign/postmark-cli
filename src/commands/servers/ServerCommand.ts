@@ -1,5 +1,5 @@
+import {CommandHandler, TokenTypes} from "../../handler/CommandHandler";
 import {ServerListArguments} from "../../types";
-import {CommandHandler, TokenType} from "../../handler/CommandHandler";
 import {ServerTableFormat} from "./data/ServerTableFormat";
 import {Servers} from "postmark/dist/client/models";
 
@@ -10,10 +10,11 @@ class ServerCommand extends CommandHandler {
 
   public async execute(args: ServerListArguments): Promise<void> {
     let {count, offset, name, showTokens, json, accountToken} = args;
-    accountToken = await this.authenticateByToken(accountToken, TokenType.Account);
-    this.setAccountClientToUse(accountToken);
 
     try {
+      accountToken = await this.authenticateByToken(accountToken, TokenTypes.Account);
+      this.setAccountClientToUse(accountToken);
+
       const data: Servers = await this.spinnerResponse.respond<Servers>('Fetching data...',
         this.accountClient.getServers({count: count, offset: offset, name: name}));
 

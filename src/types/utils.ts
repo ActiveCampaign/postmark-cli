@@ -5,8 +5,8 @@ export interface CommandOptions {
   builder: any
 }
 
-export interface LogSettings {
-  error?: boolean
-  warn?: boolean
-  color?: 'green' | 'red' | 'blue' | 'yellow'
+export interface CustomLogTypeDetails {
+  color: 'green' | 'red' | 'blue' | 'yellow'
 }
+
+export enum LogTypes { Warning, Error, Info, Custom, Success }

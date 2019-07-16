@@ -9,10 +9,13 @@ export class SpinnerResponse {
   }
 
   public async respond<T>(message: string, action: Promise<T>): Promise<T> {
-    this.start(message);
-    const response = await action;
-    this.stop();
-    return response;
+    try {
+      this.start(message);
+      const response = await action;
+      return response;
+    } finally {
+      this.stop();
+    }
   }
 
   public start(message: string): void {

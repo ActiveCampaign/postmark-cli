@@ -1,5 +1,5 @@
+import {CommandHandler} from "../../handler/CommandHandler";
 import {TemplatedEmailArguments} from "../../types";
-import {CommandHandler, TokenType} from "../../handler/CommandHandler";
 import {MessageSendingResponse} from "postmark/dist/client/models";
 
 class EmailTemplateCommand extends CommandHandler {
@@ -10,10 +10,11 @@ class EmailTemplateCommand extends CommandHandler {
   public async execute(args: TemplatedEmailArguments): Promise<void> {
     let {serverToken} = args;
     const { id, alias, from, to, model } = args;
-    serverToken = await this.authenticateByToken(serverToken, TokenType.Server);
-    this.setServerClientToUse(serverToken);
 
     try {
+      serverToken = await this.authenticateByToken(serverToken);
+      this.setServerClientToUse(serverToken);
+
       const data: MessageSendingResponse = await this.spinnerResponse.respond<MessageSendingResponse>
       ('Sending an email ...', this.serverClient.sendEmailWithTemplate({
           TemplateId: id || undefined, TemplateAlias: alias || undefined,

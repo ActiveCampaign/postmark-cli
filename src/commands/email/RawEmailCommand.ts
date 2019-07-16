@@ -1,6 +1,6 @@
+import {CommandHandler} from "../../handler/CommandHandler";
 import {RawEmailArguments} from "../../types";
 import {MessageSendingResponse} from "postmark/dist/client/models";
-import {CommandHandler, TokenType} from "../../handler/CommandHandler";
 
 export class RawEmailCommand extends CommandHandler {
   public constructor(command: string, description: string, options: any) {
@@ -10,10 +10,11 @@ export class RawEmailCommand extends CommandHandler {
   public async execute(args: RawEmailArguments): Promise<void> {
     let {serverToken} = args;
     const { from, to, subject, html, text} = args;
-    serverToken = await this.authenticateByToken(serverToken, TokenType.Server);
-    this.setServerClientToUse(serverToken);
 
     try {
+      serverToken = await this.authenticateByToken(serverToken);
+      this.setServerClientToUse(serverToken);
+
       const data: MessageSendingResponse = await this.spinnerResponse.respond<MessageSendingResponse>(
         'Sending an email ...', this.serverClient.sendEmail({ From: from, To: to, Subject: subject,
           HtmlBody: html, TextBody: text }));

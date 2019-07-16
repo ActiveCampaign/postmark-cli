@@ -1,8 +1,9 @@
 import {getBorderCharacters, table} from "table";
 import {Chalk} from "chalk";
-import {TemplatePushReview} from "../../../types";
+import {TemplateManifest, TemplatePushReview} from "../../../types";
 import chalk from "chalk";
-import {pluralize} from "../../../handler/utils/Various";
+import {pluralize, find} from "../../../handler/utils/Various";
+import {Template, Templates} from "postmark/dist/client/models";
 
 export class ComparisonTable {
   public drawComparisonPreviewTable(review: TemplatePushReview): string {
@@ -10,6 +11,33 @@ export class ComparisonTable {
     this.colorizeTableElements(review.layouts, {'Modified': chalk.green, 'Added': chalk.yellow, 'None': chalk.gray});
 
     return this.getComparisonTables(review);
+  }
+
+  public getTemplatesComparisonTable(templatesOnServer: Templates, templatesToPush: TemplateManifest[]): TemplatePushReview {
+    let review: TemplatePushReview = {layouts: [], templates: []};
+
+    templatesToPush.forEach(template => {
+      const templateOnServerFound: Template|undefined = this.findLocalTemplateOnServer(templatesOnServer, template);
+
+      const reviewData: string[] = [
+        !templateOnServerFound ? 'Added' : 'Modified',
+        template.Name || '',
+        template.Alias || '',
+      ];
+
+      if (template.TemplateType === 'Standard') {
+        reviewData.push(template.LayoutTemplate? template.LayoutTemplate : 'None');
+        review.templates.push(reviewData)
+      } else {
+        review.layouts.push(reviewData)
+      }
+    });
+
+    return review;
+  }
+
+  private findLocalTemplateOnServer(templatesOnServer: any, templateToPush: TemplateManifest): Template|undefined {
+    return find<Template>(templatesOnServer.Templates, {Alias: templateToPush.Alias});
   }
 
   private colorizeTableElements(elements: any[][], paint: any): any[][] {

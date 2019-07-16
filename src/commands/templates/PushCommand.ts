@@ -1,23 +1,18 @@
-import {TokenType} from "../../handler/CommandHandler";
+import {TemplateCommand} from "./TemplateCommand";
 
 import {
   FileDetails,
   TemplatePushReview,
   TemplateManifest,
   TemplateMetaFile,
-  TemplatePushArguments
+  TemplatePushArguments, LogTypes
 } from "../../types";
 
-import {join} from "path";
-import {find} from 'lodash'
-import chalk from "chalk";
-import {pluralize} from "../../handler/utils/Various";
-import {TemplateCommand} from "./TemplateCommand";
+import {pluralize, join, find} from "../../handler/utils/Various";
 import {Template, Templates} from "postmark/dist/client/models";
 import {ComparisonTable} from "./data/ComparisonTable";
 
 class PushCommand extends TemplateCommand {
-
   public constructor(command: string, description: string, options: any) {
     super(command, description, options);
   }
@@ -30,7 +25,7 @@ class PushCommand extends TemplateCommand {
   public async execute(args: TemplatePushArguments): Promise<void> {
     let {serverToken, force, templatesdirectory} = args;
 
-    serverToken = await this.authenticateByToken(serverToken, TokenType.Server);
+    serverToken = await this.authenticateByToken(serverToken);
     this.setServerClientToUse(serverToken);
 
     try {
@@ -107,12 +102,14 @@ class PushCommand extends TemplateCommand {
   }
 
   private showTemplatesComparisonOverview(templatesOnServer: Templates, templatesToPush: TemplateManifest[]): void {
-    let compare: ComparisonTable = new ComparisonTable();
-    let review: TemplatePushReview = this.compareTemplates(templatesOnServer, templatesToPush);
-    this.response.respond(compare.drawComparisonPreviewTable(review));
+    const comparison: ComparisonTable = new ComparisonTable();
+    const review: TemplatePushReview = comparison.getTemplatesComparisonTable(templatesOnServer, templatesToPush);
 
-    this.response.respond(chalk.yellow(
-      this.comparisonLabel( this.labelName(review.templates.length, 'template'), this.labelName(review.layouts.length, 'layout'))));
+    this.response.respond(comparison.drawComparisonPreviewTable(review));
+    this.response.respond(this.comparisonLabel(
+      this.labelName(review.templates.length, 'template'),
+      this.labelName(review.layouts.length, 'layout')
+    ), LogTypes.Warning);
   }
 
   private comparisonLabel(templatesLabel: string, layoutsLabel: string): string {
@@ -120,33 +117,6 @@ class PushCommand extends TemplateCommand {
     label += templatesLabel + ((templatesLabel.length > 0 && layoutsLabel.length > 0) ? ' and ' : '') + layoutsLabel;
     label += ' will be pushed to Postmark.';
     return label;
-  }
-
-  private compareTemplates(templatesOnServer: Templates, templatesToPush: TemplateManifest[]): TemplatePushReview {
-    let review: TemplatePushReview = {layouts: [], templates: []};
-
-    templatesToPush.forEach(template => {
-      const templateOnServerFound: Template|undefined = this.findLocalTemplateOnServer(templatesOnServer, template);
-
-      const reviewData: string[] = [
-        !templateOnServerFound ? 'Added' : 'Modified',
-        template.Name || '',
-        template.Alias || '',
-      ];
-
-      if (template.TemplateType === 'Standard') {
-        reviewData.push(template.LayoutTemplate? template.LayoutTemplate : 'None');
-        review.templates.push(reviewData)
-      } else {
-        review.layouts.push(reviewData)
-      }
-    });
-
-    return review;
-  }
-
-  private findLocalTemplateOnServer(templatesOnServer: any, templateToPush: TemplateManifest): Template|undefined {
-    return find<Template>(templatesOnServer.Templates, {Alias: templateToPush.Alias});
   }
 
   private labelName(number: number, name: string): string {
@@ -190,11 +160,11 @@ class PushCommand extends TemplateCommand {
 
   private pushTemplatesFromDirectoryResponse(pushes: number, failedPushes: number, templatesCount: number): void {
     if (pushes === templatesCount) {
-      this.response.respond('✅ All finished!', {color: 'green'})
+      this.response.respond('All finished!', LogTypes.Success)
     }
     else {
       this.response.error(
-        `⚠️ Failed to push ${failedPushes} ${pluralize(failedPushes, 'template')}. ` +
+        `Failed to push ${failedPushes} ${pluralize(failedPushes, 'template')}. ` +
         `Please see the output above for more details.`)
     }
   }

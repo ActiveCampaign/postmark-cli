@@ -10,4 +10,9 @@ export const pluralize = (count: number, singular: string, plural?: string): str
   else {
     return (count > 1 || count === 0 ? plural : singular);
   }
-}
+};
+
+export {join} from "path";
+
+export {find} from 'lodash'
+

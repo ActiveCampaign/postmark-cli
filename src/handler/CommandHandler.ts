@@ -1,15 +1,11 @@
-import {Arguments} from "../types/index";
+import {Arguments, LogTypes} from "../types/index";
 import CommandDetails from "./CommandDetails";
-import {DataFormat} from "./data/DataFormat";
 import {JSONFormat} from "./data/JSONFormat";
-import {SpinnerResponse} from "./response/SpinnerResponse";
-import {ShellResponse} from "./response/ShellResponse";
-
+import {SpinnerResponse, ShellResponse} from "./response";
+import {FileHandling, PromptCollection} from "./utils";
 import {ServerClient, AccountClient} from "postmark";
-import {FileHandling} from "./utils/FileHandling";
-import {PromptCollection} from "./utils/PromptCollection";
 
-export enum TokenType {
+export enum TokenTypes {
   Account = 'account',
   Server = 'server'
 }
@@ -73,7 +69,7 @@ export abstract class CommandHandler {
     return new JSONFormat().format(data);
   }
 
-  protected async authenticateByToken(token: string, tokenType: TokenType): Promise<string> {
+  protected async authenticateByToken(token: string, tokenType: TokenTypes = TokenTypes.Server): Promise<string> {
     if (this.isValueInvalid(token)) {
       return this.retrieveTokenByPrompt(tokenType).then( token => { return token; })
     }
@@ -82,7 +78,7 @@ export abstract class CommandHandler {
     }
   }
 
-  protected async retrieveTokenByPrompt(tokenType: TokenType): Promise<string> {
+  protected async retrieveTokenByPrompt(tokenType: TokenTypes): Promise<string> {
     const {token} = await this.prompts.auth(tokenType);
 
     if (this.isValueInvalid(token)) {
@@ -100,7 +96,7 @@ export abstract class CommandHandler {
   protected confirmation(message: string = 'Would you like to continue?', cancelMessage: string = 'Cancelled. Have a good day!'): Promise<boolean> {
     return this.prompts.confirmation(message).then(answer => {
       if (answer.confirm !== true) {
-        this.response.respond(cancelMessage);
+        this.response.respond(cancelMessage, LogTypes.Warning);
         return answer.confirm;
       }
       return answer.confirm;

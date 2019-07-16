@@ -1,29 +1,31 @@
-import {LogSettings} from "../../types/index";
+import {CustomLogTypeDetails, LogTypes} from "../../types/index";
 import chalk from "chalk";
 
 export class ShellResponse {
-  public respond(message: string, settings?: LogSettings): void {
-    this.log(message, settings)
+  public respond(message: string, type: LogTypes = LogTypes.Info,
+                 customLogDetails: CustomLogTypeDetails = { color: 'green'}): void {
+    this.log(message, type, customLogDetails)
   }
 
   public error(message: string) {
-    this.respond(message, { error: true });
+    this.respond(message, LogTypes.Error);
     process.exit(1);
   }
 
-  private log(text: string, settings?: LogSettings): void {
-    if (settings && settings.error) {
-      return console.error(chalk.red(text))
-    }
+  private log(text: string, type: LogTypes, customLogDetails: CustomLogTypeDetails = { color: 'green'}): void {
+    return (type === LogTypes.Custom) ? console.log(chalk[customLogDetails.color](text)) : this.logByType(text, type);
+  }
 
-    if (settings && settings.warn) {
-      return console.warn(chalk.yellow(text))
+  private logByType(text: string, logType: LogTypes) {
+    switch (logType) {
+      case LogTypes.Success:
+        return console.log("✅" + chalk.green(" " + text));
+      case LogTypes.Error:
+        return console.error("🚫" + chalk.red(" " + text));
+      case LogTypes.Warning:
+        return console.log("⚠️" + chalk.yellow("  " + text));
+      case LogTypes.Info:
+        return console.log(text);
     }
-
-    if (settings && settings.color) {
-      return console.log(chalk[settings.color](text))
-    }
-
-    return console.log(text)
   }
 }
