@@ -33,7 +33,7 @@ class ServerCommand extends CommandHandler {
   }
 
   protected getFormattedData(data: Servers, json: boolean): string {
-    return (json === true) ? super.getFormattedData(data) : new ServerTableFormat().format(data)
+    return (json === true) ? super.getFormattedData(data) : new ServerTableFormat().transform(data)
   }
 
   private adjustContent(data: Servers, showTokens: boolean): void {

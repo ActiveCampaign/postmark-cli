@@ -13,7 +13,7 @@ class PullCommand extends TemplateCommand {
 
     serverToken = await this.authenticateByToken(serverToken);
     this.setServerClientToUse(serverToken);
-
+    
     if (await this.isPullTemplatesPossible(outputdirectory, overwrite)) {
       return this.pullTemplatesToDirectory(outputdirectory);
     }
@@ -24,10 +24,16 @@ class PullCommand extends TemplateCommand {
       return this.confirmation(`Overwrite the files in ${directory}?`)
     }
     else {
-      return false;
+      return true;
     }
   }
 
+  /**
+   * Pull all the templates from a Postmark server to a local directory.
+   *
+   * @param {string} outputDirectory - directory to pull templates to
+   * @return {Promise<void>}
+   */
   private async pullTemplatesToDirectory(outputDirectory: string): Promise<void> {
     try {
       const templates: Templates = await this.spinnerResponse.respond<Templates>('Fetching templates...',
@@ -68,11 +74,7 @@ class PullCommand extends TemplateCommand {
   private async saveTemplatesAction(templates: any, outputDirectory: string) {
     await this.spinnerResponse.respond<void>(`Saving templates to folder '${outputDirectory}'...`,
       this.saveTemplatesToDirectory(templates, outputDirectory));
-
-    const message: string = `All finished! ${templates.length} ` +
-                            `${pluralize(templates.length, 'template has', 'templates have')}` +
-                            ` been saved to ${outputDirectory}.`;
-    this.response.respond(message, LogTypes.Success)
+      this.showSavedTemplatesInfo(templates.length, outputDirectory)
   }
 
   private async saveTemplatesToDirectory(templates: any[], outputDir: string):Promise<void> {
@@ -115,6 +117,13 @@ class PullCommand extends TemplateCommand {
     return templateType === TemplateTypes.Layout ? join(outputDir,this.layoutDirectory) : outputDir;
   }
 
+  private showSavedTemplatesInfo(templatesSavedCount: number, outputDirectory: string) {
+    const message: string = `All finished! ${templatesSavedCount} ` +
+      `${pluralize(templatesSavedCount, 'template has', 'templates have')}` +
+      ` been saved to ${outputDirectory}.`;
+    this.response.respond(message, LogTypes.Success)
+  }
+
 }
 
 const options: any = {
@@ -130,8 +139,11 @@ const options: any = {
   },
 };
 
-const commandHandler: PullCommand = new PullCommand('pull <output directory> [options]',
-                                                    'Pull templates from a server to <output directory>', options);
+const commandHandler: PullCommand = new PullCommand(
+  'pull <output directory> [options]',
+  'Pull templates from a server to <output directory>',
+  options
+);
 
 export const command = commandHandler.details.command;
 export const desc = commandHandler.details.description;

@@ -8,8 +8,8 @@ import {
   TemplatePushArguments, LogTypes
 } from "../../types";
 
-import {pluralize, join, find} from "../../handler/utils/Various";
-import {Template, Templates} from "postmark/dist/client/models";
+import {pluralize, join} from "../../handler/utils/Various";
+import {Templates} from "postmark/dist/client/models";
 import {ComparisonTable} from "./data/ComparisonTable";
 
 class PushCommand extends TemplateCommand {
@@ -135,7 +135,7 @@ class PushCommand extends TemplateCommand {
       return this.pushTemplateFromDirectory(template).then(result => { if (result === true) { successfulPushes++; }});
     }));
 
-    this.pushTemplatesFromDirectoryResponse(successfulPushes, templates.length - successfulPushes, templates.length);
+    this.showPushTemplatesFromDirectoryInfo(successfulPushes, templates.length - successfulPushes, templates.length);
   }
 
   /**
@@ -158,7 +158,7 @@ class PushCommand extends TemplateCommand {
     }
   }
 
-  private pushTemplatesFromDirectoryResponse(pushes: number, failedPushes: number, templatesCount: number): void {
+  private showPushTemplatesFromDirectoryInfo(pushes: number, failedPushes: number, templatesCount: number): void {
     if (pushes === templatesCount) {
       this.response.respond('All finished!', LogTypes.Success)
     }
@@ -182,8 +182,11 @@ const options: any = {
   },
 };
 
-const commandHandler: PushCommand = new PushCommand('push <templates directory> [options]',
-  'Push templates from <templates directory> to a Postmark server', options);
+const commandHandler: PushCommand = new PushCommand(
+  'push <templates directory> [options]',
+  'Push templates from <templates directory> to a Postmark server',
+  options
+);
 
 export const command = commandHandler.details.command;
 export const desc = commandHandler.details.description;

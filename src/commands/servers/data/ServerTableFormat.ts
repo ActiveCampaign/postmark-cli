@@ -16,7 +16,7 @@ export class ServerTableFormat extends DataFormat {
     grey: '#929292',
   };
 
-  public format(servers: Servers):string {
+  public transform(servers: Servers):string {
     return this.tableResponse(servers);
   }
 

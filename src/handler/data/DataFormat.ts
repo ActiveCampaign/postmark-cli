@@ -1,3 +1,3 @@
 export abstract class DataFormat {
-  public abstract format(data: any): string;
+  public abstract transform(data: any): string;
 }
