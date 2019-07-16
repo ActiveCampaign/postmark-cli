@@ -13,7 +13,7 @@ class PullCommand extends TemplateCommand {
 
     serverToken = await this.authenticateByToken(serverToken);
     this.setServerClientToUse(serverToken);
-    
+
     if (await this.isPullTemplatesPossible(outputdirectory, overwrite)) {
       return this.pullTemplatesToDirectory(outputdirectory);
     }

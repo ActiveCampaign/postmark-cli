@@ -1,12 +1,11 @@
-import {getBorderCharacters, table} from "table";
-import {Chalk} from "chalk";
 import {TemplateManifest, TemplatePushReview} from "../../../types";
 import chalk from "chalk";
 import {pluralize, find} from "../../../handler/utils/Various";
 import {Template, Templates} from "postmark/dist/client/models";
+import {TableFormat} from "../../../handler/data/TableFormat";
 
-export class ComparisonTable {
-  public drawComparisonPreviewTable(review: TemplatePushReview): string {
+export class TemplateComparisonTable extends TableFormat{
+  public transform(review: TemplatePushReview): string {
     this.colorizeTableElements(review.templates, {'Modified': chalk.green, 'Added': chalk.yellow, 'None': chalk.gray});
     this.colorizeTableElements(review.layouts, {'Modified': chalk.green, 'Added': chalk.yellow, 'None': chalk.gray});
 
@@ -40,27 +39,12 @@ export class ComparisonTable {
     return find<Template>(templatesOnServer.Templates, {Alias: templateToPush.Alias});
   }
 
-  private colorizeTableElements(elements: any[][], paint: any): any[][] {
-    for(let i=0;i<elements.length;i++) {
-      for(let j=0;j<elements.length;j++) {
-        const element = elements[i][j];
-        const color: Chalk = paint[element];
-        if (!!color) {
-          elements[i][j] = color(element);
-        }
-      }
-    }
-    return elements;
-
-  }
-
   private getComparisonTables(review: TemplatePushReview): string {
     const {templates, layouts} = review;
-    const baseHeader: string[] = [chalk.gray('Change'), chalk.gray('Name'), chalk.gray('Alias')];
-
+    
     let result: string = '';
-    result += this.drawElementsTable(templates, [...baseHeader, chalk.gray('Layout used')], 'template');
-    result += this.drawElementsTable(layouts, baseHeader, 'layout');
+    result += this.drawElementsTable(templates, ['Change', 'Name', 'Alias', 'Layout used'], 'template');
+    result += this.drawElementsTable(layouts, ['Change', 'Name', 'Alias'], 'layout');
     return result;
   }
 
@@ -68,7 +52,7 @@ export class ComparisonTable {
     let result = '';
     if (elements.length > 0) {
       result += `\n${this.labelName(elements.length, type)}\n`;
-      result += table([header, ...elements], {border: getBorderCharacters('norc')});
+      result += this.getTable(header,elements);
     }
 
     return result;

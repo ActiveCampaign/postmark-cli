@@ -10,7 +10,7 @@ import {
 
 import {pluralize, join} from "../../handler/utils/Various";
 import {Templates} from "postmark/dist/client/models";
-import {ComparisonTable} from "./data/ComparisonTable";
+import {TemplateComparisonTable} from "./data/TemplateComparisonTable";
 
 class PushCommand extends TemplateCommand {
   public constructor(command: string, description: string, options: any) {
@@ -102,10 +102,10 @@ class PushCommand extends TemplateCommand {
   }
 
   private showTemplatesComparisonOverview(templatesOnServer: Templates, templatesToPush: TemplateManifest[]): void {
-    const comparison: ComparisonTable = new ComparisonTable();
+    const comparison: TemplateComparisonTable = new TemplateComparisonTable();
     const review: TemplatePushReview = comparison.getTemplatesComparisonTable(templatesOnServer, templatesToPush);
 
-    this.response.respond(comparison.drawComparisonPreviewTable(review));
+    this.response.respond(comparison.transform(review));
     this.response.respond(this.comparisonLabel(
       this.labelName(review.templates.length, 'template'),
       this.labelName(review.layouts.length, 'layout')

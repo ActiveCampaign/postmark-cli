@@ -1,10 +1,9 @@
 import {Server, Servers} from "postmark/dist/client/models";
 import chalk from "chalk";
-import {getBorderCharacters, table} from "table";
 import {ColorMap} from "../../../types/index";
-import {DataFormat} from "../../../handler/data/DataFormat";
+import {TableFormat} from "../../../handler/data/TableFormat";
 
-export class ServerTableFormat extends DataFormat {
+export class ServerListTable extends TableFormat {
   public static ServerColors: ColorMap = {
     purple: '#9C73D2',
     blue: '#21CDFE',
@@ -17,44 +16,40 @@ export class ServerTableFormat extends DataFormat {
   };
 
   public transform(servers: Servers):string {
-    return this.tableResponse(servers);
+    return this.stylizedTable(servers);
   }
 
-  public tableResponse(servers: Servers): string  {
+  public stylizedTable(servers: Servers): string  {
     let headings: string[] = ['Server', 'Settings'];
-    let serverTable: [string[]] = [headings];
+    let serverTable: [string[]] = [[]];
+    serverTable.pop();
 
     servers.Servers.forEach(server => serverTable.push(this.serverRow(server)));
-    return table(serverTable, { border: getBorderCharacters('norc') })
+    return this.getTable(headings, serverTable)
   }
 
   private serverRow(server: Server): string[] {
-    let row: any[] = [];
+    let row: string[] = [];
+    row.push(this.serverNameColumn(server));
+    row.push(this.serverSettingsColumn(server));
+    return row
+  }
 
-    let tokens: string = '';
-    server.ApiTokens.forEach((token, index) => {
-      tokens += token;
-      if (server.ApiTokens.length > index + 1) tokens += '\n'
-    });
+  private serverNameColumn(server: Server): string {
+    const tokens = server.ApiTokens.map((token) => {return token}).join("\n");
 
-    // Name column
-    const name: string =
-      chalk.white.bgHex(ServerTableFormat.ServerColors[server.Color])('  ') +
-      ` ${chalk.bold.white(server.Name)}` +
-      chalk.gray(`\nID: ${server.ID}`) +
-      `\n${chalk.gray(server.ServerLink)}` +
-      `\n\n${chalk.bold.white('Server API Tokens')}\n` + tokens;
-    row.push(name);
+    return chalk.white.bgHex(ServerListTable.ServerColors[server.Color])('  ') +
+    ` ${chalk.white(server.Name)}` +
+    chalk.gray(`\n\nID: ${server.ID}`) +
+    `\n${chalk.gray(server.ServerLink)}` +
+    `\n\n${chalk.white('Server API Tokens')}\n` + tokens;
+  }
 
-    // Settings column
-    const settings: string =
-      `SMTP: ${this.stateLabel(server.SmtpApiActivated)}` +
-      `\nOpen Tracking: ${this.stateLabel(server.TrackOpens)}` +
+  private serverSettingsColumn(server: Server): string {
+    return `SMTP: ${this.stateLabel(server.SmtpApiActivated)}` +
+      `\nOpen Tracking: ${server.TrackOpens}` +
       `\nLink Tracking: ${this.linkTrackingStateLabel(server.TrackLinks)}` +
       `\nInbound: ${this.stateLabel(server.InboundHookUrl !== '')}`;
-    row.push(settings);
-
-    return row
   }
 
   private stateLabel(state: boolean | undefined): string {
