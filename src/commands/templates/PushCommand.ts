@@ -8,7 +8,7 @@ import {
   TemplatePushArguments, LogTypes
 } from "../../types";
 
-import {pluralize, join} from "../../handler/utils/Various";
+import {pluralize, join, pluralizeWithNumber} from "../../handler/utils/Various";
 import {Templates} from "postmark/dist/client/models";
 import {TemplateComparisonTable} from "./data/TemplateComparisonTable";
 
@@ -107,8 +107,8 @@ class PushCommand extends TemplateCommand {
 
     this.response.respond(comparison.transform(review));
     this.response.respond(this.comparisonLabel(
-      this.labelName(review.templates.length, 'template'),
-      this.labelName(review.layouts.length, 'layout')
+      pluralizeWithNumber(review.templates.length, 'template'),
+      pluralizeWithNumber(review.layouts.length, 'layout')
     ), LogTypes.Warning);
   }
 
@@ -117,10 +117,6 @@ class PushCommand extends TemplateCommand {
     label += templatesLabel + ((templatesLabel.length > 0 && layoutsLabel.length > 0) ? ' and ' : '') + layoutsLabel;
     label += ' will be pushed to Postmark.';
     return label;
-  }
-
-  private labelName(number: number, name: string): string {
-    return number > 0 ? `${number} ${pluralize(number, name)}` : '';
   }
 
   /**

@@ -12,6 +12,10 @@ export const pluralize = (count: number, singular: string, plural?: string): str
   }
 };
 
+export const pluralizeWithNumber = (count: number, singular: string, plural?: string): string => {
+  return count + ' ' + pluralize(count, singular, plural)
+}
+
 export {join} from "path";
 
 export {find} from 'lodash'

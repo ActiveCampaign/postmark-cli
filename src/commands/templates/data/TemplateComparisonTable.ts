@@ -1,6 +1,6 @@
 import {TemplateManifest, TemplatePushReview} from "../../../types";
 import chalk from "chalk";
-import {pluralize, find} from "../../../handler/utils/Various";
+import {find, pluralizeWithNumber} from "../../../handler/utils/Various";
 import {Template, Templates} from "postmark/dist/client/models";
 import {TableFormat} from "../../../handler/data/TableFormat";
 
@@ -12,22 +12,26 @@ export class TemplateComparisonTable extends TableFormat{
     return this.getComparisonTables(review);
   }
 
-  public getTemplatesComparisonTable(templatesOnServer: Templates, templatesToPush: TemplateManifest[]): TemplatePushReview {
+  private getComparisonTables(review: TemplatePushReview): string {
+    const {templates, layouts} = review;
+
+    let result: string = '';
+    result += this.stylizedTable(templates, ['Change', 'Name', 'Alias', 'Layout used'], 'template');
+    result += this.stylizedTable(layouts, ['Change', 'Name', 'Alias'], 'layout');
+    return result;
+  }
+
+  public getTemplatesComparisonTable(templatesOnServer: Templates,
+                                     templatesToPush: TemplateManifest[]): TemplatePushReview {
     let review: TemplatePushReview = {layouts: [], templates: []};
 
     templatesToPush.forEach(template => {
-      const templateOnServerFound: Template|undefined = this.findLocalTemplateOnServer(templatesOnServer, template);
-
-      const reviewData: string[] = [
-        !templateOnServerFound ? 'Added' : 'Modified',
-        template.Name || '',
-        template.Alias || '',
-      ];
-
+      const reviewData: string[] = this.generateBaseReviewData(template, templatesOnServer);
       if (template.TemplateType === 'Standard') {
-        reviewData.push(template.LayoutTemplate? template.LayoutTemplate : 'None');
+        reviewData.push(template.LayoutTemplate ? template.LayoutTemplate : 'None');
         review.templates.push(reviewData)
-      } else {
+      }
+      else {
         review.layouts.push(reviewData)
       }
     });
@@ -35,31 +39,28 @@ export class TemplateComparisonTable extends TableFormat{
     return review;
   }
 
+  public generateBaseReviewData(template:any, templatesOnServer: Templates): string[] {
+    const templateOnServerFound: Template|undefined = this.findLocalTemplateOnServer(templatesOnServer, template);
+
+    return [
+      !templateOnServerFound ? 'Added' : 'Modified',
+      template.Name || '',
+      template.Alias || '',
+    ];
+  }
+
   private findLocalTemplateOnServer(templatesOnServer: any, templateToPush: TemplateManifest): Template|undefined {
     return find<Template>(templatesOnServer.Templates, {Alias: templateToPush.Alias});
   }
 
-  private getComparisonTables(review: TemplatePushReview): string {
-    const {templates, layouts} = review;
-    
-    let result: string = '';
-    result += this.drawElementsTable(templates, ['Change', 'Name', 'Alias', 'Layout used'], 'template');
-    result += this.drawElementsTable(layouts, ['Change', 'Name', 'Alias'], 'layout');
-    return result;
-  }
-
-  private drawElementsTable(elements: any, header: string[], type: string): string {
+  private stylizedTable(elements: any, header: string[], type: string): string {
     let result = '';
     if (elements.length > 0) {
-      result += `\n${this.labelName(elements.length, type)}\n`;
+      result += `\n${pluralizeWithNumber(elements.length, type)}\n`;
       result += this.getTable(header,elements);
     }
 
     return result;
-  }
-
-  private labelName(number: number, name: string): string {
-    return number > 0 ? `${number} ${pluralize(number, name, name + 's')}` : '';
   }
 
   private layoutUsedLabel(localLayout: string | null | undefined, serverLayout: string | null | undefined): string {
