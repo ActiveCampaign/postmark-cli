@@ -12,7 +12,7 @@ export class RawEmailCommand extends CommandHandler {
     const { from, to, subject, html, text} = args;
 
     try {
-      serverToken = await this.authenticateByToken(serverToken);
+      serverToken = await this.validateAndRetrieveToken(serverToken);
       this.setServerClientToUse(serverToken);
 
       const data: MessageSendingResponse = await this.spinnerResponse.respond<MessageSendingResponse>(

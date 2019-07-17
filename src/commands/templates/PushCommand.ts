@@ -25,7 +25,7 @@ class PushCommand extends TemplateCommand {
   public async execute(args: TemplatePushArguments): Promise<void> {
     let {serverToken, force, templatesdirectory} = args;
 
-    serverToken = await this.authenticateByToken(serverToken);
+    serverToken = await this.validateAndRetrieveToken(serverToken);
     this.setServerClientToUse(serverToken);
 
     try {
@@ -36,7 +36,7 @@ class PushCommand extends TemplateCommand {
       const templatesOnServer: Templates = await this.retrieveTemplatesFromServer();
 
       this.showTemplatesComparisonOverview(templatesOnServer, templatesToPush);
-      if (force || await this.confirmation()) { await this.pushTemplatesFromDirectory(templatesToPush) }
+      if (force || await this.confirmByPrompt()) { await this.pushTemplatesFromDirectory(templatesToPush) }
     } catch (error) {
       this.response.error(error.message)
     }

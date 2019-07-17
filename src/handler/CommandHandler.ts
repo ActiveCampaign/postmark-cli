@@ -69,7 +69,7 @@ export abstract class CommandHandler {
     return new JSONFormat().transform(data);
   }
 
-  protected async authenticateByToken(token: string, tokenType: TokenTypes = TokenTypes.Server): Promise<string> {
+  protected async validateAndRetrieveToken(token: string, tokenType: TokenTypes = TokenTypes.Server): Promise<string> {
     if (this.isValueInvalid(token)) {
       return this.retrieveTokenByPrompt(tokenType).then( token => { return token; })
     }
@@ -88,12 +88,8 @@ export abstract class CommandHandler {
     return token;
   }
 
-  protected isValueInvalid(text: string): boolean {
-    return (text === undefined || text.toString().length == 0);
-  }
-
-
-  protected confirmation(message: string = 'Would you like to continue?', cancelMessage: string = 'Cancelled. Have a good day!'): Promise<boolean> {
+  protected confirmByPrompt(message: string = 'Would you like to continue?',
+                            cancelMessage: string = 'Cancelled. Have a good day!'): Promise<boolean> {
     return this.prompts.confirmation(message).then(answer => {
       if (answer.confirm !== true) {
         this.response.respond(cancelMessage, LogTypes.Warning);
@@ -103,6 +99,10 @@ export abstract class CommandHandler {
     }).catch(e => {
       return false;
     });
+  }
+
+  protected isValueInvalid(text: string): boolean {
+    return (text === undefined || text.toString().length == 0);
   }
 }
 

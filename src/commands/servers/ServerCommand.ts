@@ -12,7 +12,7 @@ class ServerCommand extends CommandHandler {
     let {count, offset, name, showTokens, json, accountToken} = args;
 
     try {
-      accountToken = await this.authenticateByToken(accountToken, TokenTypes.Account);
+      accountToken = await this.validateAndRetrieveToken(accountToken, TokenTypes.Account);
       this.setAccountClientToUse(accountToken);
 
       const data: Servers = await this.spinnerResponse.respond<Servers>('Fetching data...',

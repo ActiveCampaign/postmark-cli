@@ -11,7 +11,7 @@ class PullCommand extends TemplateCommand {
   public async execute(args: TemplatePullArguments): Promise<void> {
     let {serverToken, overwrite, outputdirectory} = args;
 
-    serverToken = await this.authenticateByToken(serverToken);
+    serverToken = await this.validateAndRetrieveToken(serverToken);
     this.setServerClientToUse(serverToken);
 
     if (await this.isPullTemplatesPossible(outputdirectory, overwrite)) {
@@ -19,9 +19,9 @@ class PullCommand extends TemplateCommand {
     }
   }
 
-  private async isPullTemplatesPossible(directory: string, overwrite: boolean): Promise<boolean> {
+  public async isPullTemplatesPossible(directory: string, overwrite: boolean): Promise<boolean> {
     if (this.fileUtils.directoryExists(directory) && !overwrite) {
-      return this.confirmation(`Overwrite the files in ${directory}?`)
+      return this.confirmByPrompt(`Overwrite the files in ${directory}?`)
     }
     else {
       return true;
@@ -34,27 +34,25 @@ class PullCommand extends TemplateCommand {
    * @param {string} outputDirectory - directory to pull templates to
    * @return {Promise<void>}
    */
-  private async pullTemplatesToDirectory(outputDirectory: string): Promise<void> {
+  public async pullTemplatesToDirectory(outputDirectory: string): Promise<void> {
     try {
       const templates: Templates = await this.spinnerResponse.respond<Templates>('Fetching templates...',
         this.serverClient.getTemplates());
-      const templatesWithAlias = this.templatesWithAlias(templates);
-      const templateNamesWithNoAlias = this.templateNamesWithNoAlias(templates);
-
       this.validateTemplatesExistOnServer(templates);
-      this.showTemplatesWithNoAliasWarning(templateNamesWithNoAlias);
+
+      const templatesWithAlias: any[] = this.retrieveTemplatesByAlias(templates, true);
+      const templateNamesWithNoAlias: any[] = this.retrieveTemplatesByAlias(templates, false)
+                                                  .map( template => template.Name);
+
+      if (templateNamesWithNoAlias.length > 0) { this.showTemplatesWithNoAliasWarning(templateNamesWithNoAlias); }
       await this.saveTemplatesAction(templatesWithAlias, outputDirectory)
     } catch (error) {
       this.response.error(error.message)
     }
   }
 
-  private templateNamesWithNoAlias(templates: Templates):string[] {
-    return templates.Templates.filter( template => !template.Alias ).map( template => template.Name)
-  }
-
-  private templatesWithAlias(templates: Templates): any[] {
-    return templates.Templates.filter( template => !!template.Alias )
+  private retrieveTemplatesByAlias(templates: Templates, aliasAvailable: boolean): any[] {
+    return templates.Templates.filter( template => !!template.Alias === aliasAvailable)
   }
 
   private validateTemplatesExistOnServer(templates: Templates): void {
@@ -64,11 +62,9 @@ class PullCommand extends TemplateCommand {
   }
 
   private showTemplatesWithNoAliasWarning(templateNamesWithNoAlias: string[]): void {
-    if (templateNamesWithNoAlias.length > 0) {
-      let message = 'Templates with following names will not be downloaded because they are missing an alias:\n';
-      message += templateNamesWithNoAlias.join("\n");
-      this.response.respond(message, LogTypes.Warning);
-    }
+    let message = 'Templates with following names will not be downloaded because they are missing an alias:\n';
+    this.response.respond(message, LogTypes.Warning);
+    this.response.respond(templateNamesWithNoAlias.join("\n") + "\n", LogTypes.Info)
   }
 
   private async saveTemplatesAction(templates: any, outputDirectory: string) {
