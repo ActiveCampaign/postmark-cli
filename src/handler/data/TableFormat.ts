@@ -6,9 +6,13 @@ export abstract class TableFormat extends DataFormat {
   private readonly tableBorder = { border: getBorderCharacters('norc') };
   public abstract transform(data: any): string;
 
-  protected getTable(header: string[], data: any): string {
+  protected getTable(header: string[], data: any, tableTitle: string = ''): string {
     this.colorizeHeader(header);
-    return table([header, ...data], this.tableBorder);
+    return this.prepareTableTitle(tableTitle) + table([header, ...data], this.tableBorder);
+  }
+
+  private prepareTableTitle(tableTitle: string): string {
+    return (tableTitle === '') ? '' : "\n" + chalk.white.bold(tableTitle) + "\n";
   }
 
   protected colorizeHeader(header: string[]) {

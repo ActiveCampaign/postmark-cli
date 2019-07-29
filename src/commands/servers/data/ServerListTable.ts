@@ -24,39 +24,39 @@ export class ServerListTable extends TableFormat {
     let serverTable: [string[]] = [[]];
     serverTable.pop();
 
-    servers.Servers.forEach(server => serverTable.push(this.serverRow(server)));
-    return this.getTable(headings, serverTable)
+    servers.Servers.forEach(server => serverTable.push(this.getServerRow(server)));
+    return this.getTable(headings, serverTable, 'Servers list')
   }
 
-  private serverRow(server: Server): string[] {
+  private getServerRow(server: Server): string[] {
     let row: string[] = [];
-    row.push(this.serverNameColumn(server));
-    row.push(this.serverSettingsColumn(server));
+    row.push(this.getServerNameColumnDetails(server));
+    row.push(this.getServerSettingsColumnDetails(server));
     return row
   }
 
-  private serverNameColumn(server: Server): string {
+  private getServerNameColumnDetails(server: Server): string {
     const tokens = server.ApiTokens.map((token) => {return token}).join("\n");
 
-    return chalk.white.bgHex(ServerListTable.ServerColors[server.Color])('  ') +
-    ` ${chalk.white(server.Name)}` +
-    chalk.gray(`\n\nID: ${server.ID}`) +
-    `\n${chalk.gray(server.ServerLink)}` +
-    `\n\n${chalk.white('Server API Tokens')}\n` + tokens;
+    return  `${chalk.white.bgHex(ServerListTable.ServerColors[server.Color])('  ')} ${chalk.white(server.Name)}` +
+            `\n\n${chalk.gray(`ID: ${server.ID}`)}`     +
+            `\n${chalk.gray(server.ServerLink)}`        +
+            `\n\n${chalk.white('Server API Tokens')}\n${tokens}`;
   }
 
-  private serverSettingsColumn(server: Server): string {
-    return `SMTP: ${this.stateLabel(server.SmtpApiActivated)}` +
-      `\nOpen Tracking: ${server.TrackOpens}` +
-      `\nLink Tracking: ${this.linkTrackingStateLabel(server.TrackLinks)}` +
-      `\nInbound: ${this.stateLabel(server.InboundHookUrl !== '')}`;
+  private getServerSettingsColumnDetails(server: Server): string {
+    return  `SMTP: ${this.adjustBooleanStateValue(server.SmtpApiActivated)}`            +
+            `\nOpen Tracking: ${server.TrackOpens}`                                     +
+            `\nLink Tracking: ${this.adjustLinkTrackingStateValue(server.TrackLinks)}`  +
+            `\nInbound: ${this.adjustBooleanStateValue(server.InboundHookUrl !== '')}`;
   }
 
-  private stateLabel(state: boolean | undefined): string {
-    return state ? chalk.green('Enabled') : chalk.gray('Disabled')
+  private adjustBooleanStateValue(state: boolean | undefined): string {
+    return state ?  chalk.green('Enabled') :
+                    chalk.gray('Disabled')
   }
 
-  private linkTrackingStateLabel(state: string): string  {
+  private adjustLinkTrackingStateValue(state: string): string  {
     switch (state) {
       case 'TextOnly':
         return chalk.green('Text');

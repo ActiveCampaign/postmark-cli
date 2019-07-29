@@ -54,13 +54,7 @@ export class TemplateComparisonTable extends TableFormat{
   }
 
   private stylizedTable(elements: any, header: string[], type: string): string {
-    let result = '';
-    if (elements.length > 0) {
-      result += `\n${pluralizeWithNumber(elements.length, type)}\n`;
-      result += this.getTable(header,elements);
-    }
-
-    return result;
+    return (elements.length > 0) ? this.getTable(header,elements, pluralizeWithNumber(elements.length, type)) : '';
   }
 
   private layoutUsedLabel(localLayout: string | null | undefined, serverLayout: string | null | undefined): string {

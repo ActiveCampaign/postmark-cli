@@ -15,7 +15,7 @@ class ServerCommand extends CommandHandler {
       accountToken = await this.validateAndRetrieveToken(accountToken, TokenTypes.Account);
       this.setAccountClientToUse(accountToken);
 
-      const data: Servers = await this.spinnerResponse.respond<Servers>('Fetching data...',
+      const data: Servers = await this.spinnerResponse.respond<Servers>('Fetching servers...',
         this.accountClient.getServers({count: count, offset: offset, name: name}));
 
       this.adjustContent(data, showTokens);

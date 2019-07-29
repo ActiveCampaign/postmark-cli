@@ -13,3 +13,4 @@ dist/test*
 src/test*
 **/*testing_keys.json
 test/data
+igor
