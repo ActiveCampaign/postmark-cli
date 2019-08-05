@@ -1,7 +1,7 @@
 import {DataFormat} from "./DataFormat";
 
 export class JSONFormat extends DataFormat{
-  public transform(data: any):string {
+  public getData(data: any):string {
     return JSON.stringify(data, null, 2);
   }
 }

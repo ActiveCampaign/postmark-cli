@@ -1,7 +1,7 @@
 import {Server, Servers} from "postmark/dist/client/models";
-import chalk from "chalk";
-import {ColorMap} from "../../../types/index";
 import {TableFormat} from "../../../handler/data/TableFormat";
+import {ColorMap} from "../../../types";
+import {StringFormatter} from "../../../handler/data/StringFormatter";
 
 export class ServerListTable extends TableFormat {
   public static ServerColors: ColorMap = {
@@ -15,57 +15,79 @@ export class ServerListTable extends TableFormat {
     grey: '#929292',
   };
 
-  public transform(servers: Servers):string {
-    return this.stylizedTable(servers);
+  public getData(servers: Servers):string {
+    return this.getFormattedTable(servers);
   }
 
-  public stylizedTable(servers: Servers): string  {
+  public getFormattedTable(servers: Servers): string  {
     let headings: string[] = ['Server', 'Settings'];
     let serverTable: [string[]] = [[]];
     serverTable.pop();
 
-    servers.Servers.forEach(server => serverTable.push(this.getServerRow(server)));
-    return this.getTable(headings, serverTable, 'Servers list')
+    servers.Servers.forEach(server => serverTable.push(this.tableRow(server)));
+    return this.getTable(headings, serverTable, 'Servers list');
   }
 
-  private getServerRow(server: Server): string[] {
+  private tableRow(server: Server): string[] {
     let row: string[] = [];
-    row.push(this.getServerNameColumnDetails(server));
-    row.push(this.getServerSettingsColumnDetails(server));
+    row.push(this.serverNameColumn(server));
+    row.push(this.serverSettingsColumn(server));
     return row
   }
 
-  private getServerNameColumnDetails(server: Server): string {
-    const tokens = server.ApiTokens.map((token) => {return token}).join("\n");
+  /**
+   * Retrieve formatted string of most important server settings as a column for a table.
+   *
+   * @param {Server} server - server details
+   * @return {string} - formatted string to display in table name column
+   */
+  private serverNameColumn(server: Server): string {
+    const formattedString: StringFormatter = new StringFormatter();
 
-    return  `${chalk.white.bgHex(ServerListTable.ServerColors[server.Color])('  ')} ${chalk.white(server.Name)}` +
-            `\n\n${chalk.gray(`ID: ${server.ID}`)}`     +
-            `\n${chalk.gray(server.ServerLink)}`        +
-            `\n\n${chalk.white('Server API Tokens')}\n${tokens}`;
+    formattedString.appendColoredHexValue('  ', ServerListTable.ServerColors[server.Color])
+      .appendWhitespace()
+      .appendValue(server.Name)
+      .appendLine(2);
+
+    formattedString.appendColoredValue('ID: ', 'gray')
+      .appendColoredValue(server.ID.toString(), 'gray')
+      .appendLine();
+
+    formattedString.appendColoredValue(server.ServerLink, 'gray')
+      .appendLine(2);
+
+    formattedString.appendValue('Server API Tokens')
+      .appendLine()
+      .appendValue(server.ApiTokens.map((token) => {return token}).join("\n"));
+
+    return formattedString.getValue();
   }
 
-  private getServerSettingsColumnDetails(server: Server): string {
-    return  `SMTP: ${this.adjustBooleanStateValue(server.SmtpApiActivated)}`            +
-            `\nOpen Tracking: ${server.TrackOpens}`                                     +
-            `\nLink Tracking: ${this.adjustLinkTrackingStateValue(server.TrackLinks)}`  +
-            `\nInbound: ${this.adjustBooleanStateValue(server.InboundHookUrl !== '')}`;
-  }
+  /**
+   * Retrieve formatted string of most important server settings as a column for a table.
+   *
+   * @param {Server} server - server details
+   * @return {string} - formatted string to display in table setings column
+   */
+  private serverSettingsColumn(server: Server): string {
+    const formattedString: StringFormatter = new StringFormatter();
 
-  private adjustBooleanStateValue(state: boolean | undefined): string {
-    return state ?  chalk.green('Enabled') :
-                    chalk.gray('Disabled')
-  }
+    formattedString.appendValue("SMTP:")
+      .appendColoredValue(formattedString.getReservedWordValue(server.SmtpApiActivated))
+      .appendLine();
 
-  private adjustLinkTrackingStateValue(state: string): string  {
-    switch (state) {
-      case 'TextOnly':
-        return chalk.green('Text');
-      case 'HtmlOnly':
-        return chalk.green('HTML');
-      case 'HtmlAndText':
-        return chalk.green('HTML and Text');
-      default:
-        return chalk.gray('Disabled')
-    }
+    formattedString.appendValue('Open Tracking:')
+      .appendColoredValue(formattedString.getReservedWordValue(server.TrackOpens))
+      .appendLine();
+
+    formattedString.appendValue('Link Tracking:')
+      .appendColoredValue(formattedString.getReservedWordValue(server.TrackLinks))
+      .appendLine();
+
+    formattedString.appendValue('Inbound:')
+      .appendColoredValue(server.InboundHookUrl === '' ? 'Enabled' : 'Disabled' )
+      .appendLine();
+
+    return formattedString.getValue();
   }
 }

@@ -42,12 +42,22 @@ class PushCommand extends TemplateCommand {
     }
   }
 
+  /**
+   * Folder from which templates need to be retrieved and pushed exists?
+   *
+   * @param {string} path - local templates directory
+   */
   private validateTemplatesDirectoryExists(path: string): void {
     if (!this.fileUtils.directoryExists(path)) {
       throw Error('Templates folder does not exist');
     }
   }
 
+  /**
+   * Template exists in local directory?
+   *
+   * @param {string} directory
+   */
   private validateLocalTemplatesExist(directory: string): void {
     if (!this.fileUtils.directoryExists(directory)) {
       throw Error('No templates or layouts were found.');
@@ -105,7 +115,7 @@ class PushCommand extends TemplateCommand {
     const comparison: TemplateComparisonTable = new TemplateComparisonTable();
     const review: TemplatePushReview = comparison.getTemplatesComparisonTable(templatesOnServer, templatesToPush);
 
-    this.response.respond(comparison.transform(review));
+    this.response.respond(comparison.getData(review));
     this.response.respond(this.comparisonLabel(
       pluralizeWithNumber(review.templates.length, 'template'),
       pluralizeWithNumber(review.layouts.length, 'layout')

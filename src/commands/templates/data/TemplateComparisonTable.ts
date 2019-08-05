@@ -5,7 +5,7 @@ import {Template, Templates} from "postmark/dist/client/models";
 import {TableFormat} from "../../../handler/data/TableFormat";
 
 export class TemplateComparisonTable extends TableFormat{
-  public transform(review: TemplatePushReview): string {
+  public getData(review: TemplatePushReview): string {
     this.colorizeTableElements(review.templates, {'Modified': chalk.green, 'Added': chalk.yellow, 'None': chalk.gray});
     this.colorizeTableElements(review.layouts, {'Modified': chalk.green, 'Added': chalk.yellow, 'None': chalk.gray});
 
@@ -16,8 +16,8 @@ export class TemplateComparisonTable extends TableFormat{
     const {templates, layouts} = review;
 
     let result: string = '';
-    result += this.stylizedTable(templates, ['Change', 'Name', 'Alias', 'Layout used'], 'template');
-    result += this.stylizedTable(layouts, ['Change', 'Name', 'Alias'], 'layout');
+    result += this.getFormattedTable(templates, ['Change', 'Name', 'Alias', 'Layout used'], 'template');
+    result += this.getFormattedTable(layouts, ['Change', 'Name', 'Alias'], 'layout');
     return result;
   }
 
@@ -49,12 +49,12 @@ export class TemplateComparisonTable extends TableFormat{
     ];
   }
 
-  private findLocalTemplateOnServer(templatesOnServer: any, templateToPush: TemplateManifest): Template|undefined {
-    return find<Template>(templatesOnServer.Templates, {Alias: templateToPush.Alias});
+  private getFormattedTable(elements: any, header: string[], type: string): string {
+    return (elements.length > 0) ? this.getTable(header,elements, pluralizeWithNumber(elements.length, type)) : '';
   }
 
-  private stylizedTable(elements: any, header: string[], type: string): string {
-    return (elements.length > 0) ? this.getTable(header,elements, pluralizeWithNumber(elements.length, type)) : '';
+  private findLocalTemplateOnServer(templatesOnServer: any, templateToPush: TemplateManifest): Template|undefined {
+    return find<Template>(templatesOnServer.Templates, {Alias: templateToPush.Alias});
   }
 
   private layoutUsedLabel(localLayout: string | null | undefined, serverLayout: string | null | undefined): string {

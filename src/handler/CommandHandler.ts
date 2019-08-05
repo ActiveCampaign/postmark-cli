@@ -66,7 +66,7 @@ export abstract class CommandHandler {
    * @return {string} - transformed input data
    */
   protected getFormattedData(data: any, json: boolean = true):string {
-    return new JSONFormat().transform(data);
+    return new JSONFormat().getData(data);
   }
 
   protected async validateAndRetrieveToken(token: string, tokenType: TokenTypes = TokenTypes.Server): Promise<string> {

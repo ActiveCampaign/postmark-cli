@@ -4,7 +4,7 @@ import chalk, {Chalk} from "chalk";
 
 export abstract class TableFormat extends DataFormat {
   private readonly tableBorder = { border: getBorderCharacters('norc') };
-  public abstract transform(data: any): string;
+  public abstract getData(data: any): string;
 
   protected getTable(header: string[], data: any, tableTitle: string = ''): string {
     this.colorizeHeader(header);
