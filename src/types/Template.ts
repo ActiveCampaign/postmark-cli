@@ -62,11 +62,3 @@ export interface FileDetails {
   extension: string
   type: string
 }
-
-export interface MetaFileTraverse {
-  path: string
-  name: string
-  size: number
-  extension: string
-  type: string
-}
