@@ -3,6 +3,10 @@ import chalk from "chalk";
 export class StringFormatter {
   private value: string;
 
+  public static get(): StringFormatter {
+    return new StringFormatter();
+  }
+
   constructor(value: string = '') {
     this.value = value;
   }
@@ -17,7 +21,7 @@ export class StringFormatter {
     return this;
   }
 
-  public appendColoredValue(value: string, color?: string): this {
+  public appendColoredValue(value: string, color?: 'green' | 'white' | 'gray'): this {
     if (color === undefined) { color = this.getReservedWordColor(this.formatString(value)) }
 
     this.value += (<any>chalk)[color](value);
@@ -34,7 +38,7 @@ export class StringFormatter {
     return this;
   }
 
-  public getValue():string {
+  public toString():string {
       return this.value;
   }
 
@@ -55,7 +59,7 @@ export class StringFormatter {
     }
   }
 
-  public getReservedWordColor(value: string): string {
+  public getReservedWordColor(value: string): 'green' | 'white' | 'gray' {
     switch (value) {
       case 'Enabled':
         return 'green';
@@ -73,11 +77,10 @@ export class StringFormatter {
         return 'white';
     }
   }
-
+  
   private formatString(value: string): string {
       value = value.trim().length === 0 ? value : value.trim();
       if (value.includes(':')) { value+= ' ' }
       return value;
   }
-
 }

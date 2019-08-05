@@ -1,8 +1,8 @@
-import {TemplateManifest, TemplatePushReview} from "../../../types";
 import chalk from "chalk";
-import {find, pluralizeWithNumber} from "../../../handler/utils/Various";
 import {Template, Templates} from "postmark/dist/client/models";
-import {TableFormat} from "../../../handler/data/TableFormat";
+import {TableFormat} from "../../../handler/data/index";
+import {find, pluralizeWithNumber} from "../../../handler/utils/Various";
+import {TemplateManifest, TemplatePushReview} from "../../../types";
 
 export class TemplateComparisonTable extends TableFormat{
   public getData(review: TemplatePushReview): string {
