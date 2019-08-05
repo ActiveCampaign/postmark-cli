@@ -5,11 +5,15 @@ import {
 } from "../../types";
 
 import { filter, find, replace } from 'lodash'
-import untildify = require("untildify");
 import express from 'express'
 import consolidate from 'consolidate'
 
 class PreviewCommand extends TemplateCommand {
+  protected readonly previewFolderName: string = 'preview';
+  protected readonly previewRoot: string = `${this.previewFolderName}/index.html`;
+  protected readonly previewTemplate: string = `${this.previewFolderName}/template.html`;
+  protected readonly previewAssets: string = `${this.previewFolderName}/assets`;
+
   public constructor(command: string, description: string, options: any) {
     super(command, description, options);
   }
@@ -19,23 +23,23 @@ class PreviewCommand extends TemplateCommand {
 
     this.validateTemplatesDirectoryExists(templatesdirectory);
     this.retrieveTemplatesFromDirectory(templatesdirectory);
-    this.preview(templatesdirectory, port);
+    this.previewTemplates(templatesdirectory, port);
   }
 
-  private preview(directory: string, port: number) {
+  private previewTemplates(directory: string, port: number) {
     const app = express();
 
-    app.use(express.static('preview/assets'));
+    app.use(express.static(this.previewAssets));
 
     app.get('/', (req, res) => {
       const templates = this.compileTemplatesFromFolder(directory);
 
       consolidate.ejs(
-        'preview/index.html',
+        this.previewRoot,
         {
           templates: filter(templates, { TemplateType: 'Standard' }),
           layouts: filter(templates, { TemplateType: 'Layout' }),
-          path: untildify(directory),
+          path: this.fileUtils.directoryFullPath(directory),
         },
         (err, html) => {
           if (err) res.send(err);
@@ -49,10 +53,10 @@ class PreviewCommand extends TemplateCommand {
       const template: any = find(templates, { Alias: req.params.alias });
 
       consolidate.ejs(
-        'preview/template.html',
+        this.previewTemplate,
         { template: template },
         (err, html) => {
-          if (err) res.send(err)
+          if (err) res.send(err);
           return res.send(html)
         }
       )

@@ -39,7 +39,7 @@ export abstract class TemplateCommand extends CommandHandler {
    * @param {string} path - folder where templates are stored
    * @return {TemplateManifest[]} - list of templates
    */
-  public retrieveTemplatesFromDirectory(path: string): TemplateManifest[] {
+  protected retrieveTemplatesFromDirectory(path: string): TemplateManifest[] {
     let localTemplatesToPush: TemplateManifest[] = [];
     const metaFiles: FileDetails[] = this.fileUtils.findFiles(path, this.metadataFilename);
 
@@ -56,7 +56,7 @@ export abstract class TemplateCommand extends CommandHandler {
    * @param {string} directory - where template is stored
    * @return {TemplateMetaFile | null} - template details
    */
-  public retrieveTemplateFromFile(directory: string): TemplateMetaFile | null {
+  protected retrieveTemplateFromFile(directory: string): TemplateMetaFile | null {
     const metaFilePath: string = join(directory, this.metadataFilename);
     const htmlPath: string = join(directory, this.htmlContentFilename);
     const textPath: string = join(directory, this.textContentFilename);
