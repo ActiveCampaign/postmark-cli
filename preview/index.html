@@ -1,0 +1,55 @@
+<!doctype html>
+<html>
+<%- include("partials/head.html") %>
+<body>
+  <div class="toolbar">
+    <h1 class="toolbar_title"><span class="icon toolbar_icon"></span> Postmark Templates</h1>
+    <span class="toolbar_path f-code"><%- path %></span>
+  </div>
+
+  <section class="list-body">
+    <h2><span class="count"><%- layouts.length %></span> Layouts</h2>
+    <ul class="template-list">
+      <% layouts.forEach(function(layout){ %>
+        <li>
+          <a href="/<%- layout.Alias %>" class="template-link">
+            <span>
+              <%- layout.Name %>
+              <span class="toolbar_alias f-code"><%- layout.Alias %></span>
+            </span>
+          </a>
+        </li>
+      <% }); %>
+    </ul>
+
+    <h2><span class="count"><%- templates.length %></span> Templates</h2>
+
+    <% if (templates.length > 0) { %>
+      <ul class="template-list">
+        <% templates.forEach(function(template){ %>
+          <li>
+            <a href="/<%- template.Alias %>" class="template-link">
+              <span>
+                <%- template.Name %>
+                <span class="toolbar_alias f-code"><%- template.Alias %></span>
+              </span>
+              <span class="template-layout f-code">Layout: <%- template.LayoutTemplate %></span>
+            </a>
+          </li>
+        <% }); %>
+      </ul>
+    <% } else { %>
+      <span>meta.json</span>
+      <pre>
+{
+  "Name": "Welcome",
+  "Alias": "welcome",
+  "Subject": "Your subject line",
+  "TemplateType": "Standard",
+  "LayoutTemplate": "Enter the layout alias"
+}
+      </pre>
+    <% } %>
+  </section>
+</body>
+</html>

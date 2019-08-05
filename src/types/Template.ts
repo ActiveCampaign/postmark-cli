@@ -40,6 +40,11 @@ export interface TemplatePushArguments {
   force: boolean
 }
 
+export interface TemplatePreviewArguments {
+  templatesdirectory: string
+  port: number
+}
+
 export interface TemplateMetaFile {
   Name: string
   Alias: string
@@ -51,6 +56,14 @@ export interface TemplateMetaFile {
 }
 
 export interface FileDetails {
+  path: string
+  name: string
+  size: number
+  extension: string
+  type: string
+}
+
+export interface MetaFileTraverse {
   path: string
   name: string
   size: number
