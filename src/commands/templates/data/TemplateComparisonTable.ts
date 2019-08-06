@@ -1,6 +1,6 @@
 import chalk from "chalk";
 import {TableFormat} from "../../../handler/data/index";
-import {find, pluralizeWithNumber} from "../../../handler/utils/Various";
+import {pluralizeWithNumber} from "../../../handler/utils/Various";
 import {TemplateManifest, TemplatePushReview} from "../../../types";
 import {Template, Templates} from "postmark/dist/client/models";
 
@@ -110,7 +110,7 @@ export class TemplateComparisonTable extends TableFormat{
    * @return {Template | undefined} - template details if exists on server
    */
   private findLocalTemplateOnServer(templatesOnServer: any, templateToPush: TemplateManifest): Template|undefined {
-    return find<Template>(templatesOnServer.Templates, {Alias: templateToPush.Alias});
+    return templatesOnServer.Templates.find( (template: any) => template.Alias === templateToPush.Alias);
   }
 
   /**

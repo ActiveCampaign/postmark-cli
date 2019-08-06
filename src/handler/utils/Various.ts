@@ -18,5 +18,3 @@ export const pluralizeWithNumber = (count: number, singular: string, plural?: st
 
 export {join} from "path";
 
-export {find} from 'lodash'
-
