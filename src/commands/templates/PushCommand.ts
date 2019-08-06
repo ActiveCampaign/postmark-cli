@@ -123,7 +123,7 @@ class PushCommand extends TemplateCommand {
   }
 
   private comparisonLabel(templatesLabel: string, layoutsLabel: string): string {
-    let label: string = '';
+    let label = '';
     label += templatesLabel + ((templatesLabel.length > 0 && layoutsLabel.length > 0) ? ' and ' : '') + layoutsLabel;
     label += ' will be pushed to Postmark.';
     return label;
@@ -135,7 +135,7 @@ class PushCommand extends TemplateCommand {
    * @return {Promise<void>}
    */
   private async pushTemplatesFromDirectory(templates: TemplateManifest[]): Promise<void> {
-    let successfulPushes: number = 0;
+    let successfulPushes = 0;
 
     await Promise.all(templates.map( async template => {
       return this.pushTemplateFromDirectory(template).then(result => { if (result === true) { successfulPushes++; }});

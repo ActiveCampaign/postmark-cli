@@ -18,7 +18,7 @@ export class TemplateComparisonTable extends TableFormat{
     return this.getTemplatesTable(review.templates) + this.getLayoutTable(review.layouts);
   }
 
-  private getTemplatesTable(templates:any): string {
+  private getTemplatesTable(templates: any): string {
     return this.getFormattedTable(templates, ['Change', 'Name', 'Alias', 'Layout used'], 'template');
   }
 
@@ -85,7 +85,7 @@ export class TemplateComparisonTable extends TableFormat{
    * @param {Templates} templatesOnServer - server template
    * @return {string[]} - difference details
    */
-  public generateBaseComparisonElements(template:any, templatesOnServer: Templates): string[] {
+  public generateBaseComparisonElements(template: any, templatesOnServer: Templates): string[] {
     const templateOnServerFound: Template|undefined = this.findLocalTemplateOnServer(templatesOnServer, template);
     return [!templateOnServerFound ? 'Added' : 'Modified', template.Name || '', template.Alias || ''];
   }

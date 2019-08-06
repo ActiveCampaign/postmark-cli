@@ -3,7 +3,7 @@ export default class CommandDetails {
   public description: string;
   public options: any;
 
-  constructor(command: string, description: string, options: any) {
+  public constructor(command: string, description: string, options: any) {
     this.command = command;
     this.description = description;
     this.options = options;

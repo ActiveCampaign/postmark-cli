@@ -1,7 +1,7 @@
 module.exports = {
   env: {
     es6: true,
-    node: true,
+    node: true
   },
   extends: ['eslint:recommended', 'plugin:@typescript-eslint/recommended'],
   globals: {
@@ -16,6 +16,7 @@ module.exports = {
     'no-console': 'off',
     eqeqeq: ['error', 'always'],
     'linebreak-style': ['error', 'unix'],
+    "@typescript-eslint/no-explicit-any": "off",
     '@typescript-eslint/indent': 'off',
     '@typescript-eslint/member-delimiter-style': [
       'error',

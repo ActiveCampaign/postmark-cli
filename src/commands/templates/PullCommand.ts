@@ -80,7 +80,7 @@ class PullCommand extends TemplateCommand {
    * @param {string} outputDir - directory to pull templates to.
    * @return {Promise<void>}
    */
-  private async saveTemplatesToDirectory(templates: any[], outputDir: string):Promise<void> {
+  private async saveTemplatesToDirectory(templates: any[], outputDir: string): Promise<void> {
     for(let i=0;i<templates.length;i++) {
       const templateDetails: Template = await this.serverClient.getTemplate(templates[i].TemplateId);
       this.saveTemplateToDirectory(outputDir, templateDetails);
@@ -93,7 +93,7 @@ class PullCommand extends TemplateCommand {
    * @param {string} outputDirBase - directory to pull template to.
    * @param {Template} template - single template
    */
-  private saveTemplateToDirectory(outputDirBase: string, template: Template):void {
+  private saveTemplateToDirectory(outputDirBase: string, template: Template): void {
     const outputDir = this.retrieveOutputDir(outputDirBase, template.TemplateType);
     const alias: string = (template.Alias !== null && template.Alias !== undefined) ? template.Alias: '';
     const templatePath = this.fileUtils.directoryFullPath(join(outputDir, alias));

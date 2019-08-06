@@ -17,19 +17,19 @@ export class FileHandling {
 
   public directoryExists(path: string): boolean {
     return existsSync(untildify(path));
-  };
+  }
 
   public  ensureDirectoryExists(path: string): void  {
     ensureDirSync(path);
-  };
+  }
 
-  public  directoryFullPath(path: string):string {
+  public  directoryFullPath(path: string): string {
     return untildify(path);
-  };
+  }
 
   public saveFile(path: string,content: string | undefined): void {
     outputFileSync(path, content);
-  };
+  }
 
   public readFile(path: string, encoding: string = 'utf-8'): string {
     return readFileSync(path, encoding)

@@ -2,9 +2,9 @@ import ora = require("ora");
 import {Ora} from "ora";
 
 export class SpinnerResponse {
-  private spinner:Ora;
+  private spinner: Ora;
 
-  constructor() {
+  public constructor() {
     this.spinner = ora();
   }
 

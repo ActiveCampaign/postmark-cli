@@ -7,7 +7,7 @@ export class StringFormatter {
     return new StringFormatter();
   }
 
-  constructor(value: string = '') {
+  public constructor(value: string = '') {
     this.value = value;
   }
 
@@ -23,8 +23,7 @@ export class StringFormatter {
 
   public appendColoredValue(value: string, color?: 'green' | 'white' | 'gray'): this {
     if (color === undefined) { color = this.getReservedWordColor(this.formatString(value)) }
-
-    this.value += (<any>chalk)[color](value);
+    this.value += (chalk as any)[color](value);
     return this;
   }
 
@@ -38,7 +37,7 @@ export class StringFormatter {
     return this;
   }
 
-  public retrieveStringValue():string {
+  public retrieveStringValue(): string {
       return this.value;
   }
 

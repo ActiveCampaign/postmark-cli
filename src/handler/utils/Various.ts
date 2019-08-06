@@ -5,7 +5,7 @@
 export const pluralize = (count: number, singular: string, plural?: string): string =>
 {
   if (plural === undefined) {
-    return <string>(count > 1 || count === 0 ? singular + 's' : singular);
+    return (count > 1 || count === 0 ? singular + 's' : singular);
   }
   else {
     return (count > 1 || count === 0 ? plural : singular);

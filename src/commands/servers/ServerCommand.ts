@@ -42,7 +42,7 @@ class ServerCommand extends CommandHandler {
    * @param data - data to transform into JSON or table representation.
    * @param {boolean} json - transform to JSON format?
    */
-  private showServerList(data: any, json: boolean) {
+  private showServerList(data: any, json: boolean): void {
     this.response.respond(this.getFormattedData(data, json));
   }
 
@@ -67,7 +67,7 @@ class ServerCommand extends CommandHandler {
     if (showTokens !== true) { this.hideTokens(data); }
   }
 
-  private hideTokens(data: Servers):void {
+  private hideTokens(data: Servers): void {
     data.Servers.forEach(item => {
       item.ApiTokens.forEach((token, index) => (item.ApiTokens[index] = this.tokenMask()));
     });

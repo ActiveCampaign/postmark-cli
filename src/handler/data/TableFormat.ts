@@ -57,7 +57,7 @@ export abstract class TableFormat extends DataFormat {
       for(let j=0;j<elements.length;j++) {
         const element = elements[i][j];
         const color: Chalk = paint[element];
-        if (!!color) {
+        if (color !== undefined) {
           elements[i][j] = color(element);
         }
       }

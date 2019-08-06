@@ -7,7 +7,7 @@ import {ServerColors} from "./ServerColors";
  * server list.
  */
 export class ServerListTable extends TableFormat {
-  public getData(servers: Servers):string {
+  public getData(servers: Servers): string {
     return this.getFormattedTable(servers);
   }
 

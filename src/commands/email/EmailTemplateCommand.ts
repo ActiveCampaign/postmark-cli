@@ -63,7 +63,7 @@ const options: any = {
     describe: '',
     alias: 'm',
   },
-}
+};
 
 const commandHandler: EmailTemplateCommand = new EmailTemplateCommand('template [options]',
                                                                       'Send a templated email', options);

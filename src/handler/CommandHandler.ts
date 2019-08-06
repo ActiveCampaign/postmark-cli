@@ -1,4 +1,4 @@
-import {Arguments, LogTypes} from "../types/index";
+import {LogTypes} from "../types/index";
 import CommandDetails from "./CommandDetails";
 import {JSONFormat} from "./data/JSONFormat";
 import {SpinnerResponse, ShellResponse} from "./response";
@@ -40,7 +40,7 @@ export abstract class CommandHandler {
    * @param {Arguments} args - parameters passed to command on which execution is based.
    * @return {Promise<void>}
    */
-  public abstract async execute(args: Arguments): Promise<void>;
+  public abstract async execute(args: any): Promise<void>;
 
   /**
    * Set Postmark.js account client to use for client actions executed by command.
@@ -66,8 +66,8 @@ export abstract class CommandHandler {
    * @param {boolean} json - JSON parameter
    * @return {string} - transformed input data
    */
-  protected getFormattedData(data: any, json: boolean = true):string {
-    return new JSONFormat().getData(data);
+  protected getFormattedData(data: any, json: boolean = true): string {
+    return json ? new JSONFormat().getData(data) : '';
   }
 
   public async validateAndRetrieveToken(token: string, tokenType: TokenTypes = TokenTypes.Server): Promise<string> {
@@ -97,13 +97,13 @@ export abstract class CommandHandler {
         return answer.confirm;
       }
       return answer.confirm;
-    }).catch(e => {
+    }).catch(() => {
       return false;
     });
   }
 
   protected isValueInvalid(text: string): boolean {
-    return (text === undefined || text.toString().length == 0);
+    return (text === undefined || text.toString().length === 0);
   }
 }
 
