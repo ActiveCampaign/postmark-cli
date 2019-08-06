@@ -2,6 +2,10 @@ import {Server, Servers} from "postmark/dist/client/models";
 import {TableFormat, StringFormatter} from "../../../handler/data/index";
 import {ServerColors} from "./ServerColors";
 
+/**
+ * Server list table class represents class for transforming server elements into a nice looking
+ * server list.
+ */
 export class ServerListTable extends TableFormat {
   public getData(servers: Servers):string {
     return this.getFormattedTable(servers);
@@ -41,7 +45,7 @@ export class ServerListTable extends TableFormat {
       .appendLine()
       .appendValue(server.ApiTokens.map((token) => {return token}).join("\n"));
 
-    return formatter.toString();
+    return formatter.retrieveStringValue();
   }
 
   /**
@@ -69,6 +73,6 @@ export class ServerListTable extends TableFormat {
       .appendColoredValue(server.InboundHookUrl === '' ? 'Enabled' : 'Disabled' )
       .appendLine();
 
-    return formatter.toString();
+    return formatter.retrieveStringValue();
   }
 }

@@ -9,8 +9,8 @@ import {
 } from "../../types";
 
 import {pluralize, join, pluralizeWithNumber} from "../../handler/utils/Various";
-import {Templates} from "postmark/dist/client/models";
 import {TemplateComparisonTable} from "./data/TemplateComparisonTable";
+import {Templates} from "postmark/dist/client/models";
 
 class PushCommand extends TemplateCommand {
   public constructor(command: string, description: string, options: any) {
@@ -113,7 +113,7 @@ class PushCommand extends TemplateCommand {
 
   private showTemplatesComparisonOverview(templatesOnServer: Templates, templatesToPush: TemplateManifest[]): void {
     const comparison: TemplateComparisonTable = new TemplateComparisonTable();
-    const review: TemplatePushReview = comparison.getTemplatesComparisonTable(templatesOnServer, templatesToPush);
+    const review: TemplatePushReview = comparison.getAllTemplatesComparisonTable(templatesOnServer, templatesToPush);
 
     this.response.respond(comparison.getData(review));
     this.response.respond(this.comparisonLabel(

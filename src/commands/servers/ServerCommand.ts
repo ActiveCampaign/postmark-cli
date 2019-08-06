@@ -3,11 +3,21 @@ import {ServerListArguments} from "../../types";
 import {ServerListTable} from "./data/ServerListTable";
 import {Servers} from "postmark/dist/client/models";
 
+/**
+ * Server command execution details class.
+ * It describes all the steps needed to retrieve Postmark server details.
+ */
 class ServerCommand extends CommandHandler {
   public constructor(command: string, description: string, options: any) {
     super(command, description, options);
   }
 
+  /**
+   * Execute command with specific arguments.
+   *
+   * @param {ServerListArguments} args - command line arguments
+   * @return {Promise<void>}
+   */
   public async execute(args: ServerListArguments): Promise<void> {
     let {count, offset, name, showTokens, json, accountToken} = args;
 
@@ -24,18 +34,35 @@ class ServerCommand extends CommandHandler {
     } catch (error) {
       this.response.error(error.message);
     }
-
   }
 
+  /**
+   * Display server list in specific format - table or JSON format.
+   *
+   * @param data - data to transform into JSON or table representation.
+   * @param {boolean} json - transform to JSON format?
+   */
   private showServerList(data: any, json: boolean) {
-    const formattedData: string = this.getFormattedData(data, json);
-    this.response.respond(formattedData);
+    this.response.respond(this.getFormattedData(data, json));
   }
 
+  /**
+   * Retrieve JSON or table representation of data.
+   *
+   * @param {Servers} data - data to transform
+   * @param {boolean} json - transform to JSON format
+   * @return {string} - string formatted to JSON or table
+   */
   protected getFormattedData(data: Servers, json: boolean): string {
     return (json === true) ? super.getFormattedData(data) : new ServerListTable().getData(data)
   }
 
+  /**
+   * Adjust server content in case tokens need to be hidden.
+   *
+   * @param {Servers} data - data to transform
+   * @param {boolean} showTokens - hide tokens in data?
+   */
   private adjustContent(data: Servers, showTokens: boolean): void {
     if (showTokens !== true) { this.hideTokens(data); }
   }

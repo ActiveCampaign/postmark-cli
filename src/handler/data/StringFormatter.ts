@@ -38,7 +38,7 @@ export class StringFormatter {
     return this;
   }
 
-  public toString():string {
+  public retrieveStringValue():string {
       return this.value;
   }
 

@@ -25,13 +25,13 @@ export abstract class CommandHandler {
 
   protected constructor(command: string, description: string, options: any) {
     this.details = new CommandDetails(command, description, options);
+
     this.response = new ShellResponse();
     this.spinnerResponse = new SpinnerResponse();
     this.serverClient = new ServerClient("1111");
     this.accountClient = new AccountClient("1111");
     this.fileUtils = new FileHandling();
     this.prompts = new PromptCollection();
-
   }
 
   /**
@@ -60,7 +60,8 @@ export abstract class CommandHandler {
   }
 
   /**
-   * Transform data to JSON by default.
+   * Get data in default data format - which is JSON string.
+   *
    * @param data - input data
    * @param {boolean} json - JSON parameter
    * @return {string} - transformed input data
@@ -69,7 +70,7 @@ export abstract class CommandHandler {
     return new JSONFormat().getData(data);
   }
 
-  protected async validateAndRetrieveToken(token: string, tokenType: TokenTypes = TokenTypes.Server): Promise<string> {
+  public async validateAndRetrieveToken(token: string, tokenType: TokenTypes = TokenTypes.Server): Promise<string> {
     if (this.isValueInvalid(token)) {
       return this.retrieveTokenByPrompt(tokenType).then( token => { return token; })
     }
@@ -78,7 +79,7 @@ export abstract class CommandHandler {
     }
   }
 
-  protected async retrieveTokenByPrompt(tokenType: TokenTypes): Promise<string> {
+  public async retrieveTokenByPrompt(tokenType: TokenTypes): Promise<string> {
     const {token} = await this.prompts.auth(tokenType);
 
     if (this.isValueInvalid(token)) {
@@ -88,7 +89,7 @@ export abstract class CommandHandler {
     return token;
   }
 
-  protected confirmByPrompt(message: string = 'Would you like to continue?',
+  public confirmByPrompt(message: string = 'Would you like to continue?',
                             cancelMessage: string = 'Cancelled. Have a good day!'): Promise<boolean> {
     return this.prompts.confirmation(message).then(answer => {
       if (answer.confirm !== true) {
