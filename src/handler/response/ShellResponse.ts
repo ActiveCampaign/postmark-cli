@@ -1,6 +1,12 @@
 import {CustomLogTypeDetails, LogTypes} from "../../types/index";
 import chalk from "chalk";
 
+enum LogStatusIcon {
+  Success = "✅",
+  Error = "🚫",
+  Warning = "⚠️"
+}
+
 export class ShellResponse {
   public respond(message: string, type: LogTypes = LogTypes.Info,
                  customLogDetails: CustomLogTypeDetails = { color: 'green'}): void {
@@ -19,11 +25,11 @@ export class ShellResponse {
   private logByType(text: string, logType: LogTypes) {
     switch (logType) {
       case LogTypes.Success:
-        return console.log("✅" + chalk.green(" " + text));
+        return console.log(LogStatusIcon.Success + chalk.green(" " + text));
       case LogTypes.Error:
-        return console.error("🚫" + chalk.red(" " + text));
+        return console.error(LogStatusIcon.Error + chalk.red(" " + text));
       case LogTypes.Warning:
-        return console.log("⚠️" + chalk.yellow("  " + text));
+        return console.log(LogStatusIcon.Warning + chalk.yellow("  " + text));
       case LogTypes.Info:
         return console.log(text);
     }
