@@ -1,4 +1,4 @@
-export const logoString: string = `
+export const logoString = `
               ____           _                        _    
  _________   |  _ \\ ___  ___| |_ _ __ ___   __ _ _ __| | __
 | \\     / |  | |_) / _ \\/ __| __| '_ ' _ \\ / _\` | '__| |/ /
