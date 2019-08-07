@@ -30,8 +30,6 @@ class PushCommand extends TemplateCommand {
 
     try {
       this.validateTemplatesDirectoryExists(templatesdirectory);
-      this.validateLocalTemplatesExist(templatesdirectory);
-
       const templatesToPush: TemplateManifest[] = this.retrieveTemplatesFromDirectory(templatesdirectory);
       const templatesOnServer: pm.Models.Templates = await this.retrieveTemplatesFromServer();
 
@@ -54,17 +52,6 @@ class PushCommand extends TemplateCommand {
   }
 
   /**
-   * Template exists in local directory?
-   *
-   * @param {string} directory
-   */
-  private validateLocalTemplatesExist(directory: string): void {
-    if (!this.fileUtils.directoryExists(directory)) {
-      throw Error('No templates or layouts were found.');
-    }
-  }
-
-  /**
    * Get all the templates from server in Postmark account.
    * @return {Promise<Templates>} - list of templates
    */
@@ -80,6 +67,7 @@ class PushCommand extends TemplateCommand {
   public retrieveTemplatesFromDirectory(path: string): TemplateManifest[] {
     let localTemplatesToPush: TemplateManifest[] = [];
     const metaFiles: FileDetails[] = this.fileUtils.findFiles(path, this.metadataFilename);
+    if (metaFiles.length < 0) { throw Error('No templates or layouts were found.'); }
 
     metaFiles.forEach((file: FileDetails) => {
       const item: TemplateMetaFile | null = this.retrieveTemplateFromFile(this.fileUtils.directoryPath(file.path));
@@ -160,7 +148,7 @@ class PushCommand extends TemplateCommand {
 
       return true;
     } catch (error) {
-      this.response.error(`\n${template.Alias}: ${error.toString()}`);
+      this.response.error(`\nIssue with template with alias: '${template.Alias}': ${error.message}`);
       return false;
     }
   }
