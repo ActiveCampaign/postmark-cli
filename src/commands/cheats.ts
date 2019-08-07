@@ -11,7 +11,7 @@ const ask = (): Promise<void> => {
 };
 
 let enteredCode: string[] = [];
-let lastEnteredCode: string = '⬆️';
+let lastEnteredCode = '⬆️';
 
 const compareAnswers = (first: string[], second: string[]): boolean => {
   if (first.length !== second.length) {

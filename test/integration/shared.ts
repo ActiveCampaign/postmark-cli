@@ -1,17 +1,15 @@
 import nconf from 'nconf'
 import * as postmark from "postmark";
 
-export const testingKeys = nconf
-  .env()
-  .file({ file: __dirname + '/../config/testing_keys.json' })
-export const accountToken: string = testingKeys.get('ACCOUNT_TOKEN')
-export const serverToken: string = testingKeys.get('SERVER_TOKEN')
-export const fromAddress: string = testingKeys.get('FROM_ADDRESS')
-export const toAddress: string = testingKeys.get('TO_ADDRESS')
+export const testingKeys = nconf.env().file({ file: __dirname + '/../config/testing_keys.json' });
+export const accountToken: string = testingKeys.get('ACCOUNT_TOKEN');
+export const serverToken: string = testingKeys.get('SERVER_TOKEN');
+export const fromAddress: string = testingKeys.get('FROM_ADDRESS');
+export const toAddress: string = testingKeys.get('TO_ADDRESS');
 
-export const CLICommand: string = './dist/index.js'
-export const TestDataFolder: string = './test/data'
-export const PackageJson: any = require('../../package.json')
+export const CLICommand: string = './dist/index.js';
+export const TestDataFolder: string = './test/data';
+export const PackageJson: any = require('../../package.json');
 
 // In order to test template syncing, data needs to be created by postmark.js handler
 
@@ -40,7 +38,7 @@ export const createTemplateData = async () => {
   const client = new postmark.ServerClient(serverToken);
   await client.createTemplate(templateToCreate(templatePrefix));
   await client.createTemplate(templateLayoutToCreate(templatePrefix));
-}
+};
 
 export const deleteTemplateData = async () => {
   const client = new postmark.ServerClient(serverToken);
@@ -51,4 +49,4 @@ export const deleteTemplateData = async () => {
       await client.deleteTemplate(template.TemplateId);
     }
   }
-}
+};

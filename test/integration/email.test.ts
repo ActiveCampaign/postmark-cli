@@ -4,19 +4,13 @@ import execa from 'execa'
 import { serverToken, fromAddress, toAddress, CLICommand } from './shared'
 
 describe('Email send command', () => {
-  const options: execa.CommonOptions = {
-    env: { POSTMARK_SERVER_TOKEN: serverToken },
-  }
-  const textBodyParameter = '--text="test text body"'
-  const htmlBodyParameter = '--html="test html body"'
-  const toParameter = `--to=${toAddress}`
-  const fromParameter = `--from=${fromAddress}`
-  const baseParameters = ['email', 'raw']
-  const defaultParameters = baseParameters.concat([
-    toParameter,
-    fromParameter,
-    '--subject="test sending"',
-  ])
+  const options: execa.CommonOptions = {env: { POSTMARK_SERVER_TOKEN: serverToken }};
+  const textBodyParameter = '--text="test text body"';
+  const htmlBodyParameter = '--html="test html body"';
+  const toParameter = `--to=${toAddress}`;
+  const fromParameter = `--from=${fromAddress}`;
+  const baseParameters = ['email', 'raw'];
+  const defaultParameters = baseParameters.concat([toParameter, fromParameter, '--subject="test sending"']);
 
   describe('not valid', () => {
     it('no arguments', () => {
@@ -30,7 +24,7 @@ describe('Email send command', () => {
           )
         }
       )
-    })
+    });
 
     describe('no mandatory arguments', () => {
       it('missing :to, :from, :subject', () => {
@@ -42,7 +36,7 @@ describe('Email send command', () => {
             expect(error.message).to.include('Missing required arguments:')
           }
         )
-      })
+      });
 
       it('missing :to', () => {
         return execa(
@@ -57,7 +51,7 @@ describe('Email send command', () => {
             expect(error.message).to.include('Missing required argument: to')
           }
         )
-      })
+      });
 
       it('missing :subject', () => {
         return execa(
@@ -74,7 +68,7 @@ describe('Email send command', () => {
             )
           }
         )
-      })
+      });
 
       it('missing :from', () => {
         return execa(
@@ -90,7 +84,7 @@ describe('Email send command', () => {
           }
         )
       })
-    })
+    });
 
     it('no body', () => {
       return execa(CLICommand, defaultParameters, options).then(
@@ -102,31 +96,26 @@ describe('Email send command', () => {
         }
       )
     })
-  })
+  });
 
   describe('valid', () => {
     it('html message', async () => {
-      const parameters: string[] = defaultParameters.concat(htmlBodyParameter)
-      const { stdout } = await execa(CLICommand, parameters, options)
+      const parameters: string[] = defaultParameters.concat(htmlBodyParameter);
+      const { stdout } = await execa(CLICommand, parameters, options);
 
-      expect(stdout).to.include('"Message":"OK"')
-    })
+      expect(stdout).to.include("OK")
+    });
 
     it('text message', async () => {
-      const parameters: string[] = defaultParameters.concat(textBodyParameter)
-      const { stdout } = await execa(CLICommand, parameters, options)
-
-      expect(stdout).to.include('"Message":"OK"')
-    })
+      const parameters: string[] = defaultParameters.concat(textBodyParameter);
+      const { stdout } = await execa(CLICommand, parameters, options);
+      expect(stdout).to.include("OK")
+    });
 
     it('multipart message', async () => {
-      const parameters: string[] = defaultParameters.concat([
-        textBodyParameter,
-        htmlBodyParameter,
-      ])
-      const { stdout } = await execa(CLICommand, parameters, options)
-
-      expect(stdout).to.include('"Message":"OK"')
+      const parameters: string[] = defaultParameters.concat([textBodyParameter, htmlBodyParameter]);
+      const { stdout } = await execa(CLICommand, parameters, options);
+      expect(stdout).to.include("OK")
     })
   })
-})
+});
