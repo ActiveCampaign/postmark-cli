@@ -160,7 +160,7 @@ class PushCommand extends TemplateCommand {
 
       return true;
     } catch (error) {
-      this.response.error(`\n${template.Alias}: ${error.toString()}`)
+      this.response.error(`\n${template.Alias}: ${error.toString()}`);
       return false;
     }
   }

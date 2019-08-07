@@ -9,20 +9,6 @@ export interface TemplateManifest {
   LayoutTemplate?: string | null
 }
 
-export interface ListTemplate {
-  Active: boolean
-  TemplateId: number
-  Name: string
-  Alias?: string | null
-  TemplateType: string
-  LayoutTemplate: string | null
-}
-
-export interface Templates {
-  TotalCount: number
-  Templates: ListTemplate[]
-}
-
 export interface TemplatePushReview {
   layouts: any[]
   templates: any[]

@@ -103,20 +103,17 @@ class PullCommand extends TemplateCommand {
     this.saveTemplateMetadataToDirectory(templatePath, template);
   }
 
-  private saveTemplateContentToDirectory(path: string, htmlContent: string | undefined, textContent: string | undefined) {
-    if (htmlContent !== '') { this.fileUtils.saveFile(join(path, this.htmlContentFilename), htmlContent) }
-    if (textContent !== '') { this.fileUtils.saveFile(join(path, this.textContentFilename), textContent) }
+  private saveTemplateContentToDirectory(path: string, htmlContent: string | null, textContent: string | null) {
+    if (htmlContent !== '' && htmlContent !== null) {
+      this.fileUtils.saveFile(join(path, this.htmlContentFilename), htmlContent) }
+    if (textContent !== '' && textContent !== null) {
+      this.fileUtils.saveFile(join(path, this.textContentFilename), textContent) }
   }
 
   private saveTemplateMetadataToDirectory(path: string, template: pm.Models.Template) {
-    const alias: string = (template.Alias !== null && template.Alias !== undefined) ? template.Alias: '';
-
-    const meta: TemplateMetaFile = { Name: template.Name, Alias: alias,
-      ...(template.Subject && { Subject: template.Subject }),
-      TemplateType: template.TemplateType ? template.TemplateType : '',
-      ...(template.TemplateType === 'Standard' && {
-        LayoutTemplate: template.LayoutTemplate,
-      }),
+    const meta: TemplateMetaFile = { Name: template.Name, Alias: (template.Alias !== null) ? template.Alias: '',
+      ...(template.Subject && { Subject: template.Subject }), TemplateType: template.TemplateType,
+      ...(template.TemplateType === 'Standard' && {LayoutTemplate: template.LayoutTemplate}),
     };
 
     this.fileUtils.saveFile(join(path, this.metadataFilename), this.getFormattedData(meta))

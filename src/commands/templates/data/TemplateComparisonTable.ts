@@ -18,11 +18,11 @@ export class TemplateComparisonTable extends TableFormat{
     return this.getTemplatesTable(review.templates) + this.getLayoutTable(review.layouts);
   }
 
-  private getTemplatesTable(templates: any): string {
+  private getTemplatesTable(templates: string[][]): string {
     return this.getFormattedTable(templates, ['Change', 'Name', 'Alias', 'Layout used'], 'template');
   }
 
-  private getLayoutTable(layouts: any): string {
+  private getLayoutTable(layouts: string[][]): string {
     return this.getFormattedTable(layouts, ['Change', 'Name', 'Alias'], 'layout');
   }
 
@@ -40,10 +40,11 @@ export class TemplateComparisonTable extends TableFormat{
     };
   }
 
-  public getTemplatesComparisonTable(templatesOnServer: pm.Models.Templates, templatesToPush: TemplateManifest[]): any[] {
-    let data: any[] = [];
+  public getTemplatesComparisonTable(templatesOnServer: pm.Models.Templates,
+                                     templatesToPush: TemplateManifest[]): string[][] {
+    const data: string[][] = [];
 
-    this.retrieveTemplatesToPushByType('template', templatesToPush).forEach(template => {
+    this.retrieveTemplatesToPushByType('template', templatesToPush).forEach((template: TemplateManifest) => {
       const reviewData: string[] = this.generateBaseComparisonElements(template, templatesOnServer);
         reviewData.push(template.LayoutTemplate ? template.LayoutTemplate : 'None');
         data.push(reviewData)
@@ -52,8 +53,9 @@ export class TemplateComparisonTable extends TableFormat{
     return data;
   }
 
-  public getLayoutsComparisonTable(templatesOnServer: pm.Models.Templates, templatesToPush: TemplateManifest[]): any[] {
-    let data: any[] = [];
+  public getLayoutsComparisonTable(templatesOnServer: pm.Models.Templates,
+                                   templatesToPush: TemplateManifest[]): string[][] {
+    const data: string[][] = [];
 
     this.retrieveTemplatesToPushByType('layout', templatesToPush).forEach(template => {
       const reviewData: string[] = this.generateBaseComparisonElements(template, templatesOnServer);
@@ -85,8 +87,8 @@ export class TemplateComparisonTable extends TableFormat{
    * @param {Templates} templatesOnServer - server template
    * @return {string[]} - difference details
    */
-  public generateBaseComparisonElements(template: any, templatesOnServer: pm.Models.Templates): string[] {
-    const templateOnServerFound: pm.Models.Template|undefined =
+  public generateBaseComparisonElements(template: TemplateManifest, templatesOnServer: pm.Models.Templates): string[] {
+    const templateOnServerFound: pm.Models.TemplateInList | undefined =
       this.findLocalTemplateOnServer(templatesOnServer, template);
     return [!templateOnServerFound ? 'Added' : 'Modified', template.Name || '', template.Alias || ''];
   }
@@ -99,7 +101,7 @@ export class TemplateComparisonTable extends TableFormat{
    * @param {string} type - type of table
    * @return {string} - formatted table in string representation
    */
-  private getFormattedTable(elements: any, header: string[], type: 'layout'| 'template'): string {
+  private getFormattedTable(elements: string[][], header: string[], type: 'layout'| 'template'): string {
     return (elements.length > 0) ? this.getTable(header,elements, pluralizeWithNumber(elements.length, type)) : '';
   }
 
@@ -110,9 +112,10 @@ export class TemplateComparisonTable extends TableFormat{
    * @param {TemplateManifest} templateToPush - local template to push details
    * @return {Template | undefined} - template details if exists on server
    */
-  private findLocalTemplateOnServer(templatesOnServer: any,
-                                    templateToPush: TemplateManifest): pm.Models.Template|undefined {
-    return templatesOnServer.Templates.find( (template: any) => template.Alias === templateToPush.Alias);
+  private findLocalTemplateOnServer(templatesOnServer: pm.Models.Templates,
+                                    templateToPush: TemplateManifest): pm.Models.TemplateInList | undefined {
+    return templatesOnServer.Templates.find(
+      (template: pm.Models.TemplateInList) => template.Alias === templateToPush.Alias);
   }
 
   /**
