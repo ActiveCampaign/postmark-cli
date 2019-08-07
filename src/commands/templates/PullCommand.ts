@@ -1,7 +1,7 @@
 import {TemplateCommand} from "./TemplateCommand";
 import {LogTypes, TemplateMetaFile, TemplatePullArguments} from "../../types";
 import {pluralize, join} from "../../handler/utils";
-import {Templates, Template, TemplateTypes} from "postmark/dist/client/models";
+import * as pm from "postmark";
 
 class PullCommand extends TemplateCommand {
   public constructor(command: string, description: string, options: any) {
@@ -36,7 +36,7 @@ class PullCommand extends TemplateCommand {
    */
   public async pullTemplatesToDirectory(outputDirectory: string): Promise<void> {
     try {
-      const templates: Templates = await this.spinnerResponse.respond<Templates>('Fetching templates...',
+      const templates: pm.Models.Templates = await this.spinnerResponse.respond<pm.Models.Templates>('Fetching templates...',
         this.serverClient.getTemplates());
       this.validateTemplatesExistOnServer(templates);
 
@@ -51,11 +51,11 @@ class PullCommand extends TemplateCommand {
     }
   }
 
-  private retrieveTemplatesByAlias(templates: Templates, aliasAvailable: boolean): any[] {
+  private retrieveTemplatesByAlias(templates: pm.Models.Templates, aliasAvailable: boolean): any[] {
     return templates.Templates.filter( template => !!template.Alias === aliasAvailable)
   }
 
-  private validateTemplatesExistOnServer(templates: Templates): void {
+  private validateTemplatesExistOnServer(templates: pm.Models.Templates): void {
     if (templates.TotalCount === 0) {
       throw Error('There are no templates on this server.');
     }
@@ -82,7 +82,7 @@ class PullCommand extends TemplateCommand {
    */
   private async saveTemplatesToDirectory(templates: any[], outputDir: string): Promise<void> {
     for(let i=0;i<templates.length;i++) {
-      const templateDetails: Template = await this.serverClient.getTemplate(templates[i].TemplateId);
+      const templateDetails: pm.Models.Template = await this.serverClient.getTemplate(templates[i].TemplateId);
       this.saveTemplateToDirectory(outputDir, templateDetails);
     }
   }
@@ -93,7 +93,7 @@ class PullCommand extends TemplateCommand {
    * @param {string} outputDirBase - directory to pull template to.
    * @param {Template} template - single template
    */
-  private saveTemplateToDirectory(outputDirBase: string, template: Template): void {
+  private saveTemplateToDirectory(outputDirBase: string, template: pm.Models.Template): void {
     const outputDir = this.retrieveOutputDir(outputDirBase, template.TemplateType);
     const alias: string = (template.Alias !== null && template.Alias !== undefined) ? template.Alias: '';
     const templatePath = this.fileUtils.directoryFullPath(join(outputDir, alias));
@@ -108,7 +108,7 @@ class PullCommand extends TemplateCommand {
     if (textContent !== '') { this.fileUtils.saveFile(join(path, this.textContentFilename), textContent) }
   }
 
-  private saveTemplateMetadataToDirectory(path: string, template: Template) {
+  private saveTemplateMetadataToDirectory(path: string, template: pm.Models.Template) {
     const alias: string = (template.Alias !== null && template.Alias !== undefined) ? template.Alias: '';
 
     const meta: TemplateMetaFile = { Name: template.Name, Alias: alias,
@@ -122,8 +122,9 @@ class PullCommand extends TemplateCommand {
     this.fileUtils.saveFile(join(path, this.metadataFilename), this.getFormattedData(meta))
   }
 
-  private retrieveOutputDir(outputDir: string, templateType: TemplateTypes = TemplateTypes.Standard): string {
-    return templateType === TemplateTypes.Layout ? join(outputDir,this.layoutDirectory) : outputDir;
+  private retrieveOutputDir(outputDir: string,
+                            templateType: pm.Models.TemplateTypes = pm.Models.TemplateTypes.Standard): string {
+    return templateType === pm.Models.TemplateTypes.Layout ? join(outputDir,this.layoutDirectory) : outputDir;
   }
 
   private showSavedTemplatesInfo(templatesSavedCount: number, outputDirectory: string) {

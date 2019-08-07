@@ -1,6 +1,6 @@
 import {CommandHandler} from "../../handler/CommandHandler";
 import {TemplatedEmailArguments} from "../../types";
-import {MessageSendingResponse} from "postmark/dist/client/models";
+import * as pm from "postmark";
 
 class EmailTemplateCommand extends CommandHandler {
   public constructor(command: string, description: string, options: any) {
@@ -15,10 +15,10 @@ class EmailTemplateCommand extends CommandHandler {
       serverToken = await this.validateAndRetrieveToken(serverToken);
       this.setServerClientToUse(serverToken);
 
-      const data: MessageSendingResponse = await this.spinnerResponse.respond<MessageSendingResponse>
-      ('Sending an email ...', this.serverClient.sendEmailWithTemplate({
-          TemplateId: id || undefined, TemplateAlias: alias || undefined,
-          From: from, To: to, TemplateModel: model ? JSON.parse(model) : undefined }));
+      const data: pm.Models.MessageSendingResponse =
+        await this.spinnerResponse.respond<pm.Models.MessageSendingResponse>('Sending an email ...',
+          this.serverClient.sendEmailWithTemplate({TemplateId: id || undefined, TemplateAlias: alias || undefined,
+            From: from, To: to, TemplateModel: model ? JSON.parse(model) : undefined }));
 
       if (data !== undefined) {
         this.response.respond(this.getFormattedData(data));
@@ -26,7 +26,6 @@ class EmailTemplateCommand extends CommandHandler {
     }catch (error) {
       this.response.error(error.message);
     }
-
   }
 }
 

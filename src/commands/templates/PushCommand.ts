@@ -10,7 +10,7 @@ import {
 
 import {pluralize, join, pluralizeWithNumber} from "../../handler/utils/Various";
 import {TemplateComparisonTable} from "./data/TemplateComparisonTable";
-import {Templates} from "postmark/dist/client/models";
+import * as pm from "postmark";
 
 class PushCommand extends TemplateCommand {
   public constructor(command: string, description: string, options: any) {
@@ -33,7 +33,7 @@ class PushCommand extends TemplateCommand {
       this.validateLocalTemplatesExist(templatesdirectory);
 
       const templatesToPush: TemplateManifest[] = this.retrieveTemplatesFromDirectory(templatesdirectory);
-      const templatesOnServer: Templates = await this.retrieveTemplatesFromServer();
+      const templatesOnServer: pm.Models.Templates = await this.retrieveTemplatesFromServer();
 
       this.showTemplatesComparisonOverview(templatesOnServer, templatesToPush);
       if (force || await this.confirmByPrompt()) { await this.pushTemplatesFromDirectory(templatesToPush) }
@@ -68,8 +68,8 @@ class PushCommand extends TemplateCommand {
    * Get all the templates from server in Postmark account.
    * @return {Promise<Templates>} - list of templates
    */
-  public retrieveTemplatesFromServer(): Promise<Templates> {
-    return this.spinnerResponse.respond<Templates>('Fetching templates...', this.serverClient.getTemplates());
+  public retrieveTemplatesFromServer(): Promise<pm.Models.Templates> {
+    return this.spinnerResponse.respond<pm.Models.Templates>('Fetching templates...', this.serverClient.getTemplates());
   }
 
   /**
@@ -111,7 +111,8 @@ class PushCommand extends TemplateCommand {
     }
   }
 
-  private showTemplatesComparisonOverview(templatesOnServer: Templates, templatesToPush: TemplateManifest[]): void {
+  private showTemplatesComparisonOverview(templatesOnServer: pm.Models.Templates,
+                                          templatesToPush: TemplateManifest[]): void {
     const comparison: TemplateComparisonTable = new TemplateComparisonTable();
     const review: TemplatePushReview = comparison.getAllTemplatesComparisonTable(templatesOnServer, templatesToPush);
 

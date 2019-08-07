@@ -2,7 +2,7 @@ import chalk from "chalk";
 import {TableFormat} from "../../../handler/data/index";
 import {pluralizeWithNumber} from "../../../handler/utils/Various";
 import {TemplateManifest, TemplatePushReview} from "../../../types";
-import {Template, Templates} from "postmark/dist/client/models";
+import * as pm from "postmark";
 
 /**
  * Represents class for transforming differences between local and Postmark account templates into a styled table.
@@ -32,7 +32,7 @@ export class TemplateComparisonTable extends TableFormat{
    * @param {TemplateManifest[]} templatesToPush
    * @return {TemplatePushReview}
    */
-  public getAllTemplatesComparisonTable(templatesOnServer: Templates,
+  public getAllTemplatesComparisonTable(templatesOnServer: pm.Models.Templates,
                                         templatesToPush: TemplateManifest[]): TemplatePushReview {
     return {
       layouts: this.getLayoutsComparisonTable(templatesOnServer, templatesToPush),
@@ -40,7 +40,7 @@ export class TemplateComparisonTable extends TableFormat{
     };
   }
 
-  public getTemplatesComparisonTable(templatesOnServer: Templates, templatesToPush: TemplateManifest[]): any[] {
+  public getTemplatesComparisonTable(templatesOnServer: pm.Models.Templates, templatesToPush: TemplateManifest[]): any[] {
     let data: any[] = [];
 
     this.retrieveTemplatesToPushByType('template', templatesToPush).forEach(template => {
@@ -52,7 +52,7 @@ export class TemplateComparisonTable extends TableFormat{
     return data;
   }
 
-  public getLayoutsComparisonTable(templatesOnServer: Templates, templatesToPush: TemplateManifest[]): any[] {
+  public getLayoutsComparisonTable(templatesOnServer: pm.Models.Templates, templatesToPush: TemplateManifest[]): any[] {
     let data: any[] = [];
 
     this.retrieveTemplatesToPushByType('layout', templatesToPush).forEach(template => {
@@ -85,8 +85,9 @@ export class TemplateComparisonTable extends TableFormat{
    * @param {Templates} templatesOnServer - server template
    * @return {string[]} - difference details
    */
-  public generateBaseComparisonElements(template: any, templatesOnServer: Templates): string[] {
-    const templateOnServerFound: Template|undefined = this.findLocalTemplateOnServer(templatesOnServer, template);
+  public generateBaseComparisonElements(template: any, templatesOnServer: pm.Models.Templates): string[] {
+    const templateOnServerFound: pm.Models.Template|undefined =
+      this.findLocalTemplateOnServer(templatesOnServer, template);
     return [!templateOnServerFound ? 'Added' : 'Modified', template.Name || '', template.Alias || ''];
   }
 
@@ -109,7 +110,8 @@ export class TemplateComparisonTable extends TableFormat{
    * @param {TemplateManifest} templateToPush - local template to push details
    * @return {Template | undefined} - template details if exists on server
    */
-  private findLocalTemplateOnServer(templatesOnServer: any, templateToPush: TemplateManifest): Template|undefined {
+  private findLocalTemplateOnServer(templatesOnServer: any,
+                                    templateToPush: TemplateManifest): pm.Models.Template|undefined {
     return templatesOnServer.Templates.find( (template: any) => template.Alias === templateToPush.Alias);
   }
 

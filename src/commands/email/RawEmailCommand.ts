@@ -1,6 +1,6 @@
 import {CommandHandler} from "../../handler/CommandHandler";
 import {RawEmailArguments} from "../../types";
-import {MessageSendingResponse} from "postmark/dist/client/models";
+import * as pm from "postmark";
 
 export class RawEmailCommand extends CommandHandler {
   public constructor(command: string, description: string, options: any) {
@@ -15,9 +15,9 @@ export class RawEmailCommand extends CommandHandler {
       serverToken = await this.validateAndRetrieveToken(serverToken);
       this.setServerClientToUse(serverToken);
 
-      const data: MessageSendingResponse = await this.spinnerResponse.respond<MessageSendingResponse>(
-        'Sending an email ...', this.serverClient.sendEmail({ From: from, To: to, Subject: subject,
-          HtmlBody: html, TextBody: text }));
+      const data: pm.Models.MessageSendingResponse =
+        await this.spinnerResponse.respond<pm.Models.MessageSendingResponse>('Sending an email ...',
+          this.serverClient.sendEmail({ From: from, To: to, Subject: subject, HtmlBody: html, TextBody: text }));
 
       if (data !== undefined) {
         this.response.respond(this.getFormattedData(data));

@@ -1,22 +1,22 @@
-import {Server, Servers} from "postmark/dist/client/models";
 import {TableFormat, StringFormatter} from "../../../handler/data/index";
 import {ServerColors} from "./ServerColors";
+import * as pm from "postmark";
 
 /**
  * Server list table class represents class for transforming server elements into a nice looking
  * server list.
  */
 export class ServerListTable extends TableFormat {
-  public getData(servers: Servers): string {
+  public getData(servers: pm.Models.Servers): string {
     return this.getFormattedTable(servers);
   }
 
-  public getFormattedTable(servers: Servers): string  {
+  public getFormattedTable(servers: pm.Models.Servers): string  {
     const headings: string[] = ['Server', 'Settings'];
     return this.getTable(headings, servers.Servers.map( server => this.tableRow(server)), 'Servers list');
   }
 
-  private tableRow(server: Server): string[] {
+  private tableRow(server: pm.Models.Server): string[] {
     return [this.serverNameColumn(server), this.serverSettingsColumn(server)]
   }
 
@@ -26,7 +26,7 @@ export class ServerListTable extends TableFormat {
    * @param {Server} server - server details
    * @return {string} - formatted string to display in table name column
    */
-  private serverNameColumn(server: Server): string {
+  private serverNameColumn(server: pm.Models.Server): string {
     const formatter: StringFormatter = new StringFormatter();
 
     formatter.appendColoredHexValue('  ', ServerColors[server.Color])
@@ -54,7 +54,7 @@ export class ServerListTable extends TableFormat {
    * @param {Server} server - server details
    * @return {string} - formatted string to display in table setings column
    */
-  private serverSettingsColumn(server: Server): string {
+  private serverSettingsColumn(server: pm.Models.Server): string {
     const formatter: StringFormatter = new StringFormatter();
 
     formatter.appendValue("SMTP:")

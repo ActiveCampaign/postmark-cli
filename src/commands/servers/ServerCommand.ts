@@ -1,7 +1,7 @@
 import {CommandHandler, TokenTypes} from "../../handler/CommandHandler";
 import {ServerListArguments} from "../../types";
 import {ServerListTable} from "./data/ServerListTable";
-import {Servers} from "postmark/dist/client/models";
+import * as pm from "postmark";
 
 /**
  * Server command execution details class.
@@ -25,8 +25,8 @@ class ServerCommand extends CommandHandler {
       accountToken = await this.validateAndRetrieveToken(accountToken, TokenTypes.Account);
       this.setAccountClientToUse(accountToken);
 
-      const data: Servers = await this.spinnerResponse.respond<Servers>('Fetching servers...',
-        this.accountClient.getServers({count: count, offset: offset, name: name}));
+      const data: pm.Models.Servers = await this.spinnerResponse.respond<pm.Models.Servers>(
+        'Fetching pm.Models.Servers...', this.accountClient.getServers({count: count, offset: offset, name: name}));
 
       this.adjustContent(data, showTokens);
       this.showServerList(data, json);
@@ -49,25 +49,25 @@ class ServerCommand extends CommandHandler {
   /**
    * Retrieve JSON or table representation of data.
    *
-   * @param {Servers} data - data to transform
+   * @param {pm.Models.Servers} data - data to transform
    * @param {boolean} json - transform to JSON format
    * @return {string} - string formatted to JSON or table
    */
-  protected getFormattedData(data: Servers, json: boolean): string {
+  protected getFormattedData(data: pm.Models.Servers, json: boolean): string {
     return (json === true) ? super.getFormattedData(data) : new ServerListTable().getData(data)
   }
 
   /**
    * Adjust server content in case tokens need to be hidden.
    *
-   * @param {Servers} data - data to transform
+   * @param {pm.Models.Servers} data - data to transform
    * @param {boolean} showTokens - hide tokens in data?
    */
-  private adjustContent(data: Servers, showTokens: boolean): void {
+  private adjustContent(data: pm.Models.Servers, showTokens: boolean): void {
     if (showTokens !== true) { this.hideTokens(data); }
   }
 
-  private hideTokens(data: Servers): void {
+  private hideTokens(data: pm.Models.Servers): void {
     data.Servers.forEach(item => {
       item.ApiTokens.forEach((token, index) => (item.ApiTokens[index] = this.tokenMask()));
     });
