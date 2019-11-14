@@ -58,7 +58,7 @@ const preview = (args: TemplatePreviewArguments) => {
     const templates = compileTemplates(manifest)
 
     consolidate.ejs(
-      'preview/index.html',
+      'preview/index.ejs',
       {
         templates: filter(templates, { TemplateType: 'Standard' }),
         layouts: filter(templates, { TemplateType: 'Layout' }),
@@ -78,7 +78,7 @@ const preview = (args: TemplatePreviewArguments) => {
     const template: any = find(compiled, { Alias: req.params.alias })
 
     consolidate.ejs(
-      'preview/template.html',
+      'preview/template.ejs',
       { template: template },
       (err, html) => {
         if (err) res.send(err)

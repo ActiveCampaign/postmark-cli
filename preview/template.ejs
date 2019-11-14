@@ -1,6 +1,6 @@
 <!doctype html>
 <html>
-<%- include("partials/head.html") %>
+<%- include("partials/head.ejs") %>
 <body>
   <div class="toolbar toolbar--<%- template.TemplateType.toLowerCase() %>">
     <div class="toolbar_column">
@@ -22,7 +22,7 @@
   <% if (template.TemplateType === 'Standard') {%>
   <div class="sub-toolbar">
     <div class="subject">
-      <span class="subject_label">Subject:</span>
+      <span class="subject_label">Subject</span>
       <span class="subject_line"><%- template.Subject || '<em>No subject</em>' %></span>
     </div>
   </div>
