@@ -12,6 +12,10 @@ export const builder = {
     type: 'string',
     hidden: true,
   },
+  'request-host': {
+    type: 'string',
+    hidden: true,
+  },
   count: {
     type: 'number',
     describe: 'Number of servers to return',
@@ -55,10 +59,13 @@ const exec = (args: ServerListArguments): Promise<void> => {
  * Get list of servers
  */
 const listCommand = (accountToken: string, args: ServerListArguments): void => {
-  const { count, offset, name, showTokens } = args
+  const { count, offset, name, showTokens, requestHost } = args
   const command: CommandResponse = new CommandResponse()
   command.initResponse('Fetching servers...')
   const client = new AccountClient(accountToken)
+  if (requestHost !== undefined && requestHost !== '') {
+    client.clientOptions.requestHost = requestHost
+  }
 
   getServers(client, count, offset, name)
     .then(response => {

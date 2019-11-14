@@ -21,6 +21,10 @@ export const builder = {
     type: 'string',
     hidden: true,
   },
+  'request-host': {
+    type: 'string',
+    hidden: true,
+  },
   overwrite: {
     type: 'boolean',
     alias: 'o',
@@ -45,23 +49,28 @@ const exec = (args: TemplatePullArguments) => {
  * Begin pulling the templates
  */
 const pull = (serverToken: string, args: TemplatePullArguments) => {
-  const { outputdirectory, overwrite } = args
+  const { outputdirectory, overwrite, requestHost } = args
 
   // Check if directory exists
   if (existsSync(untildify(outputdirectory)) && !overwrite) {
-    return overwritePrompt(serverToken, outputdirectory)
+    return overwritePrompt(serverToken, outputdirectory, requestHost)
   }
 
   return fetchTemplateList({
     sourceServer: serverToken,
     outputDir: outputdirectory,
+    requestHost: requestHost,
   })
 }
 
 /**
  * Ask user to confirm overwrite
  */
-const overwritePrompt = (serverToken: string, outputdirectory: string) => {
+const overwritePrompt = (
+  serverToken: string,
+  outputdirectory: string,
+  requestHost: string
+) => {
   return prompt([
     {
       type: 'confirm',
@@ -74,6 +83,7 @@ const overwritePrompt = (serverToken: string, outputdirectory: string) => {
       return fetchTemplateList({
         sourceServer: serverToken,
         outputDir: outputdirectory,
+        requestHost: requestHost,
       })
     }
   })
@@ -83,9 +93,12 @@ const overwritePrompt = (serverToken: string, outputdirectory: string) => {
  * Fetch template list from PM
  */
 const fetchTemplateList = (options: TemplateListOptions) => {
-  const { sourceServer, outputDir } = options
+  const { sourceServer, outputDir, requestHost } = options
   const spinner = ora('Pulling templates from Postmark...').start()
   const client = new ServerClient(sourceServer)
+  if (requestHost !== undefined && requestHost !== '') {
+    client.clientOptions.requestHost = requestHost
+  }
 
   client
     .getTemplates()
@@ -129,9 +142,7 @@ const processTemplates = (options: ProcessTemplatesOptions) => {
     if (!template.Alias) {
       requestCount++
       log(
-        `Template named "${
-          template.Name
-        }" will not be downloaded because it is missing an alias.`,
+        `Template named "${template.Name}" will not be downloaded because it is missing an alias.`,
         { warn: true }
       )
 
