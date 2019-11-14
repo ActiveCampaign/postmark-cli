@@ -20,7 +20,7 @@ export const builder = {
   port: {
     type: 'number',
     describe: 'The port to open up the preview server on',
-    default: '3005',
+    default: 3005,
     alias: 'p',
   },
 }
