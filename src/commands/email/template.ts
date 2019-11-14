@@ -10,6 +10,10 @@ export const builder = {
     type: 'string',
     hidden: true,
   },
+  'request-host': {
+    type: 'string',
+    hidden: true,
+  },
   id: {
     type: 'string',
     describe: 'Template ID. Required if a template alias is not specified.',
@@ -56,10 +60,13 @@ const exec = (args: TemplatedEmailArguments) => {
  * Execute templated email send command in shell
  */
 const sendCommand = (serverToken: string, args: TemplatedEmailArguments) => {
-  const { id, alias, from, to, model } = args
+  const { id, alias, from, to, model, requestHost } = args
   const command: CommandResponse = new CommandResponse()
   command.initResponse('Sending an email')
   const client = new ServerClient(serverToken)
+  if (requestHost !== undefined && requestHost !== '') {
+    client.clientOptions.requestHost = requestHost
+  }
 
   sendEmailWithTemplate(client, id, alias, from, to, model)
     .then((response: any) => {

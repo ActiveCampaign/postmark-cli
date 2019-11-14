@@ -1,5 +1,6 @@
 export interface ServerListArguments {
   accountToken: string
+  requestHost: string
   count: number
   offset: number
   name: string

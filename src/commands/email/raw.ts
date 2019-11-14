@@ -10,6 +10,10 @@ export const builder = {
     type: 'string',
     hidden: true,
   },
+  'request-host': {
+    type: 'string',
+    hidden: true,
+  },
   from: {
     type: 'string',
     describe:
@@ -54,10 +58,13 @@ const exec = (args: RawEmailArguments): Promise<void> => {
  * Execute send command in shell
  */
 const sendCommand = (serverToken: string, args: RawEmailArguments): void => {
-  const { from, to, subject, html, text } = args
+  const { from, to, subject, html, text, requestHost } = args
   const command: CommandResponse = new CommandResponse()
   command.initResponse('Sending an email')
   const client = new ServerClient(serverToken)
+  if (requestHost !== undefined && requestHost !== '') {
+    client.clientOptions.requestHost = requestHost
+  }
 
   sendEmail(client, from, to, subject, html, text)
     .then(response => {

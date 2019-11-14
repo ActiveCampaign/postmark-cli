@@ -51,17 +51,20 @@ export interface ProcessTemplatesOptions {
 
 export interface TemplateListOptions {
   sourceServer: string
+  requestHost: string
   outputDir: string
 }
 
 export interface TemplatePullArguments {
   serverToken: string
+  requestHost: string
   outputdirectory: string
   overwrite: boolean
 }
 
 export interface TemplatePushArguments {
   serverToken: string
+  requestHost: string
   templatesdirectory: string
   force: boolean
 }

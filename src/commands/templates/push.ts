@@ -29,6 +29,10 @@ export const builder = {
     type: 'string',
     hidden: true,
   },
+  'request-host': {
+    type: 'string',
+    hidden: true,
+  },
   force: {
     type: 'boolean',
     describe: 'Disable confirmation before pushing templates',
@@ -70,10 +74,13 @@ const validateDirectory = (
  * Begin pushing the templates
  */
 const push = (serverToken: string, args: TemplatePushArguments) => {
-  const { templatesdirectory, force } = args
+  const { templatesdirectory, force, requestHost } = args
   const spinner = ora('Fetching templates...').start()
   const manifest = createManifest(templatesdirectory)
   const client = new ServerClient(serverToken)
+  if (requestHost !== undefined && requestHost !== '') {
+    client.clientOptions.requestHost = requestHost
+  }
 
   // Make sure manifest isn't empty
   if (manifest.length > 0) {
