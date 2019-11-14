@@ -1,5 +1,6 @@
 interface EmailArguments {
   serverToken: string
+  requestHost: string
   from: string
   to: string
 }
