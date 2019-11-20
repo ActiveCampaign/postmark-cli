@@ -5,6 +5,7 @@
   "main": "./dist/index.js",
   "dependencies": {
     "@types/traverse": "^0.6.32",
+    "@types/watch": "^1.0.1",
     "chalk": "^2.4.2",
     "consolidate": "^0.15.1",
     "directory-tree": "^2.2.3",
@@ -16,9 +17,11 @@
     "ora": "^3.0.0",
     "postmark": "^2.2.7",
     "request": "^2.88.0",
+    "socket.io": "^2.3.0",
     "table": "^5.2.0",
     "traverse": "^0.6.6",
     "untildify": "^4.0.0",
+    "watch": "^1.0.2",
     "yargonaut": "^1.1.4",
     "yargs": "^13.2.4"
   },
@@ -44,8 +47,7 @@
     "nconf": "^0.10.0",
     "pre-commit": "^1.2.2",
     "ts-node": "^8.0.3",
-    "typescript": "^3.4.3",
-    "watch": "^1.0.2"
+    "typescript": "^3.4.3"
   },
   "scripts": {
     "start:dev": "watch 'npm run build' './src'",

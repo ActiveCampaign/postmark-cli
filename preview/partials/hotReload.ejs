@@ -1,0 +1,10 @@
+<script src="/socket.io/socket.io.js"></script>
+<script>
+  var socket = io()
+
+  socket.on('change', function() {
+    console.log('Templates changed. Reloading preview.')
+    document.querySelector('.js-html').contentWindow.location.reload();
+    document.querySelector('.js-text').contentWindow.location.reload();
+  })
+</script>

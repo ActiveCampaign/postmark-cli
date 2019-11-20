@@ -1,17 +1,11 @@
-import { join, dirname } from 'path'
-import { readJsonSync, readFileSync, existsSync } from 'fs-extra'
-import traverse from 'traverse'
-import { filter, find, replace } from 'lodash'
+import { existsSync } from 'fs-extra'
+import { filter, find } from 'lodash'
 import untildify from 'untildify'
-import dirTree from 'directory-tree'
 import express from 'express'
+import { createMonitor } from 'watch'
 import consolidate from 'consolidate'
-import {
-  TemplatePreviewArguments,
-  TemplateManifest,
-  MetaFileTraverse,
-  MetaFile,
-} from '../../types'
+import { createManifest, compileTemplates } from './helpers'
+import { TemplatePreviewArguments } from '../../types'
 import { log } from '../../utils'
 
 export const command = 'preview  <templates directory> [options]'
@@ -31,7 +25,6 @@ export const handler = (args: TemplatePreviewArguments) => exec(args)
  */
 const exec = (args: TemplatePreviewArguments): void => validateDirectory(args)
 
-// TODO: we can probably reuse this with push.ts
 const validateDirectory = (args: TemplatePreviewArguments) => {
   const rootPath: string = untildify(args.templatesdirectory)
 
@@ -48,24 +41,45 @@ const validateDirectory = (args: TemplatePreviewArguments) => {
  * Preview
  */
 const preview = (args: TemplatePreviewArguments) => {
+  const { port, templatesdirectory } = args
   const app = express()
-  const port = args.port
+  const server = require('http').createServer(app)
+  const io = require('socket.io')(server)
 
+  // Cache manifest and compiled templates
+  let manifest = createManifest(templatesdirectory)
+  let compiled = compileTemplates(manifest)
+
+  // Static assets
   app.use(express.static('preview/assets'))
 
-  // Template listing
+  // Update manifest when files change
+  createMonitor(untildify(templatesdirectory), { interval: 1 }, monitor => {
+    function eventHandler() {
+      // Update manifest and compiled templates
+      manifest = createManifest(templatesdirectory)
+      compiled = compileTemplates(manifest)
 
+      // Trigger reload on client
+      io.emit('change')
+    }
+
+    monitor.on('created', eventHandler)
+    monitor.on('changed', eventHandler)
+    monitor.on('removed', eventHandler)
+
+    process.on('exit', () => monitor.stop())
+  })
+
+  // Template listing
   app.get('/', (req, res) => {
-    const manifest = createManifest(args.templatesdirectory)
-    const templates = compileTemplates(manifest)
+    const templates = filter(manifest, { TemplateType: 'Standard' })
+    const layouts = filter(manifest, { TemplateType: 'Layout' })
+    const path = untildify(templatesdirectory).replace(/\/$/, '')
 
     consolidate.ejs(
       'preview/index.ejs',
-      {
-        templates: filter(templates, { TemplateType: 'Standard' }),
-        layouts: filter(templates, { TemplateType: 'Layout' }),
-        path: untildify(args.templatesdirectory).replace(/\/$/, ''),
-      },
+      { templates, layouts, path },
       (err, html) => {
         if (err) return res.send(err)
 
@@ -74,32 +88,28 @@ const preview = (args: TemplatePreviewArguments) => {
     )
   })
 
-  // Get template by alias
-
+  /**
+   * Get template by alias
+   */
   app.get('/:alias', (req, res) => {
-    const manifest = createManifest(args.templatesdirectory)
-    const compiled = compileTemplates(manifest)
-    const template: any = find(compiled, { Alias: req.params.alias })
+    const template: any = find(manifest, { Alias: req.params.alias })
 
     if (template) {
-      consolidate.ejs(
-        'preview/template.ejs',
-        { template: template },
-        (err, html) => {
-          if (err) return res.send(err)
+      consolidate.ejs('preview/template.ejs', { template }, (err, html) => {
+        if (err) return res.send(err)
 
-          return res.send(html)
-        }
-      )
+        return res.send(html)
+      })
     } else {
+      // Redirect to index
       res.redirect(301, '/')
     }
   })
 
-  // Return template HTML by alias
-
+  /**
+   * Get template HTML version by alias
+   */
   app.get('/html/:alias', (req, res) => {
-    const manifest = createManifest(args.templatesdirectory)
     const compiled = compileTemplates(manifest)
     const template: any = find(compiled, { Alias: req.params.alias })
 
@@ -110,14 +120,12 @@ const preview = (args: TemplatePreviewArguments) => {
     return res.status(404).send('Not found!')
   })
 
-  // Return template text by alias
-
+  /**
+   * Get template text version by alias
+   */
   app.get('/text/:alias', (req, res) => {
-    const manifest = createManifest(args.templatesdirectory)
-    const compiled = compileTemplates(manifest)
     const template: any = find(compiled, { Alias: req.params.alias })
 
-    // res.send(200)
     if (template && template.TextBody) {
       res.set('Content-Type', 'text/plain')
       res.write(template.TextBody)
@@ -127,106 +135,7 @@ const preview = (args: TemplatePreviewArguments) => {
     return res.status(404).send('Not found!')
   })
 
-  app.listen(port, () =>
+  server.listen(port, () =>
     console.log(`Previews available at http://localhost:${port}!`)
   )
 }
-
-const compileTemplates = (manifest: TemplateManifest[]) => {
-  let compiled: any = []
-  const layouts = filter(manifest, { TemplateType: 'Layout' })
-  const templates = filter(manifest, { TemplateType: 'Standard' })
-
-  templates.forEach(template => {
-    const layout = find(layouts, { Alias: template.LayoutTemplate || '' })
-    const html = template.HtmlBody || ''
-    const text = template.TextBody || ''
-
-    compiled.push({
-      ...template,
-      HtmlBody:
-        layout && layout.HtmlBody
-          ? compileTemplate(layout.HtmlBody, html)
-          : html,
-      TextBody:
-        layout && layout.TextBody
-          ? compileTemplate(layout.TextBody, text)
-          : text,
-    })
-  })
-
-  layouts.forEach(layout => {
-    if (!layout.HtmlBody && !layout.TextBody) return
-    const content = 'Template content is inserted here.'
-
-    compiled.push({
-      ...layout,
-      HtmlBody: compileTemplate(layout.HtmlBody || '', content),
-      TextBody: compileTemplate(layout.TextBody || '', content),
-    })
-  })
-
-  return compiled
-}
-
-const compileTemplate = (layout: string, template: string): string =>
-  replace(layout, /({{{)(.?@content.?)(}}})/g, template)
-
-/**
- * Parses templates folder and files
- */
-const createManifest = (path: string): TemplateManifest[] => {
-  let manifest: TemplateManifest[] = []
-
-  // Return empty array if path does not exist
-  if (!existsSync(path)) return manifest
-
-  // Find meta files and flatten into collection
-  const list: MetaFileTraverse[] = FindMetaFiles(path)
-
-  // Parse each directory
-  list.forEach(file => {
-    const item = createManifestItem(file)
-    if (item) manifest.push(item)
-  })
-
-  return manifest
-}
-
-/**
- * Gathers the template's content and metadata based on the metadata file location
- */
-const createManifestItem = (file: any): MetaFile | null => {
-  const { path } = file // Path to meta file
-  const rootPath = dirname(path) // Folder path
-  const htmlPath = join(rootPath, 'content.html') // HTML path
-  const textPath = join(rootPath, 'content.txt') // Text path
-
-  // Check if meta file exists
-  if (existsSync(path)) {
-    const metaFile: MetaFile = readJsonSync(path)
-    const htmlFile: string = existsSync(htmlPath)
-      ? readFileSync(htmlPath, 'utf-8')
-      : ''
-    const textFile: string = existsSync(textPath)
-      ? readFileSync(textPath, 'utf-8')
-      : ''
-
-    return {
-      HtmlBody: htmlFile,
-      TextBody: textFile,
-      ...metaFile,
-    }
-  }
-
-  return null
-}
-
-/**
- * Searches for all metadata files and flattens into a collection
- */
-const FindMetaFiles = (path: string): MetaFileTraverse[] =>
-  traverse(dirTree(path)).reduce((acc, file) => {
-    if (file.name === 'meta.json') acc.push(file)
-    return acc
-  }, [])

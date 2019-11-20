@@ -238,6 +238,7 @@ a {
   transform: translateX(-50%);
   box-shadow: 0 0 10px rgba(0,0,0,.1);
   box-sizing: border-box;
+  transition: 200ms width ease-in-out;
 }
   .preview-iframe--layout {
     height: calc(100vh - 56px);
@@ -251,7 +252,7 @@ a {
     font-family: 'Helvetica Neue';
   }
   .preview-iframe--mobile {
-    width: 350px;
+    width: 360px;
   }
 .icon {
   display: inline-block;

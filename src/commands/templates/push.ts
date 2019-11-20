@@ -1,13 +1,11 @@
 import chalk from 'chalk'
 import ora from 'ora'
-import { join, dirname } from 'path'
 import { find } from 'lodash'
 import { prompt } from 'inquirer'
-import traverse from 'traverse'
 import { table, getBorderCharacters } from 'table'
 import untildify from 'untildify'
-import { readJsonSync, readFileSync, existsSync } from 'fs-extra'
-import dirTree from 'directory-tree'
+import { existsSync } from 'fs-extra'
+import { createManifest } from './helpers'
 import { ServerClient } from 'postmark'
 import {
   TemplateManifest,
@@ -15,8 +13,6 @@ import {
   TemplatePushReview,
   TemplatePushArguments,
   Templates,
-  MetaFileTraverse,
-  MetaFile,
 } from '../../types'
 import { pluralize, log, validateToken } from '../../utils'
 
@@ -195,65 +191,6 @@ const layoutUsedLabel = (
 
   return label
 }
-
-/**
- * Parses templates folder and files
- */
-const createManifest = (path: string): TemplateManifest[] => {
-  let manifest: TemplateManifest[] = []
-
-  // Return empty array if path does not exist
-  if (!existsSync(path)) return manifest
-
-  // Find meta files and flatten into collection
-  const list: MetaFileTraverse[] = FindMetaFiles(path)
-
-  // Parse each directory
-  list.forEach(file => {
-    const item = createManifestItem(file)
-    if (item) manifest.push(item)
-  })
-
-  return manifest
-}
-
-/**
- * Gathers the template's content and metadata based on the metadata file location
- */
-const createManifestItem = (file: any): MetaFile | null => {
-  const { path } = file // Path to meta file
-  const rootPath = dirname(path) // Folder path
-  const htmlPath = join(rootPath, 'content.html') // HTML path
-  const textPath = join(rootPath, 'content.txt') // Text path
-
-  // Check if meta file exists
-  if (existsSync(path)) {
-    const metaFile: MetaFile = readJsonSync(path)
-    const htmlFile: string = existsSync(htmlPath)
-      ? readFileSync(htmlPath, 'utf-8')
-      : ''
-    const textFile: string = existsSync(textPath)
-      ? readFileSync(textPath, 'utf-8')
-      : ''
-
-    return {
-      HtmlBody: htmlFile,
-      TextBody: textFile,
-      ...metaFile,
-    }
-  }
-
-  return null
-}
-
-/**
- * Searches for all metadata files and flattens into a collection
- */
-const FindMetaFiles = (path: string): MetaFileTraverse[] =>
-  traverse(dirTree(path)).reduce((acc, file) => {
-    if (file.name === 'meta.json') acc.push(file)
-    return acc
-  }, [])
 
 /**
  * Show which templates will change after the publish
