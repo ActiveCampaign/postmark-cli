@@ -2,7 +2,7 @@
 <html>
 <%- include("partials/head.ejs") %>
 <body>
-  <div class="toolbar toolbar--<%- template.TemplateType.toLowerCase() %>">
+  <div class="toolbar">
     <div class="toolbar_meta">
       <a href="/" class="toolbar_back">←</a>
       <div class="toolbar_text">
@@ -12,12 +12,17 @@
     </div>
     <div class="toolbar_meta">
       <% if (template.TemplateType === 'Standard') { %>
-        <span class="toolbar_layout template-layout f-code">Layout: <%- template.LayoutTemplate ? template.LayoutTemplate : 'None' %></span>
+        <span class="template-layout f-code">Layout: <%- template.LayoutTemplate ? template.LayoutTemplate : 'None' %></span>
       <% } %>
 
       <div class="toggle">
-        <a href="#" class="js-toggle-mode toggle_item toggle_item--active" data-mode="html">HTML</a>
-        <a href="#" class="js-toggle-mode toggle_item" data-mode="text">Text</a>
+        <a href="#" class="js-toggle js-view toggle_item icon-view icon-view--desktop is-active" data-view="desktop"></a>
+        <a href="#" class="js-toggle js-view toggle_item icon-view icon-view--mobile" data-view="mobile"></a>
+      </div>
+
+      <div class="toggle">
+        <a href="#" class="js-toggle js-mode toggle_item is-active" data-mode="html">HTML</a>
+        <a href="#" class="js-toggle js-mode toggle_item" data-mode="text">Text</a>
       </div>
     </div>
   </div>
