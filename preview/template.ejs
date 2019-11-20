@@ -3,35 +3,37 @@
 <%- include("partials/head.ejs") %>
 <body>
   <div class="toolbar toolbar--<%- template.TemplateType.toLowerCase() %>">
-    <div class="toolbar_column">
+    <div class="toolbar_meta">
       <a href="/" class="toolbar_back">←</a>
+      <div class="toolbar_text">
+        <h1 class="toolbar_title"><%- template.Name %></h1>
+        <span class="toolbar_alias u-alias f-code"><%- template.Alias %></span>
+      </div>
     </div>
-    <div class="toolbar_column">
-      <h1 class="toolbar_title">
-        <%- template.Name %>
-        <span class="toolbar_alias f-code"><%- template.Alias %></span>
-      </h1>
-    </div>
-    <div class="toolbar_column">
+    <div class="toolbar_meta">
+      <% if (template.TemplateType === 'Standard') { %>
+        <span class="toolbar_layout template-layout f-code">Layout: <%- template.LayoutTemplate ? template.LayoutTemplate : 'None' %></span>
+      <% } %>
+
       <div class="toggle">
         <a href="#" class="js-toggle-mode toggle_item toggle_item--active" data-mode="html">HTML</a>
         <a href="#" class="js-toggle-mode toggle_item" data-mode="text">Text</a>
       </div>
     </div>
   </div>
+
   <% if (template.TemplateType === 'Standard') {%>
-  <div class="sub-toolbar">
-    <div class="subject">
-      <span class="subject_label">Subject</span>
-      <span class="subject_line"><%- template.Subject || '<em>No subject</em>' %></span>
+    <div class="sub-toolbar">
+      <div class="subject">
+        <span class="subject_label">Subject</span>
+        <span class="subject_line"><%- template.Subject || '<em>No subject</em>' %></span>
+      </div>
     </div>
-  </div>
   <% } %>
 
-  <iframe class="js-html preview-iframe preview-frame--<%- template.TemplateType.toLowerCase() %>" frameborder="0" src="/html/<%- template.Alias %>"></iframe>
-  <iframe class="js-text preview-iframe preview-frame----<%- template.TemplateType.toLowerCase() %> hidden" frameborder="0" src="/text/<%- template.Alias %>"></iframe>
+  <iframe class="js-html preview-iframe preview-iframe--<%- template.TemplateType.toLowerCase() %>" frameborder="0" src="/html/<%- template.Alias %>"></iframe>
+  <iframe class="js-text preview-iframe preview-iframe--text preview-iframe--<%- template.TemplateType.toLowerCase() %> hidden" frameborder="0" src="/text/<%- template.Alias %>"></iframe>
 
-  <script type="text/javascript">var template = <%- JSON.stringify(template) %>;</script>
-  <script src="preview.js" type="text/javascript"></script>
+  <script src="js/preview.js" type="text/javascript"></script>
 </body>
 </html>

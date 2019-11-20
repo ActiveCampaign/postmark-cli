@@ -53,6 +53,8 @@ const preview = (args: TemplatePreviewArguments) => {
 
   app.use(express.static('preview/assets'))
 
+  // Template listing
+
   app.get('/', (req, res) => {
     const manifest = createManifest(args.templatesdirectory)
     const templates = compileTemplates(manifest)
@@ -62,31 +64,39 @@ const preview = (args: TemplatePreviewArguments) => {
       {
         templates: filter(templates, { TemplateType: 'Standard' }),
         layouts: filter(templates, { TemplateType: 'Layout' }),
-        path: untildify(args.templatesdirectory),
+        path: untildify(args.templatesdirectory).replace(/\/$/, ''),
       },
       (err, html) => {
-        if (err) res.send(err)
+        if (err) return res.send(err)
 
         return res.send(html)
       }
     )
   })
+
+  // Get template by alias
 
   app.get('/:alias', (req, res) => {
     const manifest = createManifest(args.templatesdirectory)
     const compiled = compileTemplates(manifest)
     const template: any = find(compiled, { Alias: req.params.alias })
 
-    consolidate.ejs(
-      'preview/template.ejs',
-      { template: template },
-      (err, html) => {
-        if (err) res.send(err)
+    if (template) {
+      consolidate.ejs(
+        'preview/template.ejs',
+        { template: template },
+        (err, html) => {
+          if (err) return res.send(err)
 
-        return res.send(html)
-      }
-    )
+          return res.send(html)
+        }
+      )
+    } else {
+      res.redirect(301, '/')
+    }
   })
+
+  // Return template HTML by alias
 
   app.get('/html/:alias', (req, res) => {
     const manifest = createManifest(args.templatesdirectory)
@@ -97,21 +107,24 @@ const preview = (args: TemplatePreviewArguments) => {
       return res.send(template.HtmlBody)
     }
 
-    return res.status(404)
+    return res.status(404).send('Not found!')
   })
+
+  // Return template text by alias
 
   app.get('/text/:alias', (req, res) => {
     const manifest = createManifest(args.templatesdirectory)
     const compiled = compileTemplates(manifest)
     const template: any = find(compiled, { Alias: req.params.alias })
 
+    // res.send(200)
     if (template && template.TextBody) {
       res.set('Content-Type', 'text/plain')
       res.write(template.TextBody)
       return res.end()
     }
 
-    return res.status(404)
+    return res.status(404).send('Not found!')
   })
 
   app.listen(port, () =>
@@ -126,14 +139,19 @@ const compileTemplates = (manifest: TemplateManifest[]) => {
 
   templates.forEach(template => {
     const layout = find(layouts, { Alias: template.LayoutTemplate || '' })
-
-    if (!layout) return
-    if (!layout.HtmlBody && !layout.TextBody) return
+    const html = template.HtmlBody || ''
+    const text = template.TextBody || ''
 
     compiled.push({
       ...template,
-      HtmlBody: compileTemplate(layout.HtmlBody || '', template.HtmlBody || ''),
-      TextBody: compileTemplate(layout.TextBody || '', template.TextBody || ''),
+      HtmlBody:
+        layout && layout.HtmlBody
+          ? compileTemplate(layout.HtmlBody, html)
+          : html,
+      TextBody:
+        layout && layout.TextBody
+          ? compileTemplate(layout.TextBody, text)
+          : text,
     })
   })
 
