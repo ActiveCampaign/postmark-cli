@@ -8,8 +8,6 @@ var currentMode = 'html'
 
 mode.forEach(function(toggle) {
   toggle.addEventListener('click', function(event) {
-    event.preventDefault()
-
     // Reset all classes
     mode.forEach(function(modeToggle) {
       // Remove active class from all toggles
@@ -41,8 +39,6 @@ var currentView = 'desktop'
 view.forEach(function(toggle) {
   // Add click event
   toggle.addEventListener('click', function(event) {
-    event.preventDefault()
-
     view.forEach(function(viewToggle) {
       // Remove active class from all toggles
       viewToggle.classList.remove(activeToggleClass)

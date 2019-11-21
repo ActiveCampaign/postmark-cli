@@ -166,6 +166,9 @@ a {
     font-weight: bold;
     transition: 100ms all ease-in-out;
     align-items: center;
+    outline: none;
+    cursor: pointer;
+    border: none;
   }
 
   .toggle_item:last-child {
