@@ -152,7 +152,5 @@ const preview = (args: TemplatePreviewArguments) => {
   })
 }
 
-const title = `${chalk.gray('::')}${chalk.yellow('Postmark')}${chalk.gray(
-  '::'
-)}`
-const divider = chalk.gray(':'.repeat(34))
+const title = `${chalk.yellow('ﾐ▢ Postmark')}${chalk.gray(':')}`
+const divider = chalk.gray('-'.repeat(34))
