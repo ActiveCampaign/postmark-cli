@@ -12,7 +12,7 @@
     </div>
     <div class="toolbar_meta">
       <% if (template.TemplateType === 'Standard') { %>
-        <span class="template-layout f-code">Layout:
+        <span class="template-layout toolbar_layout f-code">Layout:
           <% if (template.LayoutTemplate) { %>
             <a href="/<%- template.LayoutTemplate %>"><%- template.LayoutTemplate %></a>
           <% } else { %>
@@ -44,7 +44,7 @@
   <% } %>
 
   <iframe class="js-html preview-iframe preview-iframe--<%- template.TemplateType.toLowerCase() %>" frameborder="0" src="/html/<%- template.Alias %>"></iframe>
-  <iframe class="js-text preview-iframe preview-iframe--text preview-iframe--<%- template.TemplateType.toLowerCase() %> hidden" frameborder="0" src="/text/<%- template.Alias %>"></iframe>
+  <iframe class="js-text preview-iframe preview-iframe--text preview-iframe--<%- template.TemplateType.toLowerCase() %> is-hidden" frameborder="0" src="/text/<%- template.Alias %>"></iframe>
 
   <%- include("partials/previewScripts.ejs") %>
 </body>

@@ -18,7 +18,7 @@ mode.forEach(function(toggle) {
       // Hide all views
       document
         .querySelector('.js-' + modeToggle.dataset.mode)
-        .classList.add('hidden')
+        .classList.add('is-hidden')
     })
 
     // Add active class
@@ -28,7 +28,7 @@ mode.forEach(function(toggle) {
     // Show view
     document
       .querySelector('.js-' + this.dataset.mode)
-      .classList.remove('hidden')
+      .classList.remove('is-hidden')
   })
 })
 

@@ -23,12 +23,6 @@ body {
   background-color: var(--c-bg);
 }
 
-.container {
-  margin: 0 auto;
-  padding: 56px 0;
-  max-width: 800px;
-}
-
 p,
 li {
   font-size: 16px;
@@ -37,16 +31,6 @@ li {
 
 a {
   color: var(--c-text-primary);
-}
-
-.section-title {
-  text-align: center;
-  color: var(--c-text-secondary);
-  font-size: 13px;
-  text-transform: uppercase;
-  font-weight: normal;
-  letter-spacing: 1px;
-  margin: 40px 0 20px;
 }
 
 
@@ -134,7 +118,7 @@ a {
     margin-right: 8px;
   }
 
-  .toolbar .template-layout {
+  .toolbar_layout {
     align-self: center;
     margin-right: 5px;
   }
@@ -200,6 +184,10 @@ a {
     cursor: default;
   }
 
+
+/* *************************** */
+/* Template listing */
+/* *************************** */
 
 .template-list {
   list-style: none;
@@ -295,6 +283,22 @@ a {
 /* Misc */
 /* *************************** */
 
+.container {
+  margin: 0 auto;
+  padding: 56px 0;
+  max-width: 800px;
+}
+
+.section-title {
+  text-align: center;
+  color: var(--c-text-secondary);
+  font-size: 13px;
+  text-transform: uppercase;
+  font-weight: normal;
+  letter-spacing: 1px;
+  margin: 40px 0 20px;
+}
+
 .subject {
   font-size: 13px;
   font-weight: normal;
@@ -338,15 +342,15 @@ a {
   margin: 60px auto;
   max-width: 600px;
 }
-.blank p {
-  margin-bottom: 0;
-}
-.blank .snippet {
-  text-align: left;
-}
-.blank .snippet pre {
-  white-space: pre-wrap;
-}
+  .blank p {
+    margin-bottom: 0;
+  }
+  .blank .snippet {
+    text-align: left;
+  }
+  .blank .snippet pre {
+    white-space: pre-wrap;
+  }
 
 /* *************************** */
 /* Instructions */
@@ -370,11 +374,12 @@ a {
     margin-top: .5em;
   }
 
+
 /* *************************** */
 /* Utilities */
 /* *************************** */
 
-.hidden {
+.is-hidden {
   display: none;
 }
 
@@ -410,6 +415,10 @@ code {
   word-break: break-all;
 }
 
+
+/* *************************** */
+/* Viewport icons */
+/* *************************** */
 
 .icon-view {
   width: 40px;
@@ -454,16 +463,20 @@ code {
   }
 
 
-  .reloaded {
-    display: flex;
-    align-items: center;
-    font-size: 13px;
-    transition: 200ms all ease-in-out;
-    transform: translateY(4px);
-    opacity: 0;
-    font-weight: bold;
-    color: var(--c-primary);
-  }
+/* *************************** */
+/* Reloaded message */
+/* *************************** */
+
+.reloaded {
+  display: flex;
+  align-items: center;
+  font-size: 13px;
+  transition: 200ms all ease-in-out;
+  transform: translateY(4px);
+  opacity: 0;
+  font-weight: bold;
+  color: var(--c-primary);
+}
 
   .reloaded::before {
     content: '';
