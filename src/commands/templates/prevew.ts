@@ -129,12 +129,18 @@ const preview = (args: TemplatePreviewArguments) => {
     const template: any = find(compiled, { Alias: req.params.alias })
 
     if (template && template.TextBody) {
-      res.set('Content-Type', 'text/plain')
-      res.write(template.TextBody)
-      return res.end()
-    }
+      consolidate.ejs(
+        'preview/templateText.ejs',
+        { body: template.TextBody },
+        (err, html) => {
+          if (err) return res.send(err)
 
-    return res.status(404).send('Not found!')
+          return res.send(html)
+        }
+      )
+    } else {
+      return res.status(404).send('Not found!')
+    }
   })
 
   server.listen(port, () =>
