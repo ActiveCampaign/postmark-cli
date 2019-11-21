@@ -1,12 +1,15 @@
 @import url("reset.css");
 
 :root {
+  /* Colors */
   --c-primary: #ff7c83;
+  --c-primary-transparent: #fff2f2;
   --c-bg: #eeeff6;
   --c-text-primary: #3d3f4e;
   --c-text-secondary: #8e91a6;
   --c-postmark: #FFDE00;
 
+  /* Fonts */
   --f-primary: 'Roboto', Helvetica, Arial, sans-serif;
   --f-code: 'Roboto Mono', monospace;
 }
@@ -104,7 +107,7 @@ a {
 
   .toolbar_back:hover {
     color: var(--c-primary);
-    background-color: #fff2f2;
+    background-color: var(--c-primary-transparent);
     border-color: var(--c-primary);
   }
 
@@ -127,11 +130,12 @@ a {
   }
 
   .toolbar_icon {
-    margin-right: 5px;
+    margin-right: 8px;
   }
 
   .toolbar .template-layout {
     align-self: center;
+    margin-right: 5px;
   }
 
 .sub-toolbar {
@@ -220,7 +224,7 @@ a {
 
   .template-link:hover {
     border: 2px solid var(--c-primary);
-    background-color: #fff2f2;
+    background-color: var(--c-primary-transparent);
     color: var(--c-primary);
   }
 
@@ -230,7 +234,8 @@ a {
   line-height: 1.4;
 }
 
-.template-layout {
+.template-layout,
+.template-layout a {
   color: var(--c-text-secondary);
   font-size: 12px;
 }
@@ -279,8 +284,8 @@ a {
     font-family: var(--f-primary);
     word-wrap: break-word;
     white-space: pre-wrap;
-    font-size: 16px;
-    line-height: 1.4;
+    font-size: 14px;
+    line-height: 1.5;
     color: #000;
   }
 
@@ -311,7 +316,7 @@ a {
   background-size: 75%;
   width: 22px;
   height: 22px;
-  border-radius: 50%;
+  border-radius: 3px;
   background-color: var(--c-postmark);
 }
 
@@ -381,7 +386,7 @@ code {
 code {
   padding: 2px 4px 3px;
   color: var(--c-primary);
-  background-color: rgba(255,255,255);
+  background-color: #FFF;
   border-radius: 4px;
   font-size: 13px;
   border: 1px solid rgba(0,0,0,.1);
@@ -392,7 +397,7 @@ code {
   margin-top: 10px;
   padding: 10px;
   color: var(--c-primary);
-  background-color: rgba(255,255,255);
+  background-color: #FFF;
   border-radius: 4px;
   font-size: 13px;
   border: 1px solid rgba(0,0,0,.1);

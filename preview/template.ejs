@@ -12,7 +12,13 @@
     </div>
     <div class="toolbar_meta">
       <% if (template.TemplateType === 'Standard') { %>
-        <span class="template-layout f-code">Layout: <%- template.LayoutTemplate ? template.LayoutTemplate : 'None' %></span>
+        <span class="template-layout f-code">Layout:
+          <% if (template.LayoutTemplate) { %>
+            <a href="/<%- template.LayoutTemplate %>"><%- template.LayoutTemplate %></a>
+          <% } else { %>
+            None
+          <% } %>
+        </span>
       <% } %>
 
       <div class="toggle">
