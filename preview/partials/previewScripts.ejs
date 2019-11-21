@@ -1,3 +1,5 @@
+<script src="js/preview.js" type="text/javascript"></script>
+
 <script src="/socket.io/socket.io.js"></script>
 <script>
   var socket = io()
@@ -6,5 +8,12 @@
     console.log('Templates changed. Reloading preview.')
     document.querySelector('.js-html').contentWindow.location.reload();
     document.querySelector('.js-text').contentWindow.location.reload();
+
+    var reloaded = document.querySelector('.js-reloaded')
+    reloaded.classList.add('is-active')
+
+    setTimeout(function() {
+      reloaded.classList.remove('is-active')
+    }, 3000)
   })
 </script>

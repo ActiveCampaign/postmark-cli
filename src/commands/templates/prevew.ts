@@ -54,7 +54,7 @@ const preview = (args: TemplatePreviewArguments) => {
   app.use(express.static('preview/assets'))
 
   // Update manifest when files change
-  createMonitor(untildify(templatesdirectory), { interval: 1 }, monitor => {
+  createMonitor(untildify(templatesdirectory), { interval: 2 }, monitor => {
     function eventHandler() {
       // Update manifest and compiled templates
       manifest = createManifest(templatesdirectory)
@@ -64,10 +64,12 @@ const preview = (args: TemplatePreviewArguments) => {
       io.emit('change')
     }
 
+    // Monitor all events
     monitor.on('created', eventHandler)
     monitor.on('changed', eventHandler)
     monitor.on('removed', eventHandler)
 
+    // Stop monitor when process exists
     process.on('exit', () => monitor.stop())
   })
 

@@ -50,7 +50,7 @@ a {
   align-items: stretch;
   background-color: #FFF;
   height: 56px;
-  box-shadow: 0 0 5px rgba(0, 0, 0, .1);
+  box-shadow: 0 0 5px rgba(0, 0, 0, .2);
   box-sizing: border-box;
   position: fixed;
   top: 0;
@@ -214,7 +214,7 @@ a {
   z-index: 2;
   box-sizing: border-box;
   padding: 0 15px;
-  box-shadow: 0 0 5px rgba(0, 0, 0, .1);
+  box-shadow: 0 0 5px rgba(0, 0, 0, .2);
 }
 .subject {
   font-size: 13px;
@@ -384,4 +384,49 @@ code {
   .icon-view--desktop.is-active::before,
   .icon-view--desktop.is-active:hover::before {
     background-position: 18px -16px;
+  }
+
+
+  .reloaded {
+    display: flex;
+    align-items: center;
+    font-size: 13px;
+    transition: 200ms all ease-in-out;
+    transform: translateY(4px);
+    opacity: 0;
+    font-weight: bold;
+    color: var(--c-primary);
+    /* background-image: url('../images/check.svg'); */
+    /* background-repeat: no-repeat; */
+    /* padding-left: 18px; */
+    /* display: flex; */
+  }
+  .reloaded::before {
+    content: '';
+    display: inline-block;
+    background-image: url('../images/check.svg');
+    background-size: 100%;
+    width: 15px;
+    height: 15px;
+    margin-right: 4px;
+  }
+  .reloaded.is-active {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  .reloaded.is-active::before {
+    animation: 280ms 500ms 1 linear spinzoom;
+  }
+
+  @keyframes spinzoom {
+    0% {
+      transform: rotate(0deg) scale(1);
+    }
+    50% {
+      transform: rotate(220deg) scale(1.6);
+      filter: blur(.5px);
+    }
+    100% {
+      transform: rotate(359deg) scale(1);
+    }
   }
