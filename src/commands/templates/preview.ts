@@ -1,3 +1,4 @@
+import chalk from 'chalk'
 import { existsSync } from 'fs-extra'
 import { filter, find } from 'lodash'
 import untildify from 'untildify'
@@ -42,6 +43,7 @@ const validateDirectory = (args: TemplatePreviewArguments) => {
  */
 const preview = (args: TemplatePreviewArguments) => {
   const { port, templatesdirectory } = args
+  console.log(`${title} Starting template preview server...`)
   const app = express()
   const server = require('http').createServer(app)
   const io = require('socket.io')(server)
@@ -60,6 +62,7 @@ const preview = (args: TemplatePreviewArguments) => {
       manifest = createManifest(templatesdirectory)
       compiled = compileTemplates(manifest)
 
+      console.log(`${title} File changed. Reloading browser...`)
       // Trigger reload on client
       io.emit('change')
     }
@@ -68,9 +71,6 @@ const preview = (args: TemplatePreviewArguments) => {
     monitor.on('created', eventHandler)
     monitor.on('changed', eventHandler)
     monitor.on('removed', eventHandler)
-
-    // Stop monitor when process exists
-    process.on('exit', () => monitor.stop())
   })
 
   // Template listing
@@ -143,7 +143,16 @@ const preview = (args: TemplatePreviewArguments) => {
     }
   })
 
-  server.listen(port, () =>
-    console.log(`Previews available at http://localhost:${port}!`)
-  )
+  server.listen(port, () => {
+    console.log(`${title} Template preview server ready. Happy coding!`)
+
+    console.log(divider)
+    console.log(`URL: ${chalk.green(`http://localhost:${port}`)}`)
+    console.log(divider)
+  })
 }
+
+const title = `${chalk.gray('::')}${chalk.yellow('Postmark')}${chalk.gray(
+  '::'
+)}`
+const divider = chalk.gray(':'.repeat(34))
