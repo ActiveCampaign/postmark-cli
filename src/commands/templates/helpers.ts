@@ -1,6 +1,5 @@
 import { join, dirname } from 'path'
 import { readJsonSync, readFileSync, existsSync } from 'fs-extra'
-import { filter, find, replace } from 'lodash'
 import traverse from 'traverse'
 import dirTree from 'directory-tree'
 import { TemplateManifest, MetaFileTraverse, MetaFile } from '../../types'
@@ -64,46 +63,3 @@ export const createManifestItem = (file: any): MetaFile | null => {
 
   return null
 }
-
-/**
- * Combine all templates and layouts
- */
-export const compileTemplates = (manifest: TemplateManifest[]) => {
-  let compiled: any = []
-  const layouts = filter(manifest, { TemplateType: 'Layout' })
-  const templates = filter(manifest, { TemplateType: 'Standard' })
-
-  templates.forEach(template => {
-    const layout = find(layouts, { Alias: template.LayoutTemplate || '' })
-    const html = template.HtmlBody || ''
-    const text = template.TextBody || ''
-
-    compiled.push({
-      ...template,
-      HtmlBody:
-        layout && layout.HtmlBody
-          ? compileTemplate(layout.HtmlBody, html)
-          : html,
-      TextBody:
-        layout && layout.TextBody
-          ? compileTemplate(layout.TextBody, text)
-          : text,
-    })
-  })
-
-  layouts.forEach(layout => {
-    if (!layout.HtmlBody && !layout.TextBody) return
-    const content = 'Template content is inserted here.'
-
-    compiled.push({
-      ...layout,
-      HtmlBody: compileTemplate(layout.HtmlBody || '', content),
-      TextBody: compileTemplate(layout.TextBody || '', content),
-    })
-  })
-
-  return compiled
-}
-
-export const compileTemplate = (layout: string, template: string): string =>
-  replace(layout, /({{{)(.?@content.?)(}}})/g, template)

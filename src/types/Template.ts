@@ -70,6 +70,7 @@ export interface TemplatePushArguments {
 }
 
 export interface TemplatePreviewArguments {
+  serverToken: string
   templatesdirectory: string
   port: number
 }

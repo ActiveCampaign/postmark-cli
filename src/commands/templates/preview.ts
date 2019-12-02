@@ -5,13 +5,18 @@ import untildify from 'untildify'
 import express from 'express'
 import { createMonitor } from 'watch'
 import consolidate from 'consolidate'
-import { createManifest, compileTemplates } from './helpers'
+import { ServerClient } from 'postmark'
+import { createManifest } from './helpers'
 import { TemplatePreviewArguments } from '../../types'
-import { log } from '../../utils'
+import { log, validateToken } from '../../utils'
 
 export const command = 'preview  <templates directory> [options]'
 export const desc = 'Preview your templates and layouts together'
 export const builder = {
+  'server-token': {
+    type: 'string',
+    hidden: true,
+  },
   port: {
     type: 'number',
     describe: 'The port to open up the preview server on',
@@ -24,10 +29,17 @@ export const handler = (args: TemplatePreviewArguments) => exec(args)
 /**
  * Execute the command
  */
-const exec = (args: TemplatePreviewArguments): void => validateDirectory(args)
+const exec = (args: TemplatePreviewArguments) => {
+  const { serverToken } = args
+
+  return validateToken(serverToken).then(() => {
+    validateDirectory(args)
+  })
+}
 
 const validateDirectory = (args: TemplatePreviewArguments) => {
-  const rootPath: string = untildify(args.templatesdirectory)
+  const { templatesdirectory } = args
+  const rootPath: string = untildify(templatesdirectory)
 
   // Check if path exists
   if (!existsSync(rootPath)) {
@@ -42,15 +54,17 @@ const validateDirectory = (args: TemplatePreviewArguments) => {
  * Preview
  */
 const preview = (args: TemplatePreviewArguments) => {
-  const { port, templatesdirectory } = args
-  console.log(`${title} Starting template preview server...`)
+  const { port, templatesdirectory, serverToken } = args
+  log(`${title} Starting template preview server...`)
+
+  // Start server
   const app = express()
   const server = require('http').createServer(app)
   const io = require('socket.io')(server)
 
-  // Cache manifest and compiled templates
+  // Cache manifest and Postmark server
+  const client = new ServerClient(serverToken)
   let manifest = createManifest(templatesdirectory)
-  let compiled = compileTemplates(manifest)
 
   // Static assets
   app.use(express.static('preview/assets'))
@@ -58,12 +72,10 @@ const preview = (args: TemplatePreviewArguments) => {
   // Update manifest when files change
   createMonitor(untildify(templatesdirectory), { interval: 2 }, monitor => {
     function eventHandler() {
-      // Update manifest and compiled templates
       manifest = createManifest(templatesdirectory)
-      compiled = compileTemplates(manifest)
 
-      console.log(`${title} File changed. Reloading browser...`)
       // Trigger reload on client
+      log(`${title} File changed. Reloading browser...`)
       io.emit('change')
     }
 
@@ -112,43 +124,65 @@ const preview = (args: TemplatePreviewArguments) => {
    * Get template HTML version by alias
    */
   app.get('/html/:alias', (req, res) => {
-    const compiled = compileTemplates(manifest)
-    const template: any = find(compiled, { Alias: req.params.alias })
+    const template: any = find(manifest, { Alias: req.params.alias })
 
     if (template && template.HtmlBody) {
-      return res.send(template.HtmlBody)
+      client
+        .validateTemplate({
+          Subject: template.Subject,
+          HtmlBody: template.HtmlBody,
+          TextBody: template.TextBody || '',
+          LayoutTemplate: template.LayoutTemplate || '',
+        })
+        .then(result => {
+          return res.send(result.HtmlBody.RenderedContent)
+        })
+        .catch(error => {
+          return res.send(500).send(error)
+        })
+    } else {
+      return res.status(404).send('Not found!')
     }
-
-    return res.status(404).send('Not found!')
   })
 
   /**
    * Get template text version by alias
    */
   app.get('/text/:alias', (req, res) => {
-    const template: any = find(compiled, { Alias: req.params.alias })
+    const template: any = find(manifest, { Alias: req.params.alias })
 
     if (template && template.TextBody) {
-      consolidate.ejs(
-        'preview/templateText.ejs',
-        { body: template.TextBody },
-        (err, html) => {
-          if (err) return res.send(err)
+      client
+        .validateTemplate({
+          Subject: template.Subject,
+          HtmlBody: template.HtmlBody,
+          TextBody: template.TextBody || '',
+          LayoutTemplate: template.LayoutTemplate || '',
+        })
+        .then(result => {
+          consolidate.ejs(
+            'preview/templateText.ejs',
+            { body: result.TextBody.RenderedContent },
+            (err, html) => {
+              if (err) return res.send(err)
 
-          return res.send(html)
-        }
-      )
+              return res.send(html)
+            }
+          )
+        })
+        .catch(error => {
+          return res.send(500).send(error)
+        })
     } else {
       return res.status(404).send('Not found!')
     }
   })
 
   server.listen(port, () => {
-    console.log(`${title} Template preview server ready. Happy coding!`)
-
-    console.log(divider)
-    console.log(`URL: ${chalk.green(`http://localhost:${port}`)}`)
-    console.log(divider)
+    log(`${title} Template preview server ready. Happy coding!`)
+    log(divider)
+    log(`URL: ${chalk.green(`http://localhost:${port}`)}`)
+    log(divider)
   })
 }
 
