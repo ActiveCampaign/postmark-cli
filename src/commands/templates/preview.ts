@@ -129,9 +129,8 @@ const preview = (args: TemplatePreviewArguments) => {
     if (template && template.HtmlBody) {
       client
         .validateTemplate({
-          Subject: template.Subject,
+          Subject: template.Subject || '',
           HtmlBody: template.HtmlBody,
-          TextBody: template.TextBody || '',
           LayoutTemplate: template.LayoutTemplate || '',
         })
         .then(result => {
@@ -141,7 +140,15 @@ const preview = (args: TemplatePreviewArguments) => {
           return res.send(500).send(error)
         })
     } else {
-      return res.status(404).send('Not found!')
+      consolidate.ejs(
+        'preview/template404.ejs',
+        { version: 'HTML' },
+        (err, html) => {
+          if (err) return res.send(err)
+
+          return res.status(404).send(html)
+        }
+      )
     }
   })
 
@@ -154,9 +161,8 @@ const preview = (args: TemplatePreviewArguments) => {
     if (template && template.TextBody) {
       client
         .validateTemplate({
-          Subject: template.Subject,
-          HtmlBody: template.HtmlBody,
-          TextBody: template.TextBody || '',
+          Subject: template.Subject || '',
+          TextBody: template.TextBody,
           LayoutTemplate: template.LayoutTemplate || '',
         })
         .then(result => {
@@ -174,7 +180,15 @@ const preview = (args: TemplatePreviewArguments) => {
           return res.send(500).send(error)
         })
     } else {
-      return res.status(404).send('Not found!')
+      consolidate.ejs(
+        'preview/template404.ejs',
+        { version: 'Text' },
+        (err, html) => {
+          if (err) return res.send(err)
+
+          return res.status(404).send(html)
+        }
+      )
     }
   })
 
