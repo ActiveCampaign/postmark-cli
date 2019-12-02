@@ -81,6 +81,7 @@ a {
   }
 
   .toolbar_back {
+    display: none;
     text-decoration: none;
     border: 2px solid #dbdaeb;
     margin: 2px 0;
@@ -96,22 +97,33 @@ a {
     border-color: var(--c-primary);
   }
 
-  .toolbar_path {
-    display: flex;
-    font-size: 12px;
-    color: var(--c-text-secondary);
-    align-self: center;
+  @media only screen and (min-width: 610px) {
+    .toolbar_back {
+      display: inline-block;
+    }
   }
 
-  .toolbar_path::before {
-    display: inline-block;
-    content: '';
-    background-image: url(../images/folder.svg);
-    background-repeat: no-repeat;
-    background-size: 100%;
-    width: 15px;
-    height: 12px;
-    margin-right: 5px;
+  .toolbar_path {
+    display: none;
+  }
+
+  @media only screen and (min-width: 610px) {
+    .toolbar_path {
+      display: flex;
+      font-size: 12px;
+      color: var(--c-text-secondary);
+      align-self: center;
+    }
+    .toolbar_path::before {
+      display: inline-block;
+      content: '';
+      background-image: url(../images/folder.svg);
+      background-repeat: no-repeat;
+      background-size: 100%;
+      width: 15px;
+      height: 12px;
+      margin-right: 5px;
+    }
   }
 
   .toolbar_icon {
@@ -122,6 +134,7 @@ a {
     align-self: center;
     margin-right: 5px;
   }
+
 
 .sub-toolbar {
   display: flex;
@@ -159,6 +172,7 @@ a {
     box-sizing: border-box;
     text-decoration: none;
     color: var(--c-text-secondary);
+    background-color: transparent;
     padding: 0 12px;
     font-size: 13px;
     margin: 3px;
@@ -228,8 +242,15 @@ a {
 
 .template-layout,
 .template-layout a {
+  display: none;
   color: var(--c-text-secondary);
   font-size: 12px;
+}
+@media only screen and (min-width: 610px) {
+  .template-layout,
+  .template-layout a {
+    display: inline-block;
+  }
 }
 
 
@@ -341,39 +362,30 @@ a {
 /* *************************** */
 
 .blank {
-  text-align: center;
   margin: 60px auto;
-  max-width: 600px;
+  padding: 0 15px;
 }
+@media only screen and (min-width: 610px) {
+  .blank {
+    max-width: 600px;
+    padding: 0;
+  }
+}
+
   .blank p {
     margin-bottom: 0;
   }
-  .blank .snippet {
-    text-align: left;
-  }
-  .blank .snippet pre {
-    white-space: pre-wrap;
-  }
-
-/* *************************** */
-/* Instructions */
-/* *************************** */
-
-.instructions {
-  margin: 0 auto;
-  max-width: 600px;
-}
-  .instructions h4 {
-    text-align: center;
+  .blank h4 {
+    margin-top: 2em;
     margin-bottom: 1.5em;
   }
-  .instructions ol li {
+  .blank ol li {
     margin-bottom: 1.5em;
   }
-  .instructions ul li {
+  .blank ul li {
     margin-bottom: .5em;
   }
-  .instructions ul {
+  .blank ul {
     margin-top: .5em;
   }
 
@@ -410,12 +422,19 @@ code {
   border-radius: 4px;
   font-size: 13px;
   border: 1px solid rgba(0,0,0,.1);
+  line-height: 1.4;
 }
+  .snippet pre {
+    margin: 0;
+    word-break: break-all;
+    white-space: pre-wrap;
+  }
+  .snippet--fit {
+    display: inline-block;
+  }
 
-.snippet pre {
-  margin: 0;
-  word-wrap: break-word;
-  word-break: break-all;
+.center {
+  text-align: center;
 }
 
 

@@ -42,20 +42,19 @@
       </ul>
     <% } else { %>
       <div class="blank">
-        <img src="images/templates.svg" />
-        <h2>No templates were found</h2>
-        <p>Pull your templates from Postmark:</p>
-        <div class="snippet"><pre>postmark templates pull <%- path %></pre></div>
-      </div>
+        <div class="center">
+          <img src="images/templates.svg" class="blank_icon" />
+          <h2>No templates were found</h2>
+          <p>Pull your templates from Postmark:</p>
+          <div class="snippet snippet--fit"><pre>postmark templates pull <%- path %></pre></div>
+        </div>
 
-      <div class="instructions">
-        <h4>Or build your templates locally</h4>
+        <h4 class="center">Or build your templates locally</h4>
         <ol>
           <li>Create a new folder for your template:</code>
             <div class="snippet"><pre>
 cd <%- path %>
-mkdir password-reset
-</pre></div>
+mkdir password-reset</pre></div>
           </li>
           <li>Your template folder should contain the following files:
             <ul>
