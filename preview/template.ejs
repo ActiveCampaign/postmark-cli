@@ -43,6 +43,16 @@
     </div>
   <% } %>
 
+  <div class="loader">
+    <div class="loader_spinner">
+      <span></span>
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
+    <p class="loader_text">Fetching preview...</p>
+  </div>
+
   <iframe class="js-html preview-iframe preview-iframe--<%- template.TemplateType.toLowerCase() %>" frameborder="0" src="/html/<%- template.Alias %>"></iframe>
   <iframe class="js-text preview-iframe preview-iframe--text preview-iframe--<%- template.TemplateType.toLowerCase() %> is-hidden" frameborder="0" src="/text/<%- template.Alias %>"></iframe>
 
