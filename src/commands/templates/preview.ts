@@ -140,13 +140,17 @@ const preview = (args: TemplatePreviewArguments) => {
       client
         .validateTemplate(payload)
         .then(result => {
-          return res.send(result.HtmlBody.RenderedContent)
+          if (result.HtmlBody.ContentIsValid) {
+            return res.send(result.HtmlBody.RenderedContent)
+          }
+
+          return renderTemplateInvalid(res, result.HtmlBody.ValidationErrors)
         })
         .catch(error => {
           return res.status(500).send(error)
         })
     } else {
-      renderTemplate404(res, 'HTML')
+      return renderTemplate404(res, 'HTML')
     }
   })
 
@@ -170,21 +174,17 @@ const preview = (args: TemplatePreviewArguments) => {
       client
         .validateTemplate(payload)
         .then(result => {
-          consolidate.ejs(
-            'preview/templateText.ejs',
-            { body: result.TextBody.RenderedContent },
-            (err, html) => {
-              if (err) return res.send(err)
+          if (result.TextBody.ContentIsValid) {
+            return renderTemplateText(res, result.TextBody.RenderedContent)
+          }
 
-              return res.send(html)
-            }
-          )
+          return renderTemplateInvalid(res, result.TextBody.ValidationErrors)
         })
         .catch(error => {
           return res.status(500).send(error)
         })
     } else {
-      renderTemplate404(res, 'Text')
+      return renderTemplate404(res, 'Text')
     }
   })
 
@@ -201,6 +201,22 @@ const divider = chalk.gray('-'.repeat(34))
 
 const combineTemplate = (layout: string, template: string): string =>
   replace(layout, /({{{)(.?@content.?)(}}})/g, template)
+
+/* Render Templates */
+
+const renderTemplateText = (res: any, body: string) =>
+  consolidate.ejs('preview/templateText.ejs', { body }, (err, html) => {
+    if (err) return res.send(err)
+
+    return res.send(html)
+  })
+
+const renderTemplateInvalid = (res: any, errors: any) =>
+  consolidate.ejs('preview/templateInvalid.ejs', { errors }, (err, html) => {
+    if (err) return res.send(err)
+
+    return res.send(html)
+  })
 
 const renderTemplate404 = (res: any, version: string) =>
   consolidate.ejs('preview/template404.ejs', { version }, (err, html) => {

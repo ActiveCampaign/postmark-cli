@@ -394,22 +394,33 @@ a {
 /* Missing template */
 /* *************************** */
 
-.missing-body {
+.template-error-body {
   background-color: #FFF;
 }
 
-.missing-template {
+.template-error {
   margin: 0;
   position: absolute;
   left: 50%;
   top: 50%;
   transform: translateX(-50%) translateY(-50%);
-  text-align: center;
 }
-  .missing-template h2 {
+  .template-error h1,
+  .template-error h2 {
     color: var(--c-text-secondary);
-    font-weight: normal;
     font-size: 16px;
+    text-align: center;
+  }
+  .template-error h2 {
+    font-weight: normal;
+  }
+  .template-error_list {
+    text-align: left;
+  }
+  .template-error_list li {
+    color: var(--c-text-secondary);
+    font-size: 14px;
+    margin-bottom: .5em;
   }
 
 
