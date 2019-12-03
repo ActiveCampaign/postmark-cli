@@ -125,14 +125,15 @@ const preview = (args: TemplatePreviewArguments) => {
    */
   app.get('/html/:alias', (req, res) => {
     const template: any = find(manifest, { Alias: req.params.alias })
+    const payload = {
+      HtmlBody: template.HtmlBody,
+      LayoutTemplate: template.LayoutTemplate || '',
+      TemplateType: template.TemplateType,
+    }
 
     if (template && template.HtmlBody) {
       client
-        .validateTemplate({
-          Subject: template.Subject || '',
-          HtmlBody: template.HtmlBody,
-          LayoutTemplate: template.LayoutTemplate || '',
-        })
+        .validateTemplate(payload)
         .then(result => {
           return res.send(result.HtmlBody.RenderedContent)
         })
@@ -140,15 +141,7 @@ const preview = (args: TemplatePreviewArguments) => {
           return res.send(500).send(error)
         })
     } else {
-      consolidate.ejs(
-        'preview/template404.ejs',
-        { version: 'HTML' },
-        (err, html) => {
-          if (err) return res.send(err)
-
-          return res.status(404).send(html)
-        }
-      )
+      renderTemplate404(res, 'HTML')
     }
   })
 
@@ -157,14 +150,15 @@ const preview = (args: TemplatePreviewArguments) => {
    */
   app.get('/text/:alias', (req, res) => {
     const template: any = find(manifest, { Alias: req.params.alias })
+    const payload = {
+      TextBody: template.TextBody,
+      LayoutTemplate: template.LayoutTemplate || '',
+      TemplateType: template.TemplateType,
+    }
 
     if (template && template.TextBody) {
       client
-        .validateTemplate({
-          Subject: template.Subject || '',
-          TextBody: template.TextBody,
-          LayoutTemplate: template.LayoutTemplate || '',
-        })
+        .validateTemplate(payload)
         .then(result => {
           consolidate.ejs(
             'preview/templateText.ejs',
@@ -180,15 +174,7 @@ const preview = (args: TemplatePreviewArguments) => {
           return res.send(500).send(error)
         })
     } else {
-      consolidate.ejs(
-        'preview/template404.ejs',
-        { version: 'Text' },
-        (err, html) => {
-          if (err) return res.send(err)
-
-          return res.status(404).send(html)
-        }
-      )
+      renderTemplate404(res, 'Text')
     }
   })
 
@@ -202,3 +188,10 @@ const preview = (args: TemplatePreviewArguments) => {
 
 const title = `${chalk.yellow('ﾐ▢ Postmark')}${chalk.gray(':')}`
 const divider = chalk.gray('-'.repeat(34))
+
+const renderTemplate404 = (res: any, version: string) =>
+  consolidate.ejs('preview/template404.ejs', { version }, (err, html) => {
+    if (err) return res.send(err)
+
+    return res.status(404).send(html)
+  })
