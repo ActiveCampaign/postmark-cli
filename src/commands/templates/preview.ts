@@ -106,7 +106,7 @@ const preview = (args: TemplatePreviewArguments) => {
    * Get template by alias
    */
   app.get('/:alias', (req, res) => {
-    const template: any = find(manifest, { Alias: req.params.alias })
+    const template = find(manifest, { Alias: req.params.alias })
 
     if (template) {
       consolidate.ejs('preview/template.ejs', { template }, (err, html) => {
@@ -204,21 +204,21 @@ const combineTemplate = (layout: string, template: string): string =>
 
 /* Render Templates */
 
-const renderTemplateText = (res: any, body: string) =>
+const renderTemplateText = (res: express.Response, body: string) =>
   consolidate.ejs('preview/templateText.ejs', { body }, (err, html) => {
     if (err) return res.send(err)
 
     return res.send(html)
   })
 
-const renderTemplateInvalid = (res: any, errors: any) =>
+const renderTemplateInvalid = (res: express.Response, errors: any) =>
   consolidate.ejs('preview/templateInvalid.ejs', { errors }, (err, html) => {
     if (err) return res.send(err)
 
     return res.send(html)
   })
 
-const renderTemplate404 = (res: any, version: string) =>
+const renderTemplate404 = (res: express.Response, version: string) =>
   consolidate.ejs('preview/template404.ejs', { version }, (err, html) => {
     if (err) return res.send(err)
 
