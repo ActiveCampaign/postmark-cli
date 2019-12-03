@@ -125,20 +125,25 @@ const preview = (args: TemplatePreviewArguments) => {
    */
   app.get('/html/:alias', (req, res) => {
     const template: any = find(manifest, { Alias: req.params.alias })
-    const payload = {
-      HtmlBody: template.HtmlBody,
-      LayoutTemplate: template.LayoutTemplate || '',
-      TemplateType: template.TemplateType,
-    }
+    const layout: any = find(manifest, { Alias: template.LayoutTemplate })
 
     if (template && template.HtmlBody) {
+      const source = layout
+        ? combineTemplate(layout.HtmlBody, template.HtmlBody)
+        : template.HtmlBody
+
+      const payload = {
+        HtmlBody: source,
+        TemplateType: template.TemplateType,
+      }
+
       client
         .validateTemplate(payload)
         .then(result => {
           return res.send(result.HtmlBody.RenderedContent)
         })
         .catch(error => {
-          return res.send(500).send(error)
+          return res.status(500).send(error)
         })
     } else {
       renderTemplate404(res, 'HTML')
@@ -150,13 +155,18 @@ const preview = (args: TemplatePreviewArguments) => {
    */
   app.get('/text/:alias', (req, res) => {
     const template: any = find(manifest, { Alias: req.params.alias })
-    const payload = {
-      TextBody: template.TextBody,
-      LayoutTemplate: template.LayoutTemplate || '',
-      TemplateType: template.TemplateType,
-    }
+    const layout: any = find(manifest, { Alias: template.LayoutTemplate })
 
     if (template && template.TextBody) {
+      const source = layout
+        ? combineTemplate(layout.TextBody, template.TextBody)
+        : template.TextBody
+
+      const payload = {
+        TextBody: source,
+        TemplateType: template.TemplateType,
+      }
+
       client
         .validateTemplate(payload)
         .then(result => {
@@ -171,7 +181,7 @@ const preview = (args: TemplatePreviewArguments) => {
           )
         })
         .catch(error => {
-          return res.send(500).send(error)
+          return res.status(500).send(error)
         })
     } else {
       renderTemplate404(res, 'Text')
@@ -188,6 +198,9 @@ const preview = (args: TemplatePreviewArguments) => {
 
 const title = `${chalk.yellow('ﾐ▢ Postmark')}${chalk.gray(':')}`
 const divider = chalk.gray('-'.repeat(34))
+
+const combineTemplate = (layout: string, template: string): string =>
+  replace(layout, /({{{)(.?@content.?)(}}})/g, template)
 
 const renderTemplate404 = (res: any, version: string) =>
   consolidate.ejs('preview/template404.ejs', { version }, (err, html) => {
