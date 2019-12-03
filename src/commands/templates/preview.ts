@@ -1,6 +1,6 @@
 import chalk from 'chalk'
 import { existsSync } from 'fs-extra'
-import { filter, find } from 'lodash'
+import { filter, find, replace, debounce } from 'lodash'
 import untildify from 'untildify'
 import express from 'express'
 import { createMonitor } from 'watch'
@@ -69,20 +69,20 @@ const preview = (args: TemplatePreviewArguments) => {
   // Static assets
   app.use(express.static('preview/assets'))
 
-  // Update manifest when files change
+  const updateEvent = () => {
+    // Generate new manifest
+    manifest = createManifest(templatesdirectory)
+
+    // Trigger reload on client
+    log(`${title} File changed. Reloading browser...`)
+    io.emit('change')
+  }
+
+  // Watch for file changes
   createMonitor(untildify(templatesdirectory), { interval: 2 }, monitor => {
-    function eventHandler() {
-      manifest = createManifest(templatesdirectory)
-
-      // Trigger reload on client
-      log(`${title} File changed. Reloading browser...`)
-      io.emit('change')
-    }
-
-    // Monitor all events
-    monitor.on('created', eventHandler)
-    monitor.on('changed', eventHandler)
-    monitor.on('removed', eventHandler)
+    monitor.on('created', debounce(updateEvent, 1000))
+    monitor.on('changed', debounce(updateEvent, 1000))
+    monitor.on('removed', debounce(updateEvent, 1000))
   })
 
   // Template listing
