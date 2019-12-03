@@ -404,7 +404,13 @@ a {
   left: 50%;
   top: 50%;
   transform: translateX(-50%) translateY(-50%);
+  width: 90%;
 }
+  @media only screen and (min-width: 610px) {
+    .template-error {
+      width: 500px;
+    }
+  }
   .template-error h1,
   .template-error h2 {
     color: var(--c-text-secondary);
