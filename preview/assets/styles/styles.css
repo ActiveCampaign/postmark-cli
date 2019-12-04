@@ -287,6 +287,10 @@ a {
     width: 360px;
   }
 
+  .preview-iframe.is-loaded {
+    background-color: #FFF;
+  }
+
 .preview-text {
   padding: 50px;
   background-color: #FFF;
@@ -570,6 +574,7 @@ code {
     top: 50%;
     transform: translateX(-50%) translateY(-50%);
     text-align: center;
+    z-index: 2;
   }
     .loader_spinner {
       display: inline-block;

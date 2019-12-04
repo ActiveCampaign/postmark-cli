@@ -116,7 +116,7 @@ const preview = (args: TemplatePreviewArguments) => {
       })
     } else {
       // Redirect to index
-      res.redirect(301, '/')
+      return res.redirect(301, '/')
     }
   })
 
@@ -128,9 +128,10 @@ const preview = (args: TemplatePreviewArguments) => {
     const layout: any = find(manifest, { Alias: template.LayoutTemplate })
 
     if (template && template.HtmlBody) {
-      const source = layout
-        ? combineTemplate(layout.HtmlBody, template.HtmlBody)
-        : template.HtmlBody
+      const source =
+        layout && layout.HtmlBody
+          ? combineTemplate(layout.HtmlBody, template.HtmlBody)
+          : template.HtmlBody
 
       const payload = {
         HtmlBody: source,
@@ -162,9 +163,10 @@ const preview = (args: TemplatePreviewArguments) => {
     const layout: any = find(manifest, { Alias: template.LayoutTemplate })
 
     if (template && template.TextBody) {
-      const source = layout
-        ? combineTemplate(layout.TextBody, template.TextBody)
-        : template.TextBody
+      const source =
+        layout && layout.TextBody
+          ? combineTemplate(layout.TextBody, template.TextBody)
+          : template.TextBody
 
       const payload = {
         TextBody: source,

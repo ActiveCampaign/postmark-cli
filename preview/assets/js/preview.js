@@ -76,3 +76,12 @@ function keypress(e) {
 }
 
 document.onkeydown = keypress
+
+// Manage state when HTML iframe is finished loading
+document.querySelector('.js-html').onload = function() {
+  // Hide loading indicator
+  document.querySelector('.js-loader').classList.add('is-hidden')
+
+  // Add state class to HTML iframe
+  this.classList.add('is-loaded')
+}
