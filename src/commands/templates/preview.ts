@@ -6,12 +6,13 @@ import express from 'express'
 import { createMonitor } from 'watch'
 import consolidate from 'consolidate'
 import { ServerClient } from 'postmark'
+import open from 'open'
 import { createManifest } from './helpers'
 import { TemplatePreviewArguments } from '../../types'
 import { log, validateToken } from '../../utils'
 
 export const command = 'preview  <templates directory> [options]'
-export const desc = 'Preview your templates and layouts together'
+export const desc = 'Preview your templates and layouts'
 export const builder = {
   'server-token': {
     type: 'string',
@@ -165,10 +166,14 @@ const preview = (serverToken: string, args: TemplatePreviewArguments) => {
   })
 
   server.listen(port, () => {
+    const url = `http://localhost:${port}`
+
     log(`${title} Template preview server ready. Happy coding!`)
     log(divider)
-    log(`URL: ${chalk.green(`http://localhost:${port}`)}`)
+    log(`URL: ${chalk.green(url)}`)
     log(divider)
+
+    open(url)
   })
 
   const validateTemplateRequest = (
