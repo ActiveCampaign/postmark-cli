@@ -9,6 +9,7 @@ import { ServerClient } from 'postmark'
 import open from 'open'
 import { createManifest } from './helpers'
 import { TemplatePreviewArguments } from '../../types'
+import { TemplateValidationOptions } from 'postmark/dist/client/models'
 import { log, validateToken } from '../../utils'
 
 export const command = 'preview  <templates directory> [options]'
@@ -178,7 +179,7 @@ const preview = (serverToken: string, args: TemplatePreviewArguments) => {
 
   const validateTemplateRequest = (
     version: 'html' | 'text',
-    payload: any,
+    payload: TemplateValidationOptions,
     res: express.Response
   ) => {
     const versionKey = version === 'html' ? 'HtmlBody' : 'TextBody'

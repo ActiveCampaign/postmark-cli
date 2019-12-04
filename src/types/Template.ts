@@ -92,3 +92,8 @@ export interface MetaFileTraverse {
   extension: string
   type: string
 }
+
+export interface TemplateValidationPayload {
+  TextBody: string
+  TemplateType: 'Standard' | 'Layout'
+}
