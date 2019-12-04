@@ -98,11 +98,7 @@ const preview = (serverToken: string, args: TemplatePreviewArguments) => {
     consolidate.ejs(
       'preview/index.ejs',
       { templates, layouts, path },
-      (err, html) => {
-        if (err) return res.send(err)
-
-        return res.send(html)
-      }
+      (err, html) => renderTemplateContents(res, err, html)
     )
   })
 
@@ -113,11 +109,9 @@ const preview = (serverToken: string, args: TemplatePreviewArguments) => {
     const template = find(manifest, { Alias: req.params.alias })
 
     if (template) {
-      consolidate.ejs('preview/template.ejs', { template }, (err, html) => {
-        if (err) return res.send(err)
-
-        return res.send(html)
-      })
+      consolidate.ejs('preview/template.ejs', { template }, (err, html) =>
+        renderTemplateContents(res, err, html)
+      )
     } else {
       // Redirect to index
       return res.redirect(301, '/')
@@ -132,28 +126,16 @@ const preview = (serverToken: string, args: TemplatePreviewArguments) => {
     const layout: any = find(manifest, { Alias: template.LayoutTemplate })
 
     if (template && template.HtmlBody) {
-      const source =
-        layout && layout.HtmlBody
-          ? combineTemplate(layout.HtmlBody, template.HtmlBody)
-          : template.HtmlBody
+      // Render error if layout is specified, but HtmlBody is empty
+      if (layout && !layout.HtmlBody)
+        return renderTemplateInvalid(res, layoutError)
 
       const payload = {
-        HtmlBody: source,
+        HtmlBody: getSource('html', template, layout),
         TemplateType: template.TemplateType,
       }
 
-      client
-        .validateTemplate(payload)
-        .then(result => {
-          if (result.HtmlBody.ContentIsValid) {
-            return res.send(result.HtmlBody.RenderedContent)
-          }
-
-          return renderTemplateInvalid(res, result.HtmlBody.ValidationErrors)
-        })
-        .catch(error => {
-          return res.status(500).send(error)
-        })
+      return validateTemplateRequest('html', payload, res)
     } else {
       return renderTemplate404(res, 'HTML')
     }
@@ -167,28 +149,16 @@ const preview = (serverToken: string, args: TemplatePreviewArguments) => {
     const layout: any = find(manifest, { Alias: template.LayoutTemplate })
 
     if (template && template.TextBody) {
-      const source =
-        layout && layout.TextBody
-          ? combineTemplate(layout.TextBody, template.TextBody)
-          : template.TextBody
+      // Render error if layout is specified, but HtmlBody is empty
+      if (layout && !layout.TextBody)
+        return renderTemplateInvalid(res, layoutError)
 
       const payload = {
-        TextBody: source,
+        TextBody: getSource('text', template, layout),
         TemplateType: template.TemplateType,
       }
 
-      client
-        .validateTemplate(payload)
-        .then(result => {
-          if (result.TextBody.ContentIsValid) {
-            return renderTemplateText(res, result.TextBody.RenderedContent)
-          }
-
-          return renderTemplateInvalid(res, result.TextBody.ValidationErrors)
-        })
-        .catch(error => {
-          return res.status(500).send(error)
-        })
+      return validateTemplateRequest('text', payload, res)
     } else {
       return renderTemplate404(res, 'Text')
     }
@@ -200,33 +170,84 @@ const preview = (serverToken: string, args: TemplatePreviewArguments) => {
     log(`URL: ${chalk.green(`http://localhost:${port}`)}`)
     log(divider)
   })
-}
 
-const title = `${chalk.yellow('ﾐ▢ Postmark')}${chalk.gray(':')}`
-const divider = chalk.gray('-'.repeat(34))
+  const validateTemplateRequest = (
+    version: 'html' | 'text',
+    payload: any,
+    res: express.Response
+  ) => {
+    const versionKey = version === 'html' ? 'HtmlBody' : 'TextBody'
+
+    // Make request to Postmark
+    client
+      .validateTemplate(payload)
+      .then(result => {
+        if (result[versionKey].ContentIsValid) {
+          const renderedContent = result[versionKey].RenderedContent
+
+          // Render raw source if HTML
+          if (version === 'html') {
+            return res.send(renderedContent)
+          } else {
+            // Render specific EJS with text content
+            return renderTemplateText(res, renderedContent)
+          }
+        }
+
+        return renderTemplateInvalid(res, result[versionKey].ValidationErrors)
+      })
+      .catch(error => {
+        return res.status(500).send(error)
+      })
+  }
+}
 
 const combineTemplate = (layout: string, template: string): string =>
   replace(layout, /({{{)(.?@content.?)(}}})/g, template)
 
+/* Console helpers */
+
+const title = `${chalk.yellow('ﾐ▢ Postmark')}${chalk.gray(':')}`
+const divider = chalk.gray('-'.repeat(34))
+
 /* Render Templates */
 
-const renderTemplateText = (res: express.Response, body: string) =>
-  consolidate.ejs('preview/templateText.ejs', { body }, (err, html) => {
-    if (err) return res.send(err)
+const getSource = (version: 'html' | 'text', template: any, layout?: any) => {
+  const versionKey = version === 'html' ? 'HtmlBody' : 'TextBody'
 
-    return res.send(html)
-  })
+  if (layout) return combineTemplate(layout[versionKey], template[versionKey])
+
+  return template[versionKey]
+}
+
+const renderTemplateText = (res: express.Response, body: string) =>
+  consolidate.ejs('preview/templateText.ejs', { body }, (err, html) =>
+    renderTemplateContents(res, err, html)
+  )
 
 const renderTemplateInvalid = (res: express.Response, errors: any) =>
-  consolidate.ejs('preview/templateInvalid.ejs', { errors }, (err, html) => {
-    if (err) return res.send(err)
-
-    return res.send(html)
-  })
+  consolidate.ejs('preview/templateInvalid.ejs', { errors }, (err, html) =>
+    renderTemplateContents(res, err, html)
+  )
 
 const renderTemplate404 = (res: express.Response, version: string) =>
-  consolidate.ejs('preview/template404.ejs', { version }, (err, html) => {
-    if (err) return res.send(err)
+  consolidate.ejs('preview/template404.ejs', { version }, (err, html) =>
+    renderTemplateContents(res, err, html)
+  )
 
-    return res.status(404).send(html)
-  })
+const renderTemplateContents = (
+  res: express.Response,
+  err: any,
+  html: string
+) => {
+  if (err) return res.send(err)
+
+  return res.send(html)
+}
+
+const layoutError = [
+  {
+    Message:
+      'A TemplateLayout is specified, but it is either empty or missing.',
+  },
+]
