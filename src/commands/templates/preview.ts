@@ -32,12 +32,15 @@ export const handler = (args: TemplatePreviewArguments) => exec(args)
 const exec = (args: TemplatePreviewArguments) => {
   const { serverToken } = args
 
-  return validateToken(serverToken).then(() => {
-    validateDirectory(args)
+  return validateToken(serverToken).then(token => {
+    validateDirectory(token, args)
   })
 }
 
-const validateDirectory = (args: TemplatePreviewArguments) => {
+const validateDirectory = (
+  serverToken: string,
+  args: TemplatePreviewArguments
+) => {
   const { templatesdirectory } = args
   const rootPath: string = untildify(templatesdirectory)
 
@@ -47,14 +50,14 @@ const validateDirectory = (args: TemplatePreviewArguments) => {
     return process.exit(1)
   }
 
-  return preview(args)
+  return preview(serverToken, args)
 }
 
 /**
  * Preview
  */
-const preview = (args: TemplatePreviewArguments) => {
-  const { port, templatesdirectory, serverToken } = args
+const preview = (serverToken: string, args: TemplatePreviewArguments) => {
+  const { port, templatesdirectory } = args
   log(`${title} Starting template preview server...`)
 
   // Start server
