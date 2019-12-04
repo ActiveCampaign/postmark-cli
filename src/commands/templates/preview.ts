@@ -87,6 +87,7 @@ const preview = (args: TemplatePreviewArguments) => {
 
   // Template listing
   app.get('/', (req, res) => {
+    manifest = createManifest(templatesdirectory)
     const templates = filter(manifest, { TemplateType: 'Standard' })
     const layouts = filter(manifest, { TemplateType: 'Layout' })
     const path = untildify(templatesdirectory).replace(/\/$/, '')
