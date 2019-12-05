@@ -6,7 +6,6 @@ import express from 'express'
 import { createMonitor } from 'watch'
 import consolidate from 'consolidate'
 import { ServerClient } from 'postmark'
-import open from 'open'
 import { createManifest } from './helpers'
 import { TemplatePreviewArguments } from '../../types'
 import { TemplateValidationOptions } from 'postmark/dist/client/models'
@@ -173,8 +172,6 @@ const preview = (serverToken: string, args: TemplatePreviewArguments) => {
     log(divider)
     log(`URL: ${chalk.green(url)}`)
     log(divider)
-
-    open(url)
   })
 
   const validateTemplateRequest = (
