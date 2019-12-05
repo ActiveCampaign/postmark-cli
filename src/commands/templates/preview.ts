@@ -1,4 +1,5 @@
 import chalk from 'chalk'
+import appRoot from 'app-root-path'
 import { existsSync } from 'fs-extra'
 import { filter, find, replace, debounce } from 'lodash'
 import untildify from 'untildify'
@@ -10,6 +11,8 @@ import { createManifest } from './helpers'
 import { TemplatePreviewArguments } from '../../types'
 import { TemplateValidationOptions } from 'postmark/dist/client/models'
 import { log, validateToken } from '../../utils'
+
+const previewPath = `${appRoot.path}/preview/`
 
 export const command = 'preview  <templates directory> [options]'
 export const desc = 'Preview your templates and layouts'
@@ -71,7 +74,7 @@ const preview = (serverToken: string, args: TemplatePreviewArguments) => {
   let manifest = createManifest(templatesdirectory)
 
   // Static assets
-  app.use(express.static('preview/assets'))
+  app.use(express.static(`${previewPath}assets`))
 
   const updateEvent = () => {
     // Generate new manifest
@@ -97,7 +100,7 @@ const preview = (serverToken: string, args: TemplatePreviewArguments) => {
     const path = untildify(templatesdirectory).replace(/\/$/, '')
 
     consolidate.ejs(
-      'preview/index.ejs',
+      `${previewPath}index.ejs`,
       { templates, layouts, path },
       (err, html) => renderTemplateContents(res, err, html)
     )
@@ -110,7 +113,7 @@ const preview = (serverToken: string, args: TemplatePreviewArguments) => {
     const template = find(manifest, { Alias: req.params.alias })
 
     if (template) {
-      consolidate.ejs('preview/template.ejs', { template }, (err, html) =>
+      consolidate.ejs(`${previewPath}template.ejs`, { template }, (err, html) =>
         renderTemplateContents(res, err, html)
       )
     } else {
@@ -224,17 +227,19 @@ const getSource = (version: 'html' | 'text', template: any, layout?: any) => {
 }
 
 const renderTemplateText = (res: express.Response, body: string) =>
-  consolidate.ejs('preview/templateText.ejs', { body }, (err, html) =>
+  consolidate.ejs(`${previewPath}templateText.ejs`, { body }, (err, html) =>
     renderTemplateContents(res, err, html)
   )
 
 const renderTemplateInvalid = (res: express.Response, errors: any) =>
-  consolidate.ejs('preview/templateInvalid.ejs', { errors }, (err, html) =>
-    renderTemplateContents(res, err, html)
+  consolidate.ejs(
+    `${previewPath}templateInvalid.ejs`,
+    { errors },
+    (err, html) => renderTemplateContents(res, err, html)
   )
 
 const renderTemplate404 = (res: express.Response, version: string) =>
-  consolidate.ejs('preview/template404.ejs', { version }, (err, html) =>
+  consolidate.ejs(`${previewPath}template404.ejs`, { version }, (err, html) =>
     renderTemplateContents(res, err, html)
   )
 
