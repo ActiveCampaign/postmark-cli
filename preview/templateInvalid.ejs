@@ -1,0 +1,16 @@
+<!doctype html>
+<html>
+<head>
+  <link href="../styles/styles.css" rel="stylesheet" type="text/css" media="all">
+</head>
+<body class="template-error-body">
+<div class="template-error">
+  <h1>There’s an issue with your template</h1>
+  <ul class="template-error_list">
+    <% errors.forEach(function(error) { %>
+      <li><%- error.Message %></li>
+    <% }) %>
+  </ul>
+</div>
+</body>
+</html>

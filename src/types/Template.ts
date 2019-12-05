@@ -69,6 +69,12 @@ export interface TemplatePushArguments {
   force: boolean
 }
 
+export interface TemplatePreviewArguments {
+  serverToken: string
+  templatesdirectory: string
+  port: number
+}
+
 export interface MetaFile {
   Name: string
   Alias: string
@@ -85,4 +91,9 @@ export interface MetaFileTraverse {
   size: number
   extension: string
   type: string
+}
+
+export interface TemplateValidationPayload {
+  TextBody: string
+  TemplateType: 'Standard' | 'Layout'
 }

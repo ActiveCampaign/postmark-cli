@@ -1,0 +1,58 @@
+<!doctype html>
+<html>
+<%- include("partials/head.ejs") %>
+<body>
+  <div class="toolbar">
+    <div class="toolbar_meta">
+      <a href="/" class="toolbar_back">←</a>
+      <div class="toolbar_text">
+        <h1 class="toolbar_title"><%- template.Name %></h1>
+        <span class="toolbar_alias u-alias f-code"><%- template.Alias %></span>
+      </div>
+    </div>
+    <div class="toolbar_meta">
+      <% if (template.TemplateType === 'Standard') { %>
+        <span class="template-layout toolbar_layout f-code">Layout:
+          <% if (template.LayoutTemplate) { %>
+            <a href="/<%- template.LayoutTemplate %>"><%- template.LayoutTemplate %></a>
+          <% } else { %>
+            None
+          <% } %>
+        </span>
+      <% } %>
+
+      <div class="toggle">
+        <button class="js-toggle js-view toggle_item icon-view icon-view--desktop is-active" data-view="desktop"></button>
+        <button class="js-toggle js-view toggle_item icon-view icon-view--mobile" data-view="mobile"></button>
+      </div>
+
+      <div class="toggle">
+        <button class="js-toggle js-mode toggle_item is-active" data-mode="html">HTML</button>
+        <button class="js-toggle js-mode toggle_item" data-mode="text">Text</button>
+      </div>
+    </div>
+  </div>
+
+  <% if (template.TemplateType === 'Standard') {%>
+    <div class="sub-toolbar">
+      <div class="subject">
+        <span class="subject_label">Subject</span>
+        <span class="subject_line"><%- template.Subject || '<em>No subject</em>' %></span>
+      </div>
+      <div class="js-reloaded reloaded">Reloaded!</div>
+    </div>
+  <% } %>
+
+  <div class="js-loader loader">
+    <div class="loader_spinner">
+      <span></span>
+    </div>
+    <p class="loader_text">Fetching preview...</p>
+  </div>
+
+  <iframe class="js-html preview-iframe preview-iframe--<%- template.TemplateType.toLowerCase() %>" frameborder="0" src="/html/<%- template.Alias %>"></iframe>
+  <iframe class="js-text preview-iframe preview-iframe--text preview-iframe--<%- template.TemplateType.toLowerCase() %> is-hidden" frameborder="0" src="/text/<%- template.Alias %>"></iframe>
+
+  <%- include("partials/previewScripts.ejs") %>
+</body>
+</html>

@@ -1,0 +1,81 @@
+<!doctype html>
+<html>
+<%- include("partials/head.ejs") %>
+<body>
+  <div class="toolbar">
+    <h1 class="toolbar_title toolbar_title--index"><span class="icon toolbar_icon"></span> Postmark Templates</h1>
+    <span class="toolbar_path f-code"><%- path %></span>
+  </div>
+
+  <section class="container">
+    <% if (layouts.length > 0) { %>
+      <h2 class="section-title"><span class="count"><%- layouts.length %></span> <%- layouts.length > 1 ? 'Layouts' : 'Layout' %></h2>
+      <ul class="template-list">
+        <% layouts.forEach(function(layout) { %>
+          <li>
+            <a href="/<%- layout.Alias %>" class="template-link">
+              <h4 class="template-title"><%- layout.Name %></h4>
+              <span class="u-alias f-code"><%- layout.Alias %></span>
+            </a>
+          </li>
+        <% }); %>
+      </ul>
+    <% } %>
+
+
+    <% if (templates.length > 0) { %>
+      <h2 class="section-title"><span class="count"><%- templates.length %></span> <%- templates.length > 1 ? 'Templates' : 'Template' %></h2>
+
+      <ul class="template-list">
+        <% templates.forEach(function(template){ %>
+          <li>
+            <a href="/<%- template.Alias %>" class="template-link">
+              <div>
+                <h4 class="template-title"><%- template.Name %></h4>
+                <span class="u-alias f-code"><%- template.Alias %></span>
+              </div>
+
+              <span class="template-layout f-code">Layout: <%- template.LayoutTemplate ? template.LayoutTemplate : 'None' %></span>
+            </a>
+          </li>
+        <% }); %>
+      </ul>
+    <% } else { %>
+      <div class="blank">
+        <div class="center">
+          <img src="images/templates.svg" class="blank_icon" />
+          <h2>No templates were found</h2>
+          <p>Pull your templates from Postmark:</p>
+          <div class="snippet snippet--fit"><pre>postmark templates pull <%- path %></pre></div>
+        </div>
+
+        <h4 class="center">Or build your templates locally</h4>
+        <ol>
+          <li>Create a new folder for your template:</code>
+            <div class="snippet"><pre>
+cd <%- path %>
+mkdir password-reset</pre></div>
+          </li>
+          <li>Your template folder should contain the following files:
+            <ul>
+              <li><strong>content.html</strong> - HTML version</li>
+              <li><strong>content.txt</strong> - Text version</li>
+              <li><strong>meta.json</strong> - JSON containing the name, alias, subject, and type of template(<code>Standard</code> or <code>Layout</code>).
+                  <div class="snippet"><pre>{
+  "Name": "Password Reset",
+  "Alias": "password-reset",
+  "Subject": "Reset your password",
+  "TemplateType": "Standard",
+  "LayoutTemplate": "layout-alias"
+}</pre></div>
+              </li>
+            </ul>
+          </li>
+          <li><a href="#" onClick="location.reload();">Refresh</a> the page</li>
+        </ol>
+      </div>
+
+    <% } %>
+  </section>
+</body>
+</html>
