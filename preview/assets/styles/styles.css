@@ -117,7 +117,7 @@ a {
     .toolbar_path::before {
       display: inline-block;
       content: '';
-      background-image: url(../images/folder.svg);
+      background-image: url('../images/folder.svg');
       background-repeat: no-repeat;
       background-size: 100%;
       width: 15px;
@@ -343,7 +343,7 @@ a {
 
 .icon {
   display: inline-block;
-  background-image: url(../images/icon.png);
+  background-image: url('../images/icon.png');
   background-repeat: no-repeat;
   background-position: center center;
   background-size: 75%;
