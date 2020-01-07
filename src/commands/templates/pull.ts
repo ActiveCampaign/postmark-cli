@@ -157,7 +157,7 @@ const processTemplates = (options: ProcessTemplatesOptions) => {
         requestCount++
 
         // Save template to file system
-        saveTemplate(outputDir, response)
+        saveTemplate(outputDir, response, client)
         totalDownloaded++
 
         // Show feedback when finished saving templates
@@ -185,7 +185,7 @@ const processTemplates = (options: ProcessTemplatesOptions) => {
  * Save template
  * @return An object containing the HTML and Text body
  */
-const saveTemplate = (outputDir: string, template: Template) => {
+const saveTemplate = (outputDir: string, template: Template, client: any) => {
   outputDir =
     template.TemplateType === 'Layout' ? join(outputDir, '_layouts') : outputDir
   const path: string = untildify(join(outputDir, template.Alias))
@@ -202,7 +202,7 @@ const saveTemplate = (outputDir: string, template: Template) => {
     outputFileSync(join(path, 'content.txt'), template.TextBody)
   }
 
-  const meta: MetaFile = {
+  let meta: MetaFile = {
     Name: template.Name,
     Alias: template.Alias,
     ...(template.Subject && { Subject: template.Subject }),
@@ -210,7 +210,20 @@ const saveTemplate = (outputDir: string, template: Template) => {
     ...(template.TemplateType === 'Standard' && {
       LayoutTemplate: template.LayoutTemplate,
     }),
+    ...(template.HtmlBody && { HtmlBody: template.HtmlBody }),
+    ...(template.TextBody && { TextBody: template.TextBody }),
   }
 
-  outputFileSync(join(path, 'meta.json'), JSON.stringify(meta, null, 2))
+  // Save suggested template model
+  client
+    .validateTemplate(meta)
+    .then((result: any) => {
+      meta.TestRenderModel = result.SuggestedTemplateModel
+      outputFileSync(join(path, 'meta.json'), JSON.stringify(meta, null, 2))
+    })
+    .catch((error: any) => {
+      console.error('Error fetching suggested template model')
+      console.error(error)
+      outputFileSync(join(path, 'meta.json'), JSON.stringify(meta, null, 2))
+    })
 }

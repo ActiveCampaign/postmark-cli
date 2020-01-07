@@ -83,6 +83,7 @@ export interface MetaFile {
   LayoutTemplate?: string | null
   HtmlBody?: string
   TextBody?: string
+  TestRenderModel?: any
 }
 
 export interface MetaFileTraverse {
