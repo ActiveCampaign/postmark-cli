@@ -210,13 +210,15 @@ const saveTemplate = (outputDir: string, template: Template, client: any) => {
     ...(template.TemplateType === 'Standard' && {
       LayoutTemplate: template.LayoutTemplate,
     }),
-    ...(template.HtmlBody && { HtmlBody: template.HtmlBody }),
-    ...(template.TextBody && { TextBody: template.TextBody }),
   }
 
   // Save suggested template model
   client
-    .validateTemplate(meta)
+    .validateTemplate({
+      ...(template.HtmlBody && { HtmlBody: template.HtmlBody }),
+      ...(template.TextBody && { TextBody: template.TextBody }),
+      ...meta,
+    })
     .then((result: any) => {
       meta.TestRenderModel = result.SuggestedTemplateModel
       outputFileSync(join(path, 'meta.json'), JSON.stringify(meta, null, 2))
