@@ -221,11 +221,12 @@ const saveTemplate = (outputDir: string, template: Template, client: any) => {
     })
     .then((result: any) => {
       meta.TestRenderModel = result.SuggestedTemplateModel
-      outputFileSync(join(path, 'meta.json'), JSON.stringify(meta, null, 2))
     })
     .catch((error: any) => {
-      console.error('Error fetching suggested template model')
-      console.error(error)
+      log('Error fetching suggested template model', { error: true })
+      log(error, { error: true })
+    })
+    .finally(() => {
       outputFileSync(join(path, 'meta.json'), JSON.stringify(meta, null, 2))
     })
 }
