@@ -226,7 +226,8 @@ const saveTemplate = (outputDir: string, template: Template, client: any) => {
       log('Error fetching suggested template model', { error: true })
       log(error, { error: true })
     })
-    .finally(() => {
+    .then(() => {
+      // Save the file regardless of success or error when fetching suggested model
       outputFileSync(join(path, 'meta.json'), JSON.stringify(meta, null, 2))
     })
 }
