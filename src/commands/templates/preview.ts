@@ -134,9 +134,11 @@ const preview = (serverToken: string, args: TemplatePreviewArguments) => {
       if (layout && !layout.HtmlBody)
         return renderTemplateInvalid(res, layoutError)
 
+      const { TemplateType, TestRenderModel } = template
       const payload = {
         HtmlBody: getSource('html', template, layout),
-        TemplateType: template.TemplateType,
+        TemplateType,
+        TestRenderModel,
       }
 
       return validateTemplateRequest('html', payload, res)
@@ -157,9 +159,11 @@ const preview = (serverToken: string, args: TemplatePreviewArguments) => {
       if (layout && !layout.TextBody)
         return renderTemplateInvalid(res, layoutError)
 
+      const { TemplateType, TestRenderModel } = template
       const payload = {
         TextBody: getSource('text', template, layout),
-        TemplateType: template.TemplateType,
+        TemplateType,
+        TestRenderModel,
       }
 
       return validateTemplateRequest('text', payload, res)
