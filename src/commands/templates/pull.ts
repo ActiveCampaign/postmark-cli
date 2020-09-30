@@ -101,7 +101,7 @@ const fetchTemplateList = (options: TemplateListOptions) => {
   }
 
   client
-    .getTemplates()
+    .getTemplates({ count: 300 })
     .then(response => {
       if (response.TotalCount === 0) {
         spinner.stop()

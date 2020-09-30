@@ -82,7 +82,7 @@ const push = (serverToken: string, args: TemplatePushArguments) => {
   if (manifest.length > 0) {
     // Get template list from Postmark
     client
-      .getTemplates()
+      .getTemplates({ count: 300 })
       .then(response => {
         compareTemplates(response, manifest)
 
