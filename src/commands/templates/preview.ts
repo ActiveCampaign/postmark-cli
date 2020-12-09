@@ -141,6 +141,7 @@ const preview = (serverToken: string, args: TemplatePreviewArguments) => {
         HtmlBody: getSource('html', template, layout),
         TemplateType,
         TestRenderModel,
+        Subject: template.Subject,
       }
 
       return validateTemplateRequest('html', payload, res)
@@ -196,6 +197,7 @@ const preview = (serverToken: string, args: TemplatePreviewArguments) => {
       .then(result => {
         if (result[versionKey].ContentIsValid) {
           const renderedContent = result[versionKey].RenderedContent
+          io.emit('subject', { ...result.Subject, rawSubject: payload.Subject })
 
           // Render raw source if HTML
           if (version === 'html') {

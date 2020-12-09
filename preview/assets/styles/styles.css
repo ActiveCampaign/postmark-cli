@@ -616,6 +616,41 @@ code {
       margin: 1em 0 0;
     }
 
+.has-error {
+  color: #f95400;
+}
+
+.syntax-error {
+  display: inline-block;
+  margin-left: 4px;
+  background-color: #f95400;
+  border-radius: 2px;
+  color: white;
+  font-weight: bold;
+  padding: 2px 4px;
+  font-size: 11px;
+}
+
+.subject-error-tooltip p {
+  margin: 0;
+  display: list-item;
+  list-style-type: disc;
+  list-style-position: inside;
+  font-size: 13px;
+}
+
+.tooltip {
+  background-color: #333;
+  color: white;
+  padding: 8px 10px;
+  border-radius: 4px;
+  font-size: 13px;
+  display: none;
+}
+.tooltip[data-show] {
+  display: block;
+  z-index: 5;
+}
 
 /* *************************** */
 /* Animations */

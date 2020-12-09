@@ -37,7 +37,7 @@
     <div class="sub-toolbar">
       <div class="subject">
         <span class="subject_label">Subject</span>
-        <span class="subject_line"><%- template.Subject || '<em>No subject</em>' %></span>
+        <span class="subject_line js-subject js-tooltip-trigger" data-tooltip="subject-error"><%- template.Subject || '<em>No subject</em>' %></span>
       </div>
       <div class="js-reloaded reloaded">Reloaded!</div>
     </div>
@@ -52,6 +52,8 @@
 
   <iframe class="js-html preview-iframe preview-iframe--<%- template.TemplateType.toLowerCase() %>" frameborder="0" src="/html/<%- template.Alias %>"></iframe>
   <iframe class="js-text preview-iframe preview-iframe--text preview-iframe--<%- template.TemplateType.toLowerCase() %> is-hidden" frameborder="0" src="/text/<%- template.Alias %>"></iframe>
+
+  <div class="js-subject-error js-tooltip tooltip subject-error-tooltip" role="tooltip" data-tooltip="subject-error"></div>
 
   <%- include("partials/previewScripts.ejs") %>
 </body>
