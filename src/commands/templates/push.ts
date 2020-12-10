@@ -36,6 +36,12 @@ export const builder = {
     describe: 'Disable confirmation before pushing templates',
     alias: 'f',
   },
+  all: {
+    type: 'boolean',
+    describe:
+      'Push all local templates up to Postmark regardless of whether they changed',
+    alias: 'a',
+  },
 }
 export const handler = (args: TemplatePushArguments) => exec(args)
 
@@ -72,7 +78,7 @@ const validateDirectory = (
  * Begin pushing the templates
  */
 const push = (serverToken: string, args: TemplatePushArguments) => {
-  const { templatesdirectory, force, requestHost } = args
+  const { templatesdirectory, force, requestHost, all } = args
   const spinner = ora('Fetching templates...').start()
   const manifest = createManifest(templatesdirectory)
   const client = new ServerClient(serverToken)
@@ -88,7 +94,7 @@ const push = (serverToken: string, args: TemplatePushArguments) => {
       .getTemplates({ count: 300 })
       .then(response => {
         getTemplateContent(client, response).then(newList => {
-          compareTemplates(newList, manifest)
+          compareTemplates(newList, manifest, all)
 
           spinner.stop()
           if (pushManifest.length === 0)
@@ -183,7 +189,8 @@ const confirmation = (): Promise<any> =>
  */
 const compareTemplates = (
   response: TemplateManifest[],
-  manifest: TemplateManifest[]
+  manifest: TemplateManifest[],
+  pushAll: boolean
 ): void => {
   // Iterate through manifest
   manifest.forEach(template => {
@@ -192,12 +199,27 @@ const compareTemplates = (
     template.New = !match
 
     // New template
-    if (!match) return pushTemplatePreview(match, template)
-
-    // Check if existing template was modified
-
-    if (wasModified(match, template))
+    if (!match) {
+      template.Status = chalk.green('Added')
       return pushTemplatePreview(match, template)
+    }
+
+    // Set modification status
+    const modified = wasModified(match, template)
+    template.Status = modified
+      ? chalk.yellow('Modified')
+      : chalk.gray('Unmodified')
+
+    // Push all templates if --all argument is present,
+    // regardless of whether templates were modified
+    if (pushAll) {
+      return pushTemplatePreview(match, template)
+    }
+
+    // Only push modified templates
+    if (modified) {
+      return pushTemplatePreview(match, template)
+    }
   })
 }
 
@@ -225,11 +247,7 @@ const pushTemplatePreview = (
 ): number => {
   pushManifest.push(template)
 
-  let reviewData = [
-    template.New ? chalk.green('Added') : chalk.yellow('Modified'),
-    template.Name,
-    template.Alias,
-  ]
+  let reviewData = [template.Status, template.Name, template.Alias]
 
   // Push layout to review table
   if (template.TemplateType === 'Layout') return review.layouts.push(reviewData)
