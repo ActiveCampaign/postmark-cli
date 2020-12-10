@@ -128,6 +128,9 @@ const push = (serverToken: string, args: TemplatePushArguments) => {
   }
 }
 
+/**
+ * Gather template content from server to compare against local versions
+ */
 const getTemplateContent = (
   client: any,
   templateList: Templates
@@ -192,21 +195,34 @@ const compareTemplates = (
     if (!match) return pushTemplatePreview(match, template)
 
     // Check if existing template was modified
-    const htmlModified = match.HtmlBody !== template.HtmlBody
-    const textModified = match.TextBody !== template.TextBody
-    const subjectModified =
-      template.TemplateType === 'Standard'
-        ? match.Subject !== template.Subject
-        : false
-    const nameModified = match.Name !== template.Name
-    const wasModified =
-      htmlModified || textModified || subjectModified || nameModified
 
-    if (wasModified) return pushTemplatePreview(match, template)
+    if (wasModified(match, template))
+      return pushTemplatePreview(match, template)
   })
 }
 
-const pushTemplatePreview = (match: any, template: TemplateManifest): void => {
+/**
+ * Check if local template is different than server
+ */
+const wasModified = (
+  server: TemplateManifest,
+  local: TemplateManifest
+): boolean => {
+  const htmlModified = server.HtmlBody !== local.HtmlBody
+  const textModified = server.TextBody !== local.TextBody
+  const subjectModified =
+    local.TemplateType === 'Standard' ? server.Subject !== local.Subject : false
+  const nameModified = server.Name !== local.Name
+  return htmlModified || textModified || subjectModified || nameModified
+}
+
+/**
+ * Push template details to review table
+ */
+const pushTemplatePreview = (
+  match: any,
+  template: TemplateManifest
+): number => {
   pushManifest.push(template)
 
   let reviewData = [
@@ -215,19 +231,19 @@ const pushTemplatePreview = (match: any, template: TemplateManifest): void => {
     template.Alias,
   ]
 
-  if (template.TemplateType === 'Standard') {
-    // Add layout used column
-    reviewData.push(
-      layoutUsedLabel(
-        template.LayoutTemplate,
-        match ? match.LayoutTemplate : template.LayoutTemplate
-      )
-    )
+  // Push layout to review table
+  if (template.TemplateType === 'Layout') return review.layouts.push(reviewData)
 
-    review.templates.push(reviewData)
-  } else {
-    review.layouts.push(reviewData)
-  }
+  // Push template to review table
+  // Add layout used column
+  reviewData.push(
+    layoutUsedLabel(
+      template.LayoutTemplate,
+      match ? match.LayoutTemplate : template.LayoutTemplate
+    )
+  )
+
+  return review.templates.push(reviewData)
 }
 
 /**
