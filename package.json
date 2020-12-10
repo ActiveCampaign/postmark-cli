@@ -50,7 +50,7 @@
     "typescript": "^3.4.3"
   },
   "scripts": {
-    "start:dev": "watch 'npm run build' './src'",
+    "start:dev": "watch 'npm run build' ./src ./preview",
     "build": "npm run clean && npm run ts && npm run syncPreview && npm run permissions",
     "test": "npm run lint && npm run build && node_modules/mocha/bin/mocha --timeout 10000 --retries 1 -r ts-node/register test/**/*test.ts",
     "clean": "rm -r -f ./dist",

@@ -83,7 +83,7 @@ a {
   .toolbar_back {
     display: none;
     text-decoration: none;
-    border: 2px solid #dbdaeb;
+    border: 1px solid #dbdaeb;
     margin: 2px 0;
     padding: 3px 6px 0;
     border-radius: 3px;
@@ -161,7 +161,7 @@ a {
 .toggle {
   display: flex;
   justify-content: space-between;
-  border: 2px solid #dbdaeb;
+  border: 1px solid #dbdaeb;
   border-radius: 3px;
   margin-left: 10px;
   align-items: stretch;
@@ -218,7 +218,7 @@ a {
   justify-content: space-between;
   background-color: #fff;
   padding: 10px 15px;
-  border: 2px solid transparent;
+  border: 1px solid transparent;
   margin-bottom: 5px;
   text-decoration: none;
   color: var(--c-text-primary);
@@ -229,7 +229,7 @@ a {
 }
 
   .template-link:hover {
-    border: 2px solid var(--c-primary);
+    border: 1px solid var(--c-primary);
     background-color: var(--c-primary-transparent);
     color: var(--c-primary);
   }
@@ -616,6 +616,41 @@ code {
       margin: 1em 0 0;
     }
 
+.has-error {
+  color: #f95400;
+}
+
+.syntax-error {
+  display: inline-block;
+  margin-left: 4px;
+  background-color: #f95400;
+  border-radius: 2px;
+  color: white;
+  font-weight: bold;
+  padding: 2px 4px;
+  font-size: 11px;
+}
+
+.subject-error-tooltip p {
+  margin: 0;
+  display: list-item;
+  list-style-type: disc;
+  list-style-position: inside;
+  font-size: 13px;
+}
+
+.tooltip {
+  background-color: #333;
+  color: white;
+  padding: 8px 10px;
+  border-radius: 4px;
+  font-size: 13px;
+  display: none;
+}
+.tooltip[data-show] {
+  display: block;
+  z-index: 5;
+}
 
 /* *************************** */
 /* Animations */
