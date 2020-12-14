@@ -85,7 +85,7 @@ a {
     text-decoration: none;
     border: 1px solid #dbdaeb;
     margin: 2px 0;
-    padding: 3px 6px 0;
+    padding: 6px 6px 0;
     border-radius: 3px;
     color: var(--c-text-secondary);
     transition: 100ms all ease-in-out;
