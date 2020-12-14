@@ -129,9 +129,10 @@ const preview = (serverToken: string, args: TemplatePreviewArguments) => {
    */
   app.get('/html/:alias', (req, res) => {
     const template: any = find(manifest, { Alias: req.params.alias })
-    const layout: any = find(manifest, { Alias: template.LayoutTemplate })
 
     if (template && template.HtmlBody) {
+      const layout: any = find(manifest, { Alias: template.LayoutTemplate })
+
       // Render error if layout is specified, but HtmlBody is empty
       if (layout && !layout.HtmlBody)
         return renderTemplateInvalid(res, layoutError)
@@ -155,9 +156,10 @@ const preview = (serverToken: string, args: TemplatePreviewArguments) => {
    */
   app.get('/text/:alias', (req, res) => {
     const template: any = find(manifest, { Alias: req.params.alias })
-    const layout: any = find(manifest, { Alias: template.LayoutTemplate })
 
     if (template && template.TextBody) {
+      const layout: any = find(manifest, { Alias: template.LayoutTemplate })
+
       // Render error if layout is specified, but HtmlBody is empty
       if (layout && !layout.TextBody)
         return renderTemplateInvalid(res, layoutError)
