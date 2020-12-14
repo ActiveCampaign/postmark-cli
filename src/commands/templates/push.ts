@@ -235,7 +235,18 @@ const wasModified = (
   const subjectModified =
     local.TemplateType === 'Standard' ? server.Subject !== local.Subject : false
   const nameModified = server.Name !== local.Name
-  return htmlModified || textModified || subjectModified || nameModified
+  const layoutModified =
+    local.TemplateType === 'Standard'
+      ? server.LayoutTemplate !== local.LayoutTemplate
+      : false
+
+  return (
+    htmlModified ||
+    textModified ||
+    subjectModified ||
+    nameModified ||
+    layoutModified
+  )
 }
 
 /**
