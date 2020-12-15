@@ -5,6 +5,7 @@ export interface TemplateManifest {
   TextBody?: string
   Alias?: string
   New?: boolean
+  Status?: string
   TemplateType: string
   LayoutTemplate?: string | null
 }
@@ -67,6 +68,7 @@ export interface TemplatePushArguments {
   requestHost: string
   templatesdirectory: string
   force: boolean
+  all: boolean
 }
 
 export interface TemplatePreviewArguments {

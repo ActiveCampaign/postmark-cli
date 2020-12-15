@@ -85,3 +85,32 @@ document.querySelector('.js-html').onload = function() {
   // Add state class to HTML iframe
   this.classList.add('is-loaded')
 }
+
+/**
+// Tooltip handlers
+*/
+var tooltipTrigger = document.querySelectorAll('.js-tooltip-trigger')
+
+// Loop through each tooltip trigger
+tooltipTrigger.forEach(function(trigger) {
+  var showEvents = ['mouseenter', 'focus'];
+  var hideEvents = ['mouseleave', 'blur'];
+
+  // Show event
+  showEvents.forEach(function(event) {
+    trigger.addEventListener(event, function() {
+      var selector = '.js-tooltip[data-tooltip="' + trigger.dataset.tooltip + '"]'
+      var tooltip = document.querySelector(selector)
+      tooltip.setAttribute('data-show', '')
+   })
+  })
+
+  // Hide event
+  hideEvents.forEach(function(event) {
+    trigger.addEventListener(event, function() {
+      var selector = '.js-tooltip[data-tooltip="' + trigger.dataset.tooltip + '"]'
+      var tooltip = document.querySelector(selector)
+      tooltip.removeAttribute('data-show')
+    })
+  })
+})

@@ -1,6 +1,6 @@
 import chalk from 'chalk'
 import ora from 'ora'
-import { find } from 'lodash'
+import { find, cloneDeep } from 'lodash'
 import { prompt } from 'inquirer'
 import { table, getBorderCharacters } from 'table'
 import untildify from 'untildify'
@@ -15,6 +15,8 @@ import {
   Templates,
 } from '../../types'
 import { pluralize, log, validateToken } from '../../utils'
+
+let pushManifest: TemplateManifest[] = []
 
 export const command = 'push <templates directory> [options]'
 export const desc =
@@ -33,6 +35,12 @@ export const builder = {
     type: 'boolean',
     describe: 'Disable confirmation before pushing templates',
     alias: 'f',
+  },
+  all: {
+    type: 'boolean',
+    describe:
+      'Push all local templates up to Postmark regardless of whether they changed',
+    alias: 'a',
   },
 }
 export const handler = (args: TemplatePushArguments) => exec(args)
@@ -70,10 +78,11 @@ const validateDirectory = (
  * Begin pushing the templates
  */
 const push = (serverToken: string, args: TemplatePushArguments) => {
-  const { templatesdirectory, force, requestHost } = args
+  const { templatesdirectory, force, requestHost, all } = args
   const spinner = ora('Fetching templates...').start()
   const manifest = createManifest(templatesdirectory)
   const client = new ServerClient(serverToken)
+
   if (requestHost !== undefined && requestHost !== '') {
     client.clientOptions.requestHost = requestHost
   }
@@ -84,28 +93,33 @@ const push = (serverToken: string, args: TemplatePushArguments) => {
     client
       .getTemplates({ count: 300 })
       .then(response => {
-        compareTemplates(response, manifest)
+        getTemplateContent(client, response).then(newList => {
+          compareTemplates(newList, manifest, all)
 
-        // Show which templates are changing
-        spinner.stop()
-        printReview(review)
+          spinner.stop()
+          if (pushManifest.length === 0)
+            return log('There are no changes to push.')
 
-        // Push templates if force arg is present
-        if (force) {
-          spinner.text = 'Pushing templates to Postmark...'
-          spinner.start()
-          return pushTemplates(spinner, client, manifest)
-        }
+          // Show which templates are changing
+          printReview(review)
 
-        // Ask for user confirmation
-        confirmation().then(answer => {
-          if (answer.confirm) {
+          // Push templates if force arg is present
+          if (force) {
             spinner.text = 'Pushing templates to Postmark...'
             spinner.start()
-            pushTemplates(spinner, client, manifest)
-          } else {
-            log('Canceling push. Have a good day!')
+            return pushTemplates(spinner, client, pushManifest)
           }
+
+          // Ask for user confirmation
+          confirmation().then(answer => {
+            if (answer.confirm) {
+              spinner.text = 'Pushing templates to Postmark...'
+              spinner.start()
+              pushTemplates(spinner, client, pushManifest)
+            } else {
+              log('Canceling push. Have a good day!')
+            }
+          })
         })
       })
       .catch((error: any) => {
@@ -119,6 +133,39 @@ const push = (serverToken: string, args: TemplatePushArguments) => {
     process.exit(1)
   }
 }
+
+/**
+ * Gather template content from server to compare against local versions
+ */
+const getTemplateContent = (
+  client: any,
+  templateList: Templates
+): Promise<any> =>
+  new Promise<TemplateManifest[]>(resolve => {
+    let newList: any[] = cloneDeep(templateList.Templates)
+    let progress = 0
+
+    newList.forEach((template, index) => {
+      client
+        .getTemplate(template.TemplateId)
+        .then((result: TemplateManifest) => {
+          newList[index] = {
+            ...newList[index],
+            HtmlBody: result.HtmlBody,
+            TextBody: result.TextBody,
+            Subject: result.Subject,
+            TemplateType: result.TemplateType,
+            LayoutTemplate: result.LayoutTemplate,
+          }
+
+          progress++
+
+          if (progress === newList.length) {
+            return resolve(newList)
+          }
+        })
+    })
+  })
 
 /**
  * Ask user to confirm the push
@@ -141,35 +188,91 @@ const confirmation = (): Promise<any> =>
  * Compare templates on server against local
  */
 const compareTemplates = (
-  response: Templates,
-  manifest: TemplateManifest[]
+  response: TemplateManifest[],
+  manifest: TemplateManifest[],
+  pushAll: boolean
 ): void => {
   // Iterate through manifest
   manifest.forEach(template => {
     // See if this local template exists on the server
-    const match = find(response.Templates, { Alias: template.Alias })
+    const match = find(response, { Alias: template.Alias })
     template.New = !match
 
-    let reviewData = [
-      template.New ? chalk.green('Added') : chalk.yellow('Modified'),
-      template.Name,
-      template.Alias,
-    ]
+    // New template
+    if (!match) {
+      template.Status = chalk.green('Added')
+      return pushTemplatePreview(match, template)
+    }
 
-    if (template.TemplateType === 'Standard') {
-      // Add layout used column
-      reviewData.push(
-        layoutUsedLabel(
-          template.LayoutTemplate,
-          match ? match.LayoutTemplate : template.LayoutTemplate
-        )
-      )
+    // Set modification status
+    const modified = wasModified(match, template)
+    template.Status = modified
+      ? chalk.yellow('Modified')
+      : chalk.gray('Unmodified')
 
-      review.templates.push(reviewData)
-    } else {
-      review.layouts.push(reviewData)
+    // Push all templates if --all argument is present,
+    // regardless of whether templates were modified
+    if (pushAll) {
+      return pushTemplatePreview(match, template)
+    }
+
+    // Only push modified templates
+    if (modified) {
+      return pushTemplatePreview(match, template)
     }
   })
+}
+
+/**
+ * Check if local template is different than server
+ */
+const wasModified = (
+  server: TemplateManifest,
+  local: TemplateManifest
+): boolean => {
+  const htmlModified = server.HtmlBody !== local.HtmlBody
+  const textModified = server.TextBody !== local.TextBody
+  const subjectModified =
+    local.TemplateType === 'Standard' ? server.Subject !== local.Subject : false
+  const nameModified = server.Name !== local.Name
+  const layoutModified =
+    local.TemplateType === 'Standard'
+      ? server.LayoutTemplate !== local.LayoutTemplate
+      : false
+
+  return (
+    htmlModified ||
+    textModified ||
+    subjectModified ||
+    nameModified ||
+    layoutModified
+  )
+}
+
+/**
+ * Push template details to review table
+ */
+const pushTemplatePreview = (
+  match: any,
+  template: TemplateManifest
+): number => {
+  pushManifest.push(template)
+
+  let reviewData = [template.Status, template.Name, template.Alias]
+
+  // Push layout to review table
+  if (template.TemplateType === 'Layout') return review.layouts.push(reviewData)
+
+  // Push template to review table
+  // Add layout used column
+  reviewData.push(
+    layoutUsedLabel(
+      template.LayoutTemplate,
+      match ? match.LayoutTemplate : template.LayoutTemplate
+    )
+  )
+
+  return review.templates.push(reviewData)
 }
 
 /**
@@ -199,7 +302,7 @@ const printReview = (review: TemplatePushReview) => {
   const { templates, layouts } = review
 
   // Table headers
-  const header = [chalk.gray('Change'), chalk.gray('Name'), chalk.gray('Alias')]
+  const header = [chalk.gray('Status'), chalk.gray('Name'), chalk.gray('Alias')]
   const templatesHeader = [...header, chalk.gray('Layout used')]
 
   // Labels
