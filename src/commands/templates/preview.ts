@@ -13,6 +13,7 @@ import { log, validateToken } from '../../utils'
 import path from 'path'
 
 const previewPath = path.join(__dirname, 'preview')
+const templateLinks = '<base target="_blank" />'
 
 export const command = 'preview  <templates directory> [options]'
 export const desc = 'Preview your templates and layouts'
@@ -198,7 +199,8 @@ const preview = (serverToken: string, args: TemplatePreviewArguments) => {
       .validateTemplate(payload)
       .then(result => {
         if (result[versionKey].ContentIsValid) {
-          const renderedContent = result[versionKey].RenderedContent
+          const renderedContent =
+            result[versionKey].RenderedContent + templateLinks
           io.emit('subject', { ...result.Subject, rawSubject: payload.Subject })
 
           // Render raw source if HTML
