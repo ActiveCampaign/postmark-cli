@@ -13,6 +13,7 @@ import {
   TemplatePushReview,
   TemplatePushArguments,
   Templates,
+  ProcessTemplates,
 } from '../../types'
 import { pluralize, log, validateToken } from '../../utils'
 
@@ -93,34 +94,29 @@ const push = (serverToken: string, args: TemplatePushArguments) => {
     client
       .getTemplates({ count: 300 })
       .then(response => {
-        getTemplateContent(client, response).then(newList => {
-          compareTemplates(newList, manifest, all)
-
-          spinner.stop()
-          if (pushManifest.length === 0)
-            return log('There are no changes to push.')
-
-          // Show which templates are changing
-          printReview(review)
-
-          // Push templates if force arg is present
-          if (force) {
-            spinner.text = 'Pushing templates to Postmark...'
-            spinner.start()
-            return pushTemplates(spinner, client, pushManifest)
-          }
-
-          // Ask for user confirmation
-          confirmation().then(answer => {
-            if (answer.confirm) {
-              spinner.text = 'Pushing templates to Postmark...'
-              spinner.start()
-              pushTemplates(spinner, client, pushManifest)
-            } else {
-              log('Canceling push. Have a good day!')
-            }
+        // Check if there are templates on the server
+        if (response.TotalCount === 0) {
+          processTemplates({
+            newList: [],
+            manifest: manifest,
+            all: all,
+            force: force,
+            spinner: spinner,
+            client: client,
           })
-        })
+        } else {
+          // Gather template content before processing templates
+          getTemplateContent(client, response).then(newList => {
+            processTemplates({
+              newList: newList,
+              manifest: manifest,
+              all: all,
+              force: force,
+              spinner: spinner,
+              client: client,
+            })
+          })
+        }
       })
       .catch((error: any) => {
         spinner.stop()
@@ -132,6 +128,39 @@ const push = (serverToken: string, args: TemplatePushArguments) => {
     log('No templates or layouts were found.', { error: true })
     process.exit(1)
   }
+}
+
+/**
+ * Compare templates and CLI flow
+ */
+const processTemplates = (config: ProcessTemplates) => {
+  const { newList, manifest, all, force, spinner, client } = config
+
+  compareTemplates(newList, manifest, all)
+
+  spinner.stop()
+  if (pushManifest.length === 0) return log('There are no changes to push.')
+
+  // Show which templates are changing
+  printReview(review)
+
+  // Push templates if force arg is present
+  if (force) {
+    spinner.text = 'Pushing templates to Postmark...'
+    spinner.start()
+    return pushTemplates(spinner, client, pushManifest)
+  }
+
+  // Ask for user confirmation
+  confirmation().then(answer => {
+    if (answer.confirm) {
+      spinner.text = 'Pushing templates to Postmark...'
+      spinner.start()
+      pushTemplates(spinner, client, pushManifest)
+    } else {
+      log('Canceling push. Have a good day!')
+    }
+  })
 }
 
 /**
