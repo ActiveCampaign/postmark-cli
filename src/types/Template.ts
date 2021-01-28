@@ -100,3 +100,12 @@ export interface TemplateValidationPayload {
   TextBody: string
   TemplateType: 'Standard' | 'Layout'
 }
+
+export interface ProcessTemplates {
+  newList: TemplateManifest[]
+  manifest: TemplateManifest[]
+  all: boolean
+  force: boolean
+  spinner: any
+  client: any
+}
