@@ -4,6 +4,9 @@ workflows:
   node-tests:
     jobs:
       - unit-tests:
+          name: node8
+          version: "8"
+      - unit-tests:
           name: node9
           version: "9"
           requires:
