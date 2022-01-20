@@ -30,6 +30,7 @@ module.exports = {
     '@typescript-eslint/no-unused-vars': ['error'],
     '@typescript-eslint/no-var-requires': 0,
     'prefer-const': 0,
-    '@typescript-eslint/no-inferrable-types': 0
+    '@typescript-eslint/no-inferrable-types': 0,
+    'no-irregular-whitespace': 0
   },
 }

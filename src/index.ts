@@ -6,15 +6,15 @@ require('yargonaut')
   .style('yellow')
   .errorsStyle('red')
 
-require('yargs')
+require('yargs/yargs')(process.argv.slice(2))
   .env('POSTMARK')
   .commandDir('commands')
   .demandCommand()
   .help()
   .usage(
     chalk.yellow(`
-              ____           _                        _    
- _________   |  _ \\ ___  ___| |_ _ __ ___   __ _ _ __| | __
+                  ____           _                        _    
+     _________   |  _ \\ ___  ___| |_ _ __ ___   __ _ _ __| | __
 | \\     / |  | |_) / _ \\/ __| __| '_ ' _ \\ / _\` | '__| |/ /
 |  '...'  |  |  __/ (_) \\__ \\ |_| | | | | | (_| | |  |   < 
 |__/___\\__|  |_|   \\___/|___/\\__|_| |_| |_|\\__,_|_|  |_|\\_\\`)

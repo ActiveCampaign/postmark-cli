@@ -39,7 +39,7 @@ describe('Email send template command', () => {
       try {
         await execa(CLICommand, parameters, options)
         throw Error('make sure error is thrown')
-      } catch (error) {
+      } catch (error: any) {
         expect(error.message).to.include('ApiInputError')
       }
     })
@@ -48,7 +48,7 @@ describe('Email send template command', () => {
       try {
         await execa(CLICommand, defaultParameters, options)
         throw Error('make sure error is thrown')
-      } catch (error) {
+      } catch (error: any) {
         expect(error.message).to.include('ApiInputError')
       }
     })
