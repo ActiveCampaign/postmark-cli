@@ -22,15 +22,15 @@ module.exports = {
       { multiline: { delimiter: 'none' } },
     ],
     camelcase: 'off',
-    '@typescript-eslint/camelcase': [
-      'error',
-      { properties: 'never', ignoreDestructuring: true },
-    ],
     '@typescript-eslint/explicit-function-return-type': 'off',
     '@typescript-eslint/no-use-before-define': [
       'error',
       { functions: false, variables: false },
     ],
     '@typescript-eslint/no-unused-vars': ['error'],
+    '@typescript-eslint/no-var-requires': 0,
+    'prefer-const': 0,
+    '@typescript-eslint/no-inferrable-types': 0,
+    'no-irregular-whitespace': 0
   },
 }

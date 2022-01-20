@@ -37,7 +37,7 @@ describe('Servers list command', () => {
     try {
       await execa(CLICommand, commandParameters, invalidOptions)
       throw Error('make sure error is thrown')
-    } catch (error) {
+    } catch (error: any) {
       expect(error.message).to.include('InvalidAPIKeyError')
     }
   })
