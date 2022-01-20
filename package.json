@@ -1,6 +1,6 @@
 {
   "name": "postmark-cli",
-  "version": "1.5.11",
+  "version": "1.5.12",
   "description": "A CLI tool for managing templates, sending emails, and fetching servers on Postmark.",
   "main": "./dist/index.js",
   "dependencies": {
@@ -48,6 +48,12 @@
     "ts-node": "^8.0.3",
     "typescript": "^4.5.5"
   },
+  "resolutions": {
+    "merge": "2.1.1",
+    "json-schema": "0.4.0",
+    "ansi-regex": "5.0.1",
+    "minimist": "0.2.1"
+  },
   "scripts": {
     "start:dev": "watch 'npm run build' ./src ./preview",
     "build": "npm run clean && npm run ts && npm run syncPreview && npm run permissions",
@@ -57,7 +63,8 @@
     "ts": "node_modules/.bin/tsc",
     "permissions": "chmod +x ./dist/index.js",
     "lint": "eslint --ext .ts ./src",
-    "prepublish": "npm run build"
+    "prepublish": "npm run build",
+    "preinstall": "npx npm-force-resolutions"
   },
   "repository": {
     "type": "git",
