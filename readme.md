@@ -11,7 +11,7 @@
 
 ## Usage
 
-After installation, type `postmark` in your command line to see a list of available commands. Check out the [wiki](https://github.com/wildbit/postmark-cli/wiki) for instructions on how to [send emails](https://github.com/wildbit/postmark-cli/wiki/email-command), [manage templates](https://github.com/wildbit/postmark-cli/wiki/templates-command), or [list servers](https://github.com/wildbit/postmark-cli/wiki/servers-command).
+After installation, type `postmark` in your command line to see a list of available commands. Check out the [wiki](https://github.com/activecampaign/postmark-cli/wiki) for instructions on how to [send emails](https://github.com/activecampaign/postmark-cli/wiki/email-command), [manage templates](https://github.com/activecampaign/postmark-cli/wiki/templates-command), or [list servers](https://github.com/activecampaign/postmark-cli/wiki/servers-command).
 
 ```bash
 $ postmark
@@ -39,4 +39,4 @@ Please leave all comments, bugs, requests and issues on the Issues page.
 
 ## License
 
-Postmark CLI library is licensed under the **MIT** license. Please refer to the [LICENSE](https://github.com/wildbit/postmark-cli/blob/master/LICENSE.md) for more information.
+Postmark CLI library is licensed under the **MIT** license. Please refer to the [LICENSE](https://github.com/activecampaign/postmark-cli/blob/master/LICENSE.md) for more information.
