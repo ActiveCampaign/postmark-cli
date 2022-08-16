@@ -78,7 +78,7 @@ const validateDirectory = (
 /**
  * Begin pushing the templates
  */
-const push = (serverToken: string, args: TemplatePushArguments) => {
+const push = async (serverToken: string, args: TemplatePushArguments) => {
   const { templatesdirectory, force, requestHost, all } = args
   const spinner = ora('Fetching templates...').start()
   const manifest = createManifest(templatesdirectory)
@@ -90,39 +90,35 @@ const push = (serverToken: string, args: TemplatePushArguments) => {
 
   // Make sure manifest isn't empty
   if (manifest.length > 0) {
-    // Get template list from Postmark
-    client
-      .getTemplates({ count: 300 })
-      .then(response => {
-        // Check if there are templates on the server
-        if (response.TotalCount === 0) {
-          processTemplates({
-            newList: [],
-            manifest: manifest,
-            all: all,
-            force: force,
-            spinner: spinner,
-            client: client,
-          })
-        } else {
-          // Gather template content before processing templates
-          getTemplateContent(client, response).then(newList => {
-            processTemplates({
-              newList: newList,
-              manifest: manifest,
-              all: all,
-              force: force,
-              spinner: spinner,
-              client: client,
-            })
-          })
-        }
-      })
-      .catch((error: any) => {
-        spinner.stop()
-        log(error, { error: true })
-        process.exit(1)
-      })
+    try {
+      // Get template list from Postmark
+      const response = await client.getTemplates({count: 300})
+
+      if (response.TotalCount === 0) {
+        processTemplates({
+          newList: [],
+          manifest: manifest,
+          all: all,
+          force: force,
+          spinner: spinner,
+          client: client,
+        })
+      } else {
+        const newList = await getTemplateContent(client, response, spinner)
+        processTemplates({
+          newList: newList,
+          manifest: manifest,
+          all: all,
+          force: force,
+          spinner: spinner,
+          client: client,
+        })
+      }
+    } catch (error: any) {
+      spinner.stop()
+      log(error, { error: true })
+      process.exit(1)
+    }
   } else {
     spinner.stop()
     log('No templates or layouts were found.', { error: true })
@@ -166,35 +162,27 @@ const processTemplates = (config: ProcessTemplates) => {
 /**
  * Gather template content from server to compare against local versions
  */
-const getTemplateContent = (
-  client: any,
-  templateList: Templates
-): Promise<any> =>
-  new Promise<TemplateManifest[]>(resolve => {
-    let newList: any[] = cloneDeep(templateList.Templates)
-    let progress = 0
+const getTemplateContent = async (client: any, templateList: Templates, spinner: any) => {
+  let newList: any[] = cloneDeep(templateList.Templates)
+  let progress = 0
 
-    newList.forEach((template, index) => {
-      client
-        .getTemplate(template.TemplateId)
-        .then((result: TemplateManifest) => {
-          newList[index] = {
-            ...newList[index],
-            HtmlBody: result.HtmlBody,
-            TextBody: result.TextBody,
-            Subject: result.Subject,
-            TemplateType: result.TemplateType,
-            LayoutTemplate: result.LayoutTemplate,
-          }
+  for (const template of newList) {
+    spinner.text = `Comparing template: ${template.Alias}`
+    const response:TemplateManifest = await client.getTemplate(template.TemplateId)
+    newList[progress] = {
+      ...newList[progress],
+      HtmlBody: response.HtmlBody,
+      TextBody: response.TextBody,
+      Subject: response.Subject,
+      TemplateType: response.TemplateType,
+      LayoutTemplate: response.LayoutTemplate,
+    }
 
-          progress++
+    progress++
+  }
 
-          if (progress === newList.length) {
-            return resolve(newList)
-          }
-        })
-    })
-  })
+  return newList
+}
 
 /**
  * Ask user to confirm the push
@@ -375,44 +363,30 @@ const printReview = (review: TemplatePushReview) => {
 /**
  * Push all local templates
  */
-const pushTemplates = (
+const pushTemplates = async (
   spinner: any,
   client: any,
   templates: TemplateManifest[]
 ) => {
-  templates.forEach(template =>
-    pushTemplate(spinner, client, template, templates.length)
-  )
-}
-
-/**
- * Determine whether to create a new template or edit an existing
- */
-const pushTemplate = (
-  spinner: any,
-  client: any,
-  template: TemplateManifest,
-  total: number
-): void => {
-  if (template.New) {
-    return client
-      .createTemplate(template)
-      .then((response: object) =>
-        pushComplete(true, response, template, spinner, total)
-      )
-      .catch((response: object) =>
-        pushComplete(false, response, template, spinner, total)
-      )
+  for (const template of templates) {
+    spinner.color = 'yellow'
+    spinner.text = `Pushing template: ${template.Alias}`
+    if (template.New) {
+      try {
+        const response = await client.createTemplate(template)
+        pushComplete(true, response, template, spinner, templates.length)
+      } catch(error: any) {
+        pushComplete(false, error, template, spinner, templates.length)
+      }
+    } else {
+      try {
+        const response = await client.editTemplate(template.Alias, template)
+        pushComplete(true, response, template, spinner, templates.length)
+      } catch(error: any) {
+        pushComplete(false, error, template, spinner, templates.length)
+      }
+    }
   }
-
-  return client
-    .editTemplate(template.Alias, template)
-    .then((response: object) =>
-      pushComplete(true, response, template, spinner, total)
-    )
-    .catch((response: object) =>
-      pushComplete(false, response, template, spinner, total)
-    )
 }
 
 /**
@@ -432,7 +406,7 @@ const pushComplete = (
   // Log any errors to the console
   if (!success) {
     spinner.stop()
-    log(`\n${template.Alias}: ${response.toString()}`, { error: true })
+    log(`\n${template.Alias || template.Name}: ${response.toString()}`, { error: true })
     spinner.start()
   }
 
