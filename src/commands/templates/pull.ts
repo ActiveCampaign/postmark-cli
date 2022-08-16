@@ -138,6 +138,8 @@ const processTemplates = async (options: ProcessTemplatesOptions) => {
 
   // Iterate through each template and fetch content
   for (const template of templates) {
+    spinner.text = `Downloading template: ${template.Alias || template.Name}`
+
     // Show warning if template doesn't have an alias
     if (!template.Alias) {
       requestCount++
