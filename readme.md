@@ -4,7 +4,7 @@
 <p align="center">A CLI tool for managing templates, sending emails, and fetching servers on <a href="https://postmarkapp.com">Postmark</a>. <br/>Nifty for integrating with a CI/CD pipeline.</p>
 
 <p align="center">
-  <a href="https://circleci.com/gh/activecampaign/postmark-cli/tree/main"><img src="https://circleci.com/gh/activecampaign/postmark-cli/tree/main.svg?style=svg" alt="CircleCI"></a>
+  <a href="https://circleci.com/gh/ActiveCampaign/postmark-cli/tree/main"><img src="https://circleci.com/gh/ActiveCampaign/postmark-cli/tree/main.svg?style=svg" alt="CircleCI"></a>
   <a href="http://www.opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-brightgreen.svg" alt="License: MIT"></a>
   <a href="https://badge.fury.io/js/postmark-cli"><img src="https://badge.fury.io/js/postmark-cli.svg" alt="npm version"></a>
 </p>
