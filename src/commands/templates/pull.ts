@@ -127,7 +127,7 @@ const fetchTemplateList = (options: TemplateListOptions) => {
 /**
  * Fetch each template’s content from the server
  */
-const processTemplates = (options: ProcessTemplatesOptions) => {
+const processTemplates = async (options: ProcessTemplatesOptions) => {
   const { spinner, client, outputDir, totalCount, templates } = options
 
   // Keep track of requests
@@ -137,7 +137,9 @@ const processTemplates = (options: ProcessTemplatesOptions) => {
   let totalDownloaded = 0
 
   // Iterate through each template and fetch content
-  templates.forEach(template => {
+  for (const template of templates) {
+    spinner.text = `Downloading template: ${template.Alias || template.Name}`
+
     // Show warning if template doesn't have an alias
     if (!template.Alias) {
       requestCount++
@@ -151,34 +153,33 @@ const processTemplates = (options: ProcessTemplatesOptions) => {
       return
     }
 
-    client
-      .getTemplate(template.Alias)
-      .then((response: Template) => {
-        requestCount++
+    // Make request to Postmark
+    try {
+      const response = await client.getTemplate(template.Alias)
+      requestCount++
 
-        // Save template to file system
-        saveTemplate(outputDir, response, client)
-        totalDownloaded++
+      // Save template to file system
+      saveTemplate(outputDir, response, client)
+      totalDownloaded++
 
-        // Show feedback when finished saving templates
-        if (requestCount === totalCount) {
-          spinner.stop()
-
-          log(
-            `All finished! ${totalDownloaded} ${pluralize(
-              totalDownloaded,
-              'template has',
-              'templates have'
-            )} been saved to ${outputDir}.`,
-            { color: 'green' }
-          )
-        }
-      })
-      .catch((error: any) => {
+      // Show feedback when finished saving templates
+      if (requestCount === totalCount) {
         spinner.stop()
-        log(error, { error: true })
-      })
-  })
+
+        log(
+          `All finished! ${totalDownloaded} ${pluralize(
+            totalDownloaded,
+            'template has',
+            'templates have'
+          )} been saved to ${outputDir}.`,
+          { color: 'green' }
+        )
+      }
+    } catch (e: any) {
+      spinner.stop()
+      log(e, { error: true })
+    }
+  }
 }
 
 /**
