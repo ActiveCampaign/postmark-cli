@@ -9,7 +9,7 @@
     "chalk": "^2.4.2",
     "consolidate": "^0.15.1",
     "directory-tree": "^2.2.3",
-    "ejs": "^2.6.2",
+    "ejs": "^3.1.7",
     "express": "^4.17.1",
     "fs-extra": "^7.0.1",
     "inquirer": "^8.2.0",
