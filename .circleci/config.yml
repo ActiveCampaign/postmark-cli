@@ -3,45 +3,46 @@ version: 2.1
 workflows:
   node-tests:
     jobs:
+      # The versions are copied from
+      # https://circleci.com/developer/images/image/cimg/node#image-tags
       - unit-tests:
           name: node13
-          version: "13"
+          version: "13.14.0"
       - unit-tests:
           name: node14
-          version: "14"
+          version: "14.21.1"
+          requires:
+            - node13
       - unit-tests:
           name: node15
-          version: "15"
+          version: "15.14.0"
+          requires:
+            - node14
       - unit-tests:
           name: node16
-          version: "16"
+          version: "16.18.1"
+          requires:
+            - node15
       - unit-tests:
           name: node18
-          version: "18"
+          version: "18.12.1"
+          requires:
+            - node16
       - unit-tests:
-          name: node-latest
-          version: "latest"
-
+          name: node19
+          version: "19.3.0"
+          requires:
+            - node18
 jobs:
   unit-tests:
     parameters:
       version:
         type: string
     docker:
-      - image: circleci/node:<< parameters.version >>
+      - image: cimg/node:<< parameters.version >>
     steps:
       - checkout
-      - run:
-          name: Versions
-          command: |
-            echo "npm: $(npm --version)"
-      - run:
-          name: Install dependencies
-          command: npm install
-      - run:
-          name: Install typescript
-          command: |
-            npm install --no-save typescript
-      - run:
-          name: Run tests
-          command: npm test
+      - run: node --version
+      - run: npm --version
+      - run: npm install
+      - run: npm test
