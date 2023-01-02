@@ -1,9 +1,10 @@
-tsconfig.json
-src
-.circleci
-.vscode
 .DS_Store
+.circleci
+.env*
+.eslintrc.js
+.vscode
+media
+src
 test
 testing_keys.json
-media
-.eslintrc.js
+tsconfig.json
