@@ -32,6 +32,10 @@ export const builder = {
     describe: 'The subject line of the email',
     required: true,
   },
+  'reply-to': {
+    type: 'string',
+    describe: 'If the recipient replies to the email, their response will be sent to this address.',
+  },
   html: {
     type: 'string',
     describe: 'The HTML version of the email',
@@ -58,7 +62,7 @@ const exec = (args: RawEmailArguments): Promise<void> => {
  * Execute send command in shell
  */
 const sendCommand = (serverToken: string, args: RawEmailArguments): void => {
-  const { from, to, subject, html, text, requestHost } = args
+  const { from, to, subject, replyTo, html, text, requestHost } = args
   const command: CommandResponse = new CommandResponse()
   command.initResponse('Sending an email')
   const client = new ServerClient(serverToken)
@@ -66,7 +70,7 @@ const sendCommand = (serverToken: string, args: RawEmailArguments): void => {
     client.clientOptions.requestHost = requestHost
   }
 
-  sendEmail(client, from, to, subject, html, text)
+  sendEmail(client, from, to, subject, replyTo, html, text)
     .then(response => {
       command.response(JSON.stringify(response))
     })
@@ -85,6 +89,7 @@ const sendEmail = (
   from: string,
   to: string,
   subject: string,
+  replyTo: string | undefined,
   html: string | undefined,
   text: string | undefined
 ): Promise<MessageSendingResponse> => {
@@ -92,6 +97,7 @@ const sendEmail = (
     From: from,
     To: to,
     Subject: subject,
+    ReplyTo: replyTo || undefined,
     HtmlBody: html || undefined,
     TextBody: text || undefined,
   })
