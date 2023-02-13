@@ -199,7 +199,7 @@ const saveTemplate = (outputDir: string, template: Template, client: any) => {
   }
 
   // Save Text version
-  if (template.TextBody !== '') {
+  if (template.TextBody !== null && template.TextBody !== '') {
     outputFileSync(join(path, 'content.txt'), template.TextBody)
   }
 
