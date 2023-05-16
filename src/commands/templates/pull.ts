@@ -97,7 +97,7 @@ const fetchTemplateList = (options: TemplateListOptions) => {
   const spinner = ora('Pulling templates from Postmark...').start()
   const client = new ServerClient(sourceServer)
   if (requestHost !== undefined && requestHost !== '') {
-    client.clientOptions.requestHost = requestHost
+    client.setClientOptions({ requestHost })
   }
 
   client

@@ -64,7 +64,7 @@ const listCommand = (accountToken: string, args: ServerListArguments): void => {
   command.initResponse('Fetching servers...')
   const client = new AccountClient(accountToken)
   if (requestHost !== undefined && requestHost !== '') {
-    client.clientOptions.requestHost = requestHost
+    client.setClientOptions({ requestHost })
   }
 
   getServers(client, count, offset, name)
