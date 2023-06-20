@@ -85,7 +85,7 @@ const push = async (serverToken: string, args: TemplatePushArguments) => {
   const client = new ServerClient(serverToken)
 
   if (requestHost !== undefined && requestHost !== '') {
-    client.clientOptions.requestHost = requestHost
+    client.setClientOptions({ requestHost })
   }
 
   // Make sure manifest isn't empty

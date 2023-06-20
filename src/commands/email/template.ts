@@ -65,7 +65,7 @@ const sendCommand = (serverToken: string, args: TemplatedEmailArguments) => {
   command.initResponse('Sending an email')
   const client = new ServerClient(serverToken)
   if (requestHost !== undefined && requestHost !== '') {
-    client.clientOptions.requestHost = requestHost
+    client.setClientOptions({ requestHost })
   }
 
   sendEmailWithTemplate(client, id, alias, from, to, model)

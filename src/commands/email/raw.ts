@@ -63,7 +63,7 @@ const sendCommand = (serverToken: string, args: RawEmailArguments): void => {
   command.initResponse('Sending an email')
   const client = new ServerClient(serverToken)
   if (requestHost !== undefined && requestHost !== '') {
-    client.clientOptions.requestHost = requestHost
+    client.setClientOptions({ requestHost })
   }
 
   sendEmail(client, from, to, subject, html, text)
