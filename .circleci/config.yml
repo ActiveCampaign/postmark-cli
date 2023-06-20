@@ -26,14 +26,19 @@ workflows:
             - node16
       - unit-tests:
           name: node18 # EOL 30 Apr 2025
-          version: "18.12.1"
+          version: "18.16.0"
           requires:
             - node17
       - unit-tests:
           name: node19 # EOL 01 Jun 2023
-          version: "19.3.0"
+          version: "19.9.0"
           requires:
             - node18
+      - unit-tests:
+          name: node20 # EOL 30 Apr 2026
+          version: "20.3.0"
+          requires:
+            - node19
 jobs:
   unit-tests:
     parameters:
