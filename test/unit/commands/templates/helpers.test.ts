@@ -1,11 +1,12 @@
-import { expect } from "chai";
-import "mocha";
-import { templatesDiff } from "../../../../src/commands/templates/helpers";
-import { TemplateManifest } from "../../../../src/types";
+import 'mocha'
+import { expect } from 'chai'
+import { TemplateTypes } from 'postmark/dist/client/models'
+import { templatesDiff } from '../../../../src/commands/templates/helpers'
+import { TemplateManifest } from '../../../../src/types'
 
 function makeTemplateManifest(): TemplateManifest {
   return {
-    TemplateType: "Standard",
+    TemplateType: TemplateTypes.Standard,
     HtmlBody: undefined,
     TextBody: undefined,
     Subject: undefined,

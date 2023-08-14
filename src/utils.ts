@@ -8,28 +8,28 @@ import ora = require('ora')
  * Bootstrap commands
  * @returns yargs compatible command options
  */
-export const cmd = (name: string, desc: string): CommandOptions => ({
-  name: name,
-  command: `${name} <command> [options]`,
-  desc: desc,
-  builder: (yargs: Argv) => yargs.commandDir(`commands/${name}`),
-})
+export function cmd(name: string, desc: string): CommandOptions {
+  return ({
+    name: name,
+    command: `${name} <command> [options]`,
+    desc: desc,
+    builder: (yargs: Argv) => yargs.commandDir(`commands/${name}`),
+  })
+}
 
 /**
  * Pluralize a string
  * @returns The proper string depending on the count
  */
-export const pluralize = (
-  count: number,
-  singular: string,
-  plural: string
-): string => (count > 1 || count === 0 ? plural : singular)
+export function pluralize(count: number, singular: string, plural: string): string {
+  return (count > 1 || count === 0 ? plural : singular)
+}
 
 /**
  * Log stuff to the console
  * @returns Logging with fancy colors
  */
-export const log = (text: string, settings?: LogSettings): void => {
+export function log(text: string, settings?: LogSettings): void {
   // Errors
   if (settings && settings.error) {
     return console.error(chalk.red(text))
@@ -49,58 +49,52 @@ export const log = (text: string, settings?: LogSettings): void => {
   return console.log(text)
 }
 
+export function logError(error: unknown): void {
+  log(extractErrorMessage(error), { error: true })
+} 
+
+export function fatalError(error: unknown): never {
+  logError(error)
+  return process.exit(1)
+}
+
 /**
  * Prompt for server or account tokens
- * @returns Promise
  */
-export const serverTokenPrompt = (account: boolean): Promise<string> =>
-  new Promise<string>((resolve, reject) => {
-    const tokenType = account ? 'account' : 'server'
+async function serverTokenPrompt(forAccount: boolean): Promise<string> {
+  const tokenType = forAccount ? 'account' : 'server'
+  const { token } = await prompt<{token: string}>([{
+      type: 'password',
+      name: 'token',
+      message: `Please enter your ${tokenType} token`,
+      mask: '•',
+    }]
+  )
 
-    prompt([
-      {
-        type: 'password',
-        name: 'token',
-        message: `Please enter your ${tokenType} token`,
-        mask: '•',
-      },
-    ]).then((answer: any) => {
-      const { token } = answer
+  if (!token) {
+    return fatalError(`Invalid ${tokenType} token`)
+  }
 
-      if (!token) {
-        log(`Invalid ${tokenType} token`, { error: true })
-        process.exit(1)
-        return reject()
-      }
-
-      return resolve(token)
-    })
-  })
+  return token
+}
 
 /**
  * Validates the presence of a server or account token
- * @return Promise
  */
-export const validateToken = (
-  token: string,
-  account: boolean = false
-): Promise<string> =>
-  new Promise<string>(resolve => {
-    // Missing token
-    if (!token) {
-      return serverTokenPrompt(account).then(tokenPrompt =>
-        resolve(tokenPrompt)
-      )
-    }
+export async function validateToken(token: string, forAccount = false): Promise<string> {
+  if (!token) {
+    return serverTokenPrompt(forAccount)
+  }
 
-    return resolve(token)
-  })
+  return token
+}
+
 
 /**
  * Handle starting/stopping spinner and console output
  */
 export class CommandResponse {
-  private spinner: any
+  private spinner: ora.Ora
 
   public constructor() {
     this.spinner = ora().clear()
@@ -115,13 +109,21 @@ export class CommandResponse {
     log(text, settings)
   }
 
-  public errorResponse(error: any, showJsonError: boolean = false): void {
+  public errorResponse(error: unknown): never {
     this.spinner.stop()
-    if (showJsonError === true) {
-      log(JSON.stringify(error), { error: true })
-    }
 
-    log(error, { error: true })
-    process.exit(1)
+    return fatalError(error)
   }
+}
+
+function extractErrorMessage(error: unknown): string {
+  if (error instanceof Error) {
+    return error.toString()
+  }
+
+  if (typeof error === 'string') {
+    return error
+  }
+
+  return `Unknown error: ${error}`
 }

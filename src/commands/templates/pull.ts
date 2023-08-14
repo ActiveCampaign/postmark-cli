@@ -1,18 +1,14 @@
+import ora from 'ora'
+import untildify from 'untildify'
+import invariant from 'ts-invariant'
 import { join } from 'path'
 import { outputFileSync, existsSync, ensureDirSync } from 'fs-extra'
 import { prompt } from 'inquirer'
-import ora from 'ora'
-import untildify from 'untildify'
 import { ServerClient } from 'postmark'
+import type { Template, Templates } from 'postmark/dist/client/models'
 
-import {
-  ProcessTemplatesOptions,
-  Template,
-  TemplateListOptions,
-  TemplatePullArguments,
-  MetaFile,
-} from '../../types'
-import { log, validateToken, pluralize } from '../../utils'
+import { MetaFile } from '../../types'
+import { log, validateToken, pluralize, logError, fatalError } from '../../utils'
 
 export const command = 'pull <output directory> [options]'
 export const desc = 'Pull templates from a server to <output directory>'
@@ -32,23 +28,22 @@ export const builder = {
     describe: 'Overwrite templates if they already exist',
   },
 }
-export const handler = (args: TemplatePullArguments) => exec(args)
 
-/**
- * Execute the command
- */
-const exec = (args: TemplatePullArguments) => {
-  const { serverToken } = args
-
-  return validateToken(serverToken).then(token => {
-    pull(token, args)
-  })
+interface TemplatePullArguments {
+  serverToken: string
+  requestHost: string
+  outputdirectory: string
+  overwrite: boolean
+}
+export async function handler(args: TemplatePullArguments): Promise<void> {
+  const serverToken = await validateToken(args.serverToken)
+  pull(serverToken, args)
 }
 
 /**
  * Begin pulling the templates
  */
-const pull = (serverToken: string, args: TemplatePullArguments) => {
+async function pull(serverToken: string, args: TemplatePullArguments): Promise<void> {
   const { outputdirectory, overwrite, requestHost } = args
 
   // Check if directory exists
@@ -66,33 +61,34 @@ const pull = (serverToken: string, args: TemplatePullArguments) => {
 /**
  * Ask user to confirm overwrite
  */
-const overwritePrompt = (
-  serverToken: string,
-  outputdirectory: string,
-  requestHost: string
-) => {
-  return prompt([
+async function overwritePrompt(serverToken: string, outputdirectory: string, requestHost: string): Promise<void> {
+  const answer = await prompt<{overwrite: boolean}>([
     {
       type: 'confirm',
       name: 'overwrite',
       default: false,
       message: `Overwrite the files in ${outputdirectory}?`,
     },
-  ]).then((answer: any) => {
-    if (answer.overwrite) {
-      return fetchTemplateList({
-        sourceServer: serverToken,
-        outputDir: outputdirectory,
-        requestHost: requestHost,
-      })
-    }
-  })
+  ])
+  if (answer.overwrite) {
+    return fetchTemplateList({
+      sourceServer: serverToken,
+      outputDir: outputdirectory,
+      requestHost: requestHost,
+    })
+  }
 }
 
+
+interface TemplateListOptions {
+  sourceServer: string
+  requestHost: string
+  outputDir: string
+}
 /**
  * Fetch template list from PM
  */
-const fetchTemplateList = (options: TemplateListOptions) => {
+async function fetchTemplateList(options: TemplateListOptions) {
   const { sourceServer, outputDir, requestHost } = options
   const spinner = ora('Pulling templates from Postmark...').start()
   const client = new ServerClient(sourceServer)
@@ -100,35 +96,32 @@ const fetchTemplateList = (options: TemplateListOptions) => {
     client.setClientOptions({ requestHost })
   }
 
-  client
-    .getTemplates({ count: 300 })
-    .then(response => {
-      if (response.TotalCount === 0) {
-        spinner.stop()
-        log('There are no templates on this server.', { error: true })
-        process.exit(1)
-      } else {
-        processTemplates({
-          spinner,
-          client,
-          outputDir: outputDir,
-          totalCount: response.TotalCount,
-          templates: response.Templates,
-        })
-      }
-    })
-    .catch((error: any) => {
+  try {
+    const templates = await client.getTemplates({ count: 300 })
+
+    if (templates.TotalCount === 0) {
       spinner.stop()
-      log(error, { error: true })
-      process.exit(1)
-    })
+      return fatalError('There are no templates on this server.')
+    } else {
+      await processTemplates({ spinner, client, outputDir, templates })
+    }
+  } catch (err) {
+    spinner.stop()
+    return fatalError(err)
+  }
 }
 
+interface ProcessTemplatesOptions {
+  spinner: ora.Ora
+  client: ServerClient
+  outputDir: string
+  templates: Templates
+}
 /**
  * Fetch each template’s content from the server
  */
-const processTemplates = async (options: ProcessTemplatesOptions) => {
-  const { spinner, client, outputDir, totalCount, templates } = options
+async function processTemplates(options: ProcessTemplatesOptions) {
+  const { spinner, client, outputDir, templates } = options
 
   // Keep track of requests
   let requestCount = 0
@@ -137,7 +130,7 @@ const processTemplates = async (options: ProcessTemplatesOptions) => {
   let totalDownloaded = 0
 
   // Iterate through each template and fetch content
-  for (const template of templates) {
+  for (const template of templates.Templates) {
     spinner.text = `Downloading template: ${template.Alias || template.Name}`
 
     // Show warning if template doesn't have an alias
@@ -149,7 +142,7 @@ const processTemplates = async (options: ProcessTemplatesOptions) => {
       )
 
       // If this is the last template
-      if (requestCount === totalCount) spinner.stop()
+      if (requestCount === templates.TotalCount) spinner.stop()
       return
     }
 
@@ -159,11 +152,11 @@ const processTemplates = async (options: ProcessTemplatesOptions) => {
       requestCount++
 
       // Save template to file system
-      saveTemplate(outputDir, response, client)
+      await saveTemplate(outputDir, response, client)
       totalDownloaded++
 
       // Show feedback when finished saving templates
-      if (requestCount === totalCount) {
+      if (requestCount === templates.TotalCount) {
         spinner.stop()
 
         log(
@@ -175,9 +168,9 @@ const processTemplates = async (options: ProcessTemplatesOptions) => {
           { color: 'green' }
         )
       }
-    } catch (e: any) {
+    } catch (e) {
       spinner.stop()
-      log(e, { error: true })
+      logError(e)
     }
   }
 }
@@ -186,9 +179,11 @@ const processTemplates = async (options: ProcessTemplatesOptions) => {
  * Save template
  * @return An object containing the HTML and Text body
  */
-const saveTemplate = (outputDir: string, template: Template, client: any) => {
-  outputDir =
-    template.TemplateType === 'Layout' ? join(outputDir, '_layouts') : outputDir
+async function saveTemplate(outputDir: string, template: Template, client: ServerClient) {
+  invariant(typeof template.Alias === 'string' && !!template.Alias, 'Template must have an alias')
+
+  outputDir = template.TemplateType === 'Layout' ? join(outputDir, '_layouts') : outputDir
+
   const path: string = untildify(join(outputDir, template.Alias))
 
   ensureDirSync(path)
@@ -203,29 +198,29 @@ const saveTemplate = (outputDir: string, template: Template, client: any) => {
     outputFileSync(join(path, 'content.txt'), template.TextBody)
   }
 
-  let meta: MetaFile = {
+  const meta: MetaFile = {
     Name: template.Name,
     Alias: template.Alias,
     ...(template.Subject && { Subject: template.Subject }),
     TemplateType: template.TemplateType,
     ...(template.TemplateType === 'Standard' && {
-      LayoutTemplate: template.LayoutTemplate,
+      LayoutTemplate: template.LayoutTemplate || undefined,
     }),
   }
 
   // Save suggested template model
-  client
+  return client
     .validateTemplate({
       ...(template.HtmlBody && { HtmlBody: template.HtmlBody }),
       ...(template.TextBody && { TextBody: template.TextBody }),
       ...meta,
     })
-    .then((result: any) => {
+    .then((result) => {
       meta.TestRenderModel = result.SuggestedTemplateModel
     })
-    .catch((error: any) => {
-      log('Error fetching suggested template model', { error: true })
-      log(error, { error: true })
+    .catch((error) => {
+      logError('Error fetching suggested template model')
+      logError(error)
     })
     .then(() => {
       // Save the file regardless of success or error when fetching suggested model

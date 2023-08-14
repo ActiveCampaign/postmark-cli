@@ -1,20 +1,17 @@
 import chalk from 'chalk'
 import ora from 'ora'
+import untildify from 'untildify'
+import invariant from 'ts-invariant'
+import { existsSync, statSync } from 'fs-extra'
 import { find } from 'lodash'
 import { prompt } from 'inquirer'
 import { table, getBorderCharacters } from 'table'
-import untildify from 'untildify'
-import { existsSync } from 'fs-extra'
 import { ServerClient } from 'postmark'
 import { Templates } from 'postmark/dist/client/models'
-import {
-  TemplateManifest,
-  TemplatePushResults,
-  TemplatePushReview,
-  TemplatePushArguments,
-  ProcessTemplates,
-} from '../../types'
-import { pluralize, log, validateToken } from '../../utils'
+
+import { TemplateManifest, TemplatePushReview } from '../../types'
+import { pluralize, log, validateToken, fatalError, logError } from '../../utils'
+
 import { createManifest, sameContent, templatesDiff } from './helpers'
 
 const debug = require('debug')('postmark-cli:templates:push');
@@ -46,41 +43,47 @@ export const builder = {
     alias: 'a',
   },
 }
-export const handler = (args: TemplatePushArguments) => exec(args)
 
-/**
- * Execute the command
- */
-const exec = (args: TemplatePushArguments) => {
-  const { serverToken } = args
-
-  return validateToken(serverToken).then(token => {
-    validateDirectory(token, args)
-  })
+interface TemplatePushArguments {
+  serverToken: string
+  requestHost: string
+  templatesdirectory: string
+  force: boolean
+  all: boolean
 }
+export async function handler(args: TemplatePushArguments): Promise<void> {
+  const serverToken = await validateToken(args.serverToken)
 
-/**
- * Check if directory exists before pushing
- */
-const validateDirectory = (
-  serverToken: string,
-  args: TemplatePushArguments
-) => {
-  const rootPath: string = untildify(args.templatesdirectory)
-
-  // Check if path exists
-  if (!existsSync(rootPath)) {
-    log('The provided path does not exist', { error: true })
-    return process.exit(1)
+  try {
+    validatePushDirectory(args.templatesdirectory)
+  } catch (e) {
+    return fatalError(e)
   }
 
   return push(serverToken, args)
 }
 
 /**
+ * Check if directory exists before pushing
+ */
+export function validatePushDirectory(dir: string): void {
+  const fullPath: string = untildify(dir)
+
+  if (!existsSync(fullPath)) {
+    throw new Error(`The provided path "${dir}" does not exist`)
+  }
+
+  // check if path is a directory
+  const stats = statSync(fullPath)
+  if (!stats.isDirectory()) {
+    throw new Error(`The provided path "${dir}" is not a directory`)
+  }
+}
+
+/**
  * Begin pushing the templates
  */
-const push = async (serverToken: string, args: TemplatePushArguments) => {
+async function push(serverToken: string, args: TemplatePushArguments): Promise<void> {
   const { templatesdirectory, force, requestHost, all } = args
   const spinner = ora('Fetching templates...').start()
   const manifest = createManifest(templatesdirectory)
@@ -90,50 +93,53 @@ const push = async (serverToken: string, args: TemplatePushArguments) => {
     client.setClientOptions({ requestHost })
   }
 
-  // Make sure manifest isn't empty
   if (manifest.length > 0) {
     try {
-      // Get template list from Postmark
-      const response = await client.getTemplates({count: 300})
+      const response = await client.getTemplates({ count: 300 })
 
       if (response.TotalCount === 0) {
-        processTemplates({
+        return processTemplates({
           newList: [],
-          manifest: manifest,
-          all: all,
-          force: force,
-          spinner: spinner,
-          client: client,
+          manifest,
+          all,
+          force,
+          spinner,
+          client,
         })
       } else {
         const newList = await getTemplateContent(client, response, spinner)
-        processTemplates({
-          newList: newList,
-          manifest: manifest,
-          all: all,
-          force: force,
-          spinner: spinner,
-          client: client,
+        return processTemplates({
+          newList,
+          manifest,
+          all,
+          force,
+          spinner,
+          client,
         })
       }
-    } catch (error: any) {
+    } catch (error) {
       spinner.stop()
-      log(error, { error: true })
-      process.exit(1)
+      return fatalError(error)
     }
   } else {
     spinner.stop()
-    log('No templates or layouts were found.', { error: true })
-    process.exit(1)
+    return fatalError('No templates or layouts were found.')
   }
 }
 
+
+interface ProcessTemplates {
+  newList: TemplateManifest[]
+  manifest: TemplateManifest[]
+  all: boolean
+  force: boolean
+  spinner: ora.Ora
+  client: ServerClient
+}
 /**
  * Compare templates and CLI flow
  */
-const processTemplates = (config: ProcessTemplates) => {
-  const { newList, manifest, all, force, spinner, client } = config
-
+async function processTemplates({ newList, manifest, all, force, spinner, client }: ProcessTemplates) {
   compareTemplates(newList, manifest, all)
 
   spinner.stop()
@@ -149,16 +155,13 @@ const processTemplates = (config: ProcessTemplates) => {
     return pushTemplates(spinner, client, pushManifest)
   }
 
-  // Ask for user confirmation
-  confirmation().then(answer => {
-    if (answer.confirm) {
-      spinner.text = 'Pushing templates to Postmark...'
-      spinner.start()
-      pushTemplates(spinner, client, pushManifest)
-    } else {
-      log('Canceling push. Have a good day!')
-    }
-  })
+  if (await confirmation()) {
+    spinner.text = 'Pushing templates to Postmark...'
+    spinner.start()
+    return pushTemplates(spinner, client, pushManifest)
+  } else {
+    log('Canceling push. Have a good day!')
+  }
 }
 
 /**
@@ -187,28 +190,20 @@ async function getTemplateContent(client: ServerClient, templateList: Templates,
 /**
  * Ask user to confirm the push
  */
-const confirmation = (): Promise<any> =>
-  new Promise<string>((resolve, reject) => {
-    prompt([
-      {
-        type: 'confirm',
-        name: 'confirm',
-        default: false,
-        message: `Would you like to continue?`,
-      },
-    ])
-      .then((answer: any) => resolve(answer))
-      .catch((err: any) => reject(err))
-  })
+async function confirmation(message = 'Would you like to continue?', defaultResponse = false): Promise<boolean> {
+  const answer = await prompt<{confirm: boolean}>([{
+    type: 'confirm',
+    name: 'confirm',
+    default: defaultResponse,
+    message,
+  }])
+  return answer.confirm
+}
 
 /**
  * Compare templates on server against local
  */
-const compareTemplates = (
-  response: TemplateManifest[],
-  manifest: TemplateManifest[],
-  pushAll: boolean
-): void => {
+function compareTemplates(response: TemplateManifest[], manifest: TemplateManifest[], pushAll: boolean): void {
   // Iterate through manifest
   manifest.forEach(template => {
     // See if this local template exists on the server
@@ -243,10 +238,7 @@ const compareTemplates = (
 /**
  * Check if local template is different than server
  */
-const wasModified = (
-  server: TemplateManifest,
-  local: TemplateManifest
-): boolean => {
+function wasModified(server: TemplateManifest, local: TemplateManifest): boolean {
   const diff = templatesDiff(server, local)
   const result = diff.size > 0
 
@@ -258,10 +250,7 @@ const wasModified = (
 /**
  * Push template details to review table
  */
-const pushTemplatePreview = (
-  match: any,
-  template: TemplateManifest
-): number => {
+function pushTemplatePreview(match: TemplateManifest | undefined, template: TemplateManifest): number {
   pushManifest.push(template)
 
   let reviewData = [template.Status, template.Name, template.Alias]
@@ -284,10 +273,7 @@ const pushTemplatePreview = (
 /**
  * Render the "Layout used" column for Standard templates
  */
-const layoutUsedLabel = (
-  localLayout: string | null | undefined,
-  serverLayout: string | null | undefined
-): string => {
+function layoutUsedLabel(localLayout: string | null | undefined, serverLayout: string | null | undefined): string {
   let label = localLayout || chalk.gray('None')
 
   if (!sameContent(localLayout, serverLayout)) {
@@ -300,7 +286,7 @@ const layoutUsedLabel = (
 /**
  * Show which templates will change after the publish
  */
-const printReview = (review: TemplatePushReview) => {
+function printReview(review: TemplatePushReview) {
   const { templates, layouts } = review
 
   // Table headers
@@ -308,18 +294,16 @@ const printReview = (review: TemplatePushReview) => {
   const templatesHeader = [...header, chalk.gray('Layout used')]
 
   // Labels
-  const templatesLabel =
-    templates.length > 0
-      ? `${templates.length} ${pluralize(
-          templates.length,
-          'template',
-          'templates'
-        )}`
-      : ''
-  const layoutsLabel =
-    layouts.length > 0
-      ? `${layouts.length} ${pluralize(layouts.length, 'layout', 'layouts')}`
-      : ''
+  const templatesLabel = templates.length > 0
+    ? `${templates.length} ${pluralize(
+      templates.length,
+      'template',
+      'templates'
+    )}`
+    : ''
+  const layoutsLabel = layouts.length > 0
+    ? `${layouts.length} ${pluralize(layouts.length, 'layout', 'layouts')}`
+    : ''
 
   // Log template and layout files
   if (templates.length > 0) {
@@ -338,9 +322,7 @@ const printReview = (review: TemplatePushReview) => {
   // Log summary
   log(
     chalk.yellow(
-      `${templatesLabel}${
-        templates.length > 0 && layouts.length > 0 ? ' and ' : ''
-      }${layoutsLabel} will be pushed to Postmark.`
+      `${templatesLabel}${templates.length > 0 && layouts.length > 0 ? ' and ' : ''}${layoutsLabel} will be pushed to Postmark.`
     )
   )
 }
@@ -348,26 +330,23 @@ const printReview = (review: TemplatePushReview) => {
 /**
  * Push all local templates
  */
-const pushTemplates = async (
-  spinner: any,
-  client: any,
-  templates: TemplateManifest[]
-) => {
+async function pushTemplates(spinner: ora.Ora, client: ServerClient, templates: TemplateManifest[]) {
   for (const template of templates) {
     spinner.color = 'yellow'
     spinner.text = `Pushing template: ${template.Alias}`
     if (template.New) {
       try {
-        const response = await client.createTemplate(template)
-        pushComplete(true, response, template, spinner, templates.length)
-      } catch(error: any) {
+        await client.createTemplate(template)
+        pushComplete(true, null, template, spinner, templates.length)
+      } catch (error) {
         pushComplete(false, error, template, spinner, templates.length)
       }
     } else {
+      invariant(template.Alias, 'Template alias is required')
       try {
-        const response = await client.editTemplate(template.Alias, template)
-        pushComplete(true, response, template, spinner, templates.length)
-      } catch(error: any) {
+        await client.editTemplate(template.Alias, template)
+        pushComplete(true, null, template, spinner, templates.length)
+      } catch (error) {
         pushComplete(false, error, template, spinner, templates.length)
       }
     }
@@ -377,13 +356,7 @@ const pushTemplates = async (
 /**
  * Run each time a push has been completed
  */
-const pushComplete = (
-  success: boolean,
-  response: object,
-  template: TemplateManifest,
-  spinner: any,
-  total: number
-) => {
+function pushComplete(success: boolean, error: unknown, template: TemplateManifest, spinner: ora.Ora, total: number) {
   // Update counters
   results[success ? 'success' : 'failed']++
   const completed = results.success + results.failed
@@ -391,7 +364,7 @@ const pushComplete = (
   // Log any errors to the console
   if (!success) {
     spinner.stop()
-    log(`\n${template.Alias || template.Name}: ${response.toString()}`, { error: true })
+    logError(`\n${template.Alias || template.Name}: ${error}`)
     spinner.start()
   }
 
@@ -402,18 +375,22 @@ const pushComplete = (
 
     // Show failures
     if (results.failed) {
-      log(
+      logError(
         `⚠️ Failed to push ${results.failed} ${pluralize(
           results.failed,
           'template',
           'templates'
-        )}. Please see the output above for more details.`,
-        { error: true }
+        )}. Please see the output above for more details.`
       )
     }
   }
 }
 
+
+interface TemplatePushResults {
+  success: number
+  failed: number
+}
 let results: TemplatePushResults = {
   success: 0,
   failed: 0,
