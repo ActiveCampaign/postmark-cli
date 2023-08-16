@@ -1,4 +1,5 @@
 import { join, dirname } from 'path'
+import { isEmpty } from 'lodash'
 import { readJsonSync, readFileSync, existsSync } from 'fs-extra'
 import traverse from 'traverse'
 import dirTree from 'directory-tree'
@@ -38,7 +39,7 @@ export const findMetaFiles = (path: string): MetaFileTraverse[] =>
 /**
  * Gathers the template's content and metadata based on the metadata file location
  */
-export const createManifestItem = (file: any): MetaFile | null => {
+export const createManifestItem = (file: MetaFileTraverse): MetaFile | null => {
   const { path } = file // Path to meta file
   const rootPath = dirname(path) // Folder path
   const htmlPath = join(rootPath, 'content.html') // HTML path
@@ -62,4 +63,31 @@ export const createManifestItem = (file: any): MetaFile | null => {
   }
 
   return null
+}
+
+type TemplateDifference = 'html' | 'text' | 'subject' | 'name' | 'layout'
+type TemplateDifferences = Set<TemplateDifference>
+
+export function templatesDiff(t1: TemplateManifest, t2: TemplateManifest): TemplateDifferences {
+  const result: TemplateDifferences = new Set<TemplateDifference>()
+
+  if (!sameContent(t1.HtmlBody, t2.HtmlBody)) result.add('html')
+  if (!sameContent(t1.TextBody, t2.TextBody)) result.add('text')
+  if (t2.TemplateType === 'Standard' && !sameContent(t1.Subject, t2.Subject)) result.add('subject')
+  if (!sameContent(t1.Name, t2.Name)) result.add('name')
+  if (t2.TemplateType === 'Standard' && !sameContent(t1.LayoutTemplate, t2.LayoutTemplate)) result.add('layout')
+
+  return result;
+}
+
+export function sameContent(str1: string | null | undefined, str2: string | null | undefined): boolean {
+  if (isEmpty(str1) && isEmpty(str2)) {
+    return true
+  }
+
+  if (isEmpty(str1) || isEmpty(str2)) {
+    return false
+  }
+
+  return str1 === str2
 }
