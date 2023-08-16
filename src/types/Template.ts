@@ -1,3 +1,5 @@
+import { TemplateInList } from "postmark/dist/client/models"
+
 export interface TemplateManifest {
   Name?: string
   Subject?: string
@@ -18,19 +20,7 @@ export interface Template extends TemplateManifest {
   Alias: string
 }
 
-export interface ListTemplate {
-  Active: boolean
-  TemplateId: number
-  Name: string
-  Alias?: string | null
-  TemplateType: string
-  LayoutTemplate: string | null
-}
 
-export interface Templates {
-  TotalCount: number
-  Templates: ListTemplate[]
-}
 
 export interface TemplatePushResults {
   success: number
@@ -47,7 +37,7 @@ export interface ProcessTemplatesOptions {
   client: any
   outputDir: string
   totalCount: number
-  templates: ListTemplate[]
+  templates: TemplateInList[]
 }
 
 export interface TemplateListOptions {

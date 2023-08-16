@@ -1,21 +1,23 @@
 import chalk from 'chalk'
 import ora from 'ora'
-import { find, cloneDeep } from 'lodash'
+import { find } from 'lodash'
 import { prompt } from 'inquirer'
 import { table, getBorderCharacters } from 'table'
 import untildify from 'untildify'
 import { existsSync } from 'fs-extra'
-import { createManifest } from './helpers'
 import { ServerClient } from 'postmark'
+import { Templates } from 'postmark/dist/client/models'
 import {
   TemplateManifest,
   TemplatePushResults,
   TemplatePushReview,
   TemplatePushArguments,
-  Templates,
   ProcessTemplates,
 } from '../../types'
 import { pluralize, log, validateToken } from '../../utils'
+import { createManifest, sameContent, templatesDiff } from './helpers'
+
+const debug = require('debug')('postmark-cli:templates:push');
 
 let pushManifest: TemplateManifest[] = []
 
@@ -162,26 +164,24 @@ const processTemplates = (config: ProcessTemplates) => {
 /**
  * Gather template content from server to compare against local versions
  */
-const getTemplateContent = async (client: any, templateList: Templates, spinner: any) => {
-  let newList: any[] = cloneDeep(templateList.Templates)
-  let progress = 0
+async function getTemplateContent(client: ServerClient, templateList: Templates, spinner: ora.Ora): Promise<TemplateManifest[]> {
+  const result: TemplateManifest[] = [];
 
-  for (const template of newList) {
+  for (const template of templateList.Templates) {
     spinner.text = `Comparing template: ${template.Alias}`
-    const response:TemplateManifest = await client.getTemplate(template.TemplateId)
-    newList[progress] = {
-      ...newList[progress],
-      HtmlBody: response.HtmlBody,
-      TextBody: response.TextBody,
+    const response = await client.getTemplate(template.TemplateId)
+    result.push({
+      ...template,
+      Alias: response.Alias || undefined,
+      HtmlBody: response.HtmlBody || undefined,
+      TextBody: response.TextBody || undefined,
       Subject: response.Subject,
       TemplateType: response.TemplateType,
-      LayoutTemplate: response.LayoutTemplate,
-    }
-
-    progress++
+      LayoutTemplate: response.LayoutTemplate || undefined,
+    })
   }
 
-  return newList
+  return result;
 }
 
 /**
@@ -247,23 +247,12 @@ const wasModified = (
   server: TemplateManifest,
   local: TemplateManifest
 ): boolean => {
-  const htmlModified = server.HtmlBody !== local.HtmlBody
-  const textModified = server.TextBody !== local.TextBody
-  const subjectModified =
-    local.TemplateType === 'Standard' ? server.Subject !== local.Subject : false
-  const nameModified = server.Name !== local.Name
-  const layoutModified =
-    local.TemplateType === 'Standard'
-      ? server.LayoutTemplate !== local.LayoutTemplate
-      : false
+  const diff = templatesDiff(server, local)
+  const result = Object.values(diff).some(value => value === true)
 
-  return (
-    htmlModified ||
-    textModified ||
-    subjectModified ||
-    nameModified ||
-    layoutModified
-  )
+  debug('Template %o was modified: %o. %o', local.Alias, result, diff)
+
+  return result
 }
 
 /**
@@ -299,14 +288,10 @@ const layoutUsedLabel = (
   localLayout: string | null | undefined,
   serverLayout: string | null | undefined
 ): string => {
-  let label: string = localLayout ? localLayout : chalk.gray('None')
+  let label = localLayout || chalk.gray('None')
 
-  // If layout template on server doesn't match local template
-  if (localLayout !== serverLayout) {
-    serverLayout = serverLayout ? serverLayout : 'None'
-
-    // Append old server layout to label
-    label += chalk.red(`  ✘ ${serverLayout}`)
+  if (!sameContent(localLayout, serverLayout)) {
+    label += chalk.red(`  ✘ ${serverLayout || 'None'}`)
   }
 
   return label
