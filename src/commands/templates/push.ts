@@ -248,7 +248,7 @@ const wasModified = (
   local: TemplateManifest
 ): boolean => {
   const diff = templatesDiff(server, local)
-  const result = Object.values(diff).some(value => value === true)
+  const result = diff.size > 0
 
   debug('Template %o was modified: %o. %o', local.Alias, result, diff)
 

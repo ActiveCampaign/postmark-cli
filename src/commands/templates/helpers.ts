@@ -65,27 +65,19 @@ export const createManifestItem = (file: MetaFileTraverse): MetaFile | null => {
   return null
 }
 
-export type TemplatesDiff = {
-  htmlModified: boolean
-  textModified: boolean
-  subjectModified: boolean
-  nameModified: boolean
-  layoutModified: boolean
-}
-export function templatesDiff(t1: TemplateManifest, t2: TemplateManifest): TemplatesDiff {
-  const htmlModified = !sameContent(t1.HtmlBody, t2.HtmlBody)
-  const textModified = !sameContent(t1.TextBody, t2.TextBody)
-  const subjectModified = t2.TemplateType === 'Standard' ? !sameContent(t1.Subject, t2.Subject) : false
-  const nameModified = !sameContent(t1.Name, t2.Name)
-  const layoutModified = t2.TemplateType === 'Standard' ? !sameContent(t1.LayoutTemplate, t2.LayoutTemplate) : false
+type TemplateDifference = 'html' | 'text' | 'subject' | 'name' | 'layout'
+type TemplateDifferences = Set<TemplateDifference>
 
-  return {
-    htmlModified,
-    textModified,
-    subjectModified,
-    nameModified,
-    layoutModified
-  }
+export function templatesDiff(t1: TemplateManifest, t2: TemplateManifest): TemplateDifferences {
+  const result: TemplateDifferences = new Set<TemplateDifference>()
+
+  if (!sameContent(t1.HtmlBody, t2.HtmlBody)) result.add('html')
+  if (!sameContent(t1.TextBody, t2.TextBody)) result.add('text')
+  if (t2.TemplateType === 'Standard' && !sameContent(t1.Subject, t2.Subject)) result.add('subject')
+  if (!sameContent(t1.Name, t2.Name)) result.add('name')
+  if (t2.TemplateType === 'Standard' && !sameContent(t1.LayoutTemplate, t2.LayoutTemplate)) result.add('layout')
+
+  return result;
 }
 
 export function sameContent(str1: string | null | undefined, str2: string | null | undefined): boolean {
