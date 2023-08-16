@@ -1,16 +1,17 @@
 import chalk from 'chalk'
-import { existsSync } from 'fs-extra'
-import { filter, find, replace, debounce } from 'lodash'
+import path from 'path'
 import untildify from 'untildify'
 import express from 'express'
-import { createMonitor } from 'watch'
 import consolidate from 'consolidate'
+import { filter, find, replace, debounce } from 'lodash'
+import { createMonitor } from 'watch'
 import { ServerClient } from 'postmark'
-import { createManifest } from './helpers'
-import { TemplatePreviewArguments } from '../../types'
 import { TemplateValidationOptions } from 'postmark/dist/client/models'
-import { log, validateToken } from '../../utils'
-import path from 'path'
+
+import { fatalError, log, validateToken } from '../../utils'
+
+import { validatePushDirectory } from './push'
+import { createManifest } from './helpers'
 
 const previewPath = path.join(__dirname, 'preview')
 const templateLinks = '<base target="_blank" />'
@@ -29,39 +30,29 @@ export const builder = {
     alias: 'p',
   },
 }
-export const handler = (args: TemplatePreviewArguments) => exec(args)
 
-/**
- * Execute the command
- */
-const exec = (args: TemplatePreviewArguments) => {
-  const { serverToken } = args
-
-  return validateToken(serverToken).then(token => {
-    validateDirectory(token, args)
-  })
+interface TemplatePreviewArguments {
+  serverToken: string
+  templatesdirectory: string
+  port: number
 }
+export async function handler(args: TemplatePreviewArguments): Promise<void> {
+  const serverToken = await validateToken(args.serverToken)
 
-const validateDirectory = (
-  serverToken: string,
-  args: TemplatePreviewArguments
-) => {
-  const { templatesdirectory } = args
-  const rootPath: string = untildify(templatesdirectory)
-
-  // Check if path exists
-  if (!existsSync(rootPath)) {
-    log('The provided path does not exist', { error: true })
-    return process.exit(1)
+  try {
+    validatePushDirectory(args.templatesdirectory)
+  } catch (e) {
+    return fatalError(e)
   }
 
   return preview(serverToken, args)
 }
 
+
 /**
  * Preview
  */
-const preview = (serverToken: string, args: TemplatePreviewArguments) => {
+async function preview(serverToken: string, args: TemplatePreviewArguments): Promise<void> {
   const { port, templatesdirectory } = args
   log(`${title} Starting template preview server...`)
 
@@ -77,7 +68,7 @@ const preview = (serverToken: string, args: TemplatePreviewArguments) => {
   // Static assets
   app.use(express.static(`${previewPath}/assets`))
 
-  const updateEvent = () => {
+  function updateEvent() {
     // Generate new manifest
     manifest = createManifest(templatesdirectory)
 
@@ -187,11 +178,9 @@ const preview = (serverToken: string, args: TemplatePreviewArguments) => {
     log(divider)
   })
 
-  const validateTemplateRequest = (
-    version: 'html' | 'text',
+  function validateTemplateRequest(version: 'html' | 'text',
     payload: TemplateValidationOptions,
-    res: express.Response
-  ) => {
+    res: express.Response) {
     const versionKey = version === 'html' ? 'HtmlBody' : 'TextBody'
 
     // Make request to Postmark
@@ -199,8 +188,7 @@ const preview = (serverToken: string, args: TemplatePreviewArguments) => {
       .validateTemplate(payload)
       .then(result => {
         if (result[versionKey].ContentIsValid) {
-          const renderedContent =
-            result[versionKey].RenderedContent + templateLinks
+          const renderedContent = result[versionKey].RenderedContent + templateLinks
           io.emit('subject', { ...result.Subject, rawSubject: payload.Subject })
 
           // Render raw source if HTML
@@ -220,8 +208,9 @@ const preview = (serverToken: string, args: TemplatePreviewArguments) => {
   }
 }
 
-const combineTemplate = (layout: string, template: string): string =>
-  replace(layout, /({{{)(.?@content.?)(}}})/g, template)
+function combineTemplate(layout: string, template: string): string {
+  return replace(layout, /({{{)(.?@content.?)(}}})/g, template)
+}
 
 /* Console helpers */
 
@@ -230,7 +219,7 @@ const divider = chalk.gray('-'.repeat(34))
 
 /* Render Templates */
 
-const getSource = (version: 'html' | 'text', template: any, layout?: any) => {
+function getSource(version: 'html' | 'text', template: any, layout?: any) {
   const versionKey = version === 'html' ? 'HtmlBody' : 'TextBody'
 
   if (layout) return combineTemplate(layout[versionKey], template[versionKey])
@@ -238,28 +227,31 @@ const getSource = (version: 'html' | 'text', template: any, layout?: any) => {
   return template[versionKey]
 }
 
-const renderTemplateText = (res: express.Response, body: string) =>
-  consolidate.ejs(`${previewPath}/templateText.ejs`, { body }, (err, html) =>
-    renderTemplateContents(res, err, html)
+function renderTemplateText(res: express.Response, body: string) {
+  return consolidate.ejs(
+    `${previewPath}/templateText.ejs`, 
+    { body }, 
+    (err, html) => renderTemplateContents(res, err, html)
   )
+}
 
-const renderTemplateInvalid = (res: express.Response, errors: any) =>
-  consolidate.ejs(
+function renderTemplateInvalid(res: express.Response, errors: any) {
+  return consolidate.ejs(
     `${previewPath}/templateInvalid.ejs`,
     { errors },
     (err, html) => renderTemplateContents(res, err, html)
   )
+}
 
-const renderTemplate404 = (res: express.Response, version: string) =>
-  consolidate.ejs(`${previewPath}/template404.ejs`, { version }, (err, html) =>
-    renderTemplateContents(res, err, html)
+function renderTemplate404(res: express.Response, version: string) {
+  return consolidate.ejs(
+    `${previewPath}/template404.ejs`, 
+    { version }, 
+    (err, html) => renderTemplateContents(res, err, html)
   )
+}
 
-const renderTemplateContents = (
-  res: express.Response,
-  err: any,
-  html: string
-) => {
+function renderTemplateContents(res: express.Response, err: any, html: string) {
   if (err) return res.send(err)
 
   return res.send(html)

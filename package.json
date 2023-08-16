@@ -20,6 +20,7 @@
     "socket.io": "^2.4.1",
     "table": "^6.8.0",
     "traverse": "^0.6.6",
+    "ts-invariant": "^0.10.3",
     "untildify": "^4.0.0",
     "watch": "^0.13.0",
     "yargonaut": "^1.1.4",
