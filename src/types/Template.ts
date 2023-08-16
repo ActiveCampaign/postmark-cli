@@ -12,11 +12,6 @@ export interface TemplateManifest {
   LayoutTemplate?: string
 }
 
-export interface TemplatePushReview {
-  layouts: any[]
-  templates: any[]
-}
-
 export interface MetaFile {
   Name: string
   Alias: string
