@@ -7,31 +7,16 @@ workflows:
       # https://circleci.com/developer/images/image/cimg/node#image-tags
       # End of Life (EOL): https://endoflife.date/nodejs
       - unit-tests:
-          name: node13 # EOL 01 Jun 2020
-          version: "13.14.0"
-      - unit-tests:
-          name: node14 # EOL 30 Apr 2023
-          version: "14.21.1"
-          requires:
-            - node13
-      - unit-tests:
           name: node16 # EOL 11 Sep 2023
           version: "16.18.1"
-          requires:
-            - node14
       - unit-tests:
-          name: node17 # EOL 01 Jun 2022
-          version: "17.9.1"
+          name: node18 # EOL 30 Apr 2025
+          version: "18.17.1"
           requires:
             - node16
       - unit-tests:
-          name: node18 # EOL 30 Apr 2025
-          version: "18.12.1"
-          requires:
-            - node17
-      - unit-tests:
-          name: node19 # EOL 01 Jun 2023
-          version: "19.3.0"
+          name: node20 # EOL 30 Apr 2026
+          version: "20.5.1"
           requires:
             - node18
 jobs:
