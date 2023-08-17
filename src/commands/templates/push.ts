@@ -156,7 +156,29 @@ async function processTemplates({ newList, manifest, all, force, spinner, client
   if (force || await confirmation()) {
     spinner.text = 'Pushing templates to Postmark...'
     spinner.start()
-    return pushTemplates(spinner, client, pushManifest)
+    await pushTemplates(
+      client,
+      pushManifest,
+      function handleBeforePush(template) {
+        spinner.color = "yellow";
+        spinner.text = `Pushing template: ${template.Alias}`;
+      },
+      function handleError(template, error) {
+        spinner.stop()
+        logError(`\n${template.Alias || template.Name}: ${error}`)
+        spinner.start()
+      },
+      function handleComplete(failed){
+        spinner.stop()
+        log('✅ All finished!', { color: 'green' })
+
+        if (failed > 0) {
+          logError(
+            `⚠️ Failed to push ${failed} ${pluralize(failed, 'template', 'templates')}. Please see the output above for more details.`
+          )
+        }
+      }
+    )
   } else {
     log('Canceling push. Have a good day!')
   }
@@ -312,43 +334,43 @@ function printReview({ templates, layouts }: TemplatePushReview) {
 /**
  * Push all local templates
  */
-async function pushTemplates(spinner: ora.Ora, client: ServerClient, templates: TemplateManifest[]) {
-  let failed = 0
+type OnPushTemplateError = (template: TemplateManifest, error: unknown) => void
+type OnPushTemplatesComplete = (failed: number) => void
+type OnBeforePushTemplate = (template: TemplateManifest) => void
+export async function pushTemplates(
+  client: ServerClient,
+  localTemplates: TemplateManifest[],
+  onBeforePush: OnBeforePushTemplate,
+  onError: OnPushTemplateError,
+  onComplete: OnPushTemplatesComplete
+) {
+  let failed = 0;
 
-  for (const template of templates) {
-    spinner.color = 'yellow'
-    spinner.text = `Pushing template: ${template.Alias}`
-    if (template.New) {
+  // Push first layouts, then standard templates. We're iterating the list twice which is not super efficient,
+  // but it's easier to read and maintain.
+  // We need to push layouts first because they can be used by standard templates.
+  for (const templateType of [TemplateTypes.Layout, TemplateTypes.Standard]) {
+    for (const template of localTemplates) {
+      if (template.TemplateType !== templateType) continue;
+
+      onBeforePush(template);
       try {
-        await client.createTemplate(template)
+        await pushTemplate(template);
       } catch (error) {
-        handleError(error, template)
-        failed++
-      }
-    } else {
-      invariant(template.Alias, 'Template alias is required')
-      try {
-        await client.editTemplate(template.Alias, template)
-      } catch (error) {
-        handleError(error, template)
-        failed++
+        onError(template, error);
+        failed++;
       }
     }
   }
 
-  spinner.stop()
+  onComplete(failed);
 
-  log('✅ All finished!', { color: 'green' })
-
-  if (failed > 0) {
-    logError(
-      `⚠️ Failed to push ${failed} ${pluralize(failed, 'template', 'templates')}. Please see the output above for more details.`
-    )
-  }
-
-  function handleError(error: unknown, template: TemplateManifest) {
-    spinner.stop()
-    logError(`\n${template.Alias || template.Name}: ${error}`)
-    spinner.start()
+  async function pushTemplate(template: TemplateManifest): Promise<void> {
+    invariant(template.Alias, "Template alias is required");
+    if (template.New) {
+      await client.createTemplate(template);
+    } else {
+      await client.editTemplate(template.Alias, template);
+    }
   }
 }
