@@ -1,6 +1,6 @@
 import { Argv } from 'yargs'
 import chalk from 'chalk'
-import { prompt } from 'inquirer'
+import { password } from '@inquirer/prompts'
 import { CommandOptions, LogSettings } from './types/'
 import ora = require('ora')
 
@@ -63,13 +63,10 @@ export function fatalError(error: unknown): never {
  */
 async function serverTokenPrompt(forAccount: boolean): Promise<string> {
   const tokenType = forAccount ? 'account' : 'server'
-  const { token } = await prompt<{token: string}>([{
-      type: 'password',
-      name: 'token',
-      message: `Please enter your ${tokenType} token`,
-      mask: '•',
-    }]
-  )
+  const token = await password({
+    message: `Please enter your ${tokenType} token`,
+    mask: '•',
+  })
 
   if (!token) {
     return fatalError(`Invalid ${tokenType} token`)

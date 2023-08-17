@@ -1,59 +1,50 @@
 import chalk from 'chalk'
-import { prompt } from 'inquirer'
-import { isEqual } from 'lodash'
+import { select } from '@inquirer/prompts'
+import { isEqual, last } from 'lodash'
+
+const debug = require('debug')('postmark-cli:cheats');
 
 export const desc = false
 export const builder = () => {
   ask()
 }
 
-const ask = (): Promise<void> => {
-  return cheatInput(enteredCode.length > 0).then(code => {
-    checkAnswer(code)
-  })
-}
+async function ask(): Promise<void> {
+  const enteredCode: string[] = []
 
-let enteredCode: string[] = []
-let lastEnteredCode = '⬆️'
-
-const checkAnswer = (code: string): void => {
-  lastEnteredCode = code
-  enteredCode.push(code)
-
-  if (code === 'START') {
-    if (isEqual(enteredCode, superSecretAnswer)) {
-      const title = chalk.yellow('PROMO CODE UNLOCKED!')
-      const promoCode = chalk.bgCyan.black(superNotSoSecretPromoCode)
-
-      console.log(
-        `⭐️ ${title}⭐️\nUse this promo code to receive $5 off at Postmark:\n👉 ${promoCode} 👈\n\nhttps://account.postmarkapp.com/subscription\nhttps://account.postmarkapp.com/billing_settings`
-      )
-    } else {
-      console.log('Sorry, try again!')
-    }
-  } else {
-    ask()
+  // eslint-disable-next-line no-constant-condition
+  while (true) {
+    const code = await cheatInput(enteredCode.length > 0)
+    enteredCode.push(code);
+    if (checkAnswer(enteredCode)) break;
   }
 }
 
-const cheatInput = (hideMessage: boolean): Promise<string> =>
-  new Promise<string>(resolve => {
-    const title = '🔥🔥 ENTER THY CHEAT CODE 🔥🔥\n'
+function checkAnswer(answer: string[]): boolean {
+  if (last(answer) !== 'START') return false;
 
-    prompt([
-      {
-        type: 'list',
-        name: 'code',
-        default: lastEnteredCode,
-        choices: choices,
-        message: hideMessage ? '\n' : title,
-      },
-    ]).then((answer: any) => {
-      return resolve(answer.code)
-    })
+  if (isEqual(answer, superSecretAnswer)) {
+    const title = chalk.yellow('PROMO CODE UNLOCKED!');
+    const promoCode = chalk.bgCyan.black(superNotSoSecretPromoCode);
+
+    console.log(
+      `⭐️ ${title}⭐️\nUse this promo code to receive $5 off at Postmark:\n👉 ${promoCode} 👈\n\nhttps://account.postmarkapp.com/subscription\nhttps://account.postmarkapp.com/billing_settings`
+    );
+  } else {
+    console.log('Sorry, try again!');
+  }
+  return true
+}
+
+async function cheatInput(hideMessage: boolean): Promise<string> {
+  const choices = ['⬆️', '➡️', '⬇️', '⬅️', 'A', 'B', 'START'].map(value => ({ value }))
+  const answer = await select({
+    choices,
+    message: hideMessage ? "\n" : "🔥🔥 ENTER THY CHEAT CODE 🔥🔥\n",
   })
-
-const choices: string[] = ['⬆️', '➡️', '⬇️', '⬅️', 'A', 'B', 'START']
+  debug('answer: %o', answer)
+  return answer
+}
 
 const superSecretAnswer: string[] = [
   '⬆️',

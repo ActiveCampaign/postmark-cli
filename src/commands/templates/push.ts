@@ -4,7 +4,7 @@ import untildify from 'untildify'
 import invariant from 'ts-invariant'
 import { existsSync, statSync } from 'fs-extra'
 import { find } from 'lodash'
-import { prompt } from 'inquirer'
+import { confirm } from '@inquirer/prompts'
 import { table, getBorderCharacters } from 'table'
 import { ServerClient } from 'postmark'
 import { TemplateTypes, Templates } from 'postmark/dist/client/models'
@@ -189,13 +189,7 @@ async function getTemplateContent(client: ServerClient, templateList: Templates,
  * Ask user to confirm the push
  */
 async function confirmation(message = 'Would you like to continue?', defaultResponse = false): Promise<boolean> {
-  const answer = await prompt<{confirm: boolean}>([{
-    type: 'confirm',
-    name: 'confirm',
-    default: defaultResponse,
-    message,
-  }])
-  return answer.confirm
+  return confirm({ default: defaultResponse, message })
 }
 
 /**

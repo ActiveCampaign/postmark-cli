@@ -3,7 +3,7 @@ import untildify from 'untildify'
 import invariant from 'ts-invariant'
 import { join } from 'path'
 import { outputFileSync, existsSync, ensureDirSync } from 'fs-extra'
-import { prompt } from 'inquirer'
+import { confirm } from '@inquirer/prompts'
 import { ServerClient } from 'postmark'
 import type { Template, Templates } from 'postmark/dist/client/models'
 
@@ -62,20 +62,17 @@ async function pull(serverToken: string, args: TemplatePullArguments): Promise<v
  * Ask user to confirm overwrite
  */
 async function overwritePrompt(serverToken: string, outputdirectory: string, requestHost: string): Promise<void> {
-  const answer = await prompt<{overwrite: boolean}>([
-    {
-      type: 'confirm',
-      name: 'overwrite',
-      default: false,
-      message: `Overwrite the files in ${outputdirectory}?`,
-    },
-  ])
-  if (answer.overwrite) {
+  const answer = await confirm({
+    default: false,
+    message: `Overwrite the files in ${outputdirectory}?`,
+  });
+
+  if (answer) {
     return fetchTemplateList({
       sourceServer: serverToken,
       outputDir: outputdirectory,
       requestHost: requestHost,
-    })
+    });
   }
 }
 
