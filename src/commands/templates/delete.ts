@@ -15,7 +15,6 @@ import {
   pluralize,
   validateToken,
 } from "../../utils";
-import { template } from "lodash";
 
 interface TemplateDeleteArguments {
   serverToken: string;
@@ -34,20 +33,6 @@ export async function handler(args: TemplateDeleteArguments): Promise<void> {
 }
 
 /**
- * Begin deleting the templates
- */
-async function _delete(
-  serverToken: string,
-  args: TemplateDeleteArguments
-): Promise<void> {
-  const { requestHost } = args;
-  return fetchTemplateList({
-    sourceServer: serverToken,
-    requestHost: requestHost,
-  });
-}
-
-/**
  * Ask user to confirm delete
  */
 
@@ -61,7 +46,7 @@ async function deletePrompt(
   });
 
   if (answer) {
-    return fetchTemplateList({
+    return deleteTemplates({
       sourceServer: serverToken,
       requestHost: requestHost,
     });
@@ -69,10 +54,10 @@ async function deletePrompt(
 }
 
 /**
- * Fetch template list from PM
+ * Delete templates from PM
  */
 
-async function fetchTemplateList(options: TemplateListOptions) {
+async function deleteTemplates(options: TemplateListOptions) {
   const { sourceServer, requestHost } = options;
 
   // keep track of templates deleted
@@ -109,7 +94,7 @@ async function fetchTemplateList(options: TemplateListOptions) {
         // NOTE we do not want to delete "Layouts"
         if (template.TemplateType !== "Layout") {
           try {
-            const response = await client.deleteTemplate(id);
+            await client.deleteTemplate(id);
 
             spinner.text = `Template: ${
               template.Alias || template.Name
