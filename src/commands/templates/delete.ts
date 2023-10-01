@@ -1,8 +1,4 @@
-// TODO
-// - allow deleting all templates without confirmation (-f flag useful for CI)
-// - get all templates from server and add to checkbox list so user can choose which ones to delete
-// - allow users to choose type of template to delete "Templates", "Layouts" or "both" default to Templates
-// - Prettier config?
+/* eslint-disable @typescript-eslint/member-delimiter-style */
 
 import { confirm, input, select } from "@inquirer/prompts";
 import ora from "ora";
@@ -23,21 +19,22 @@ interface TemplateDeleteArguments {
 }
 
 export interface TemplateListOptions {
-  sourceServer: string;
   requestHost: string;
+  sourceServer: string;
+  templateType: TemplateTypes | undefined;
 }
 
 export async function handler(args: TemplateDeleteArguments): Promise<void> {
   const serverToken = await validateToken(args.serverToken);
   const requestHost = args.requestHost;
-  deletePrompt(serverToken, requestHost);
+  deletePrompts(serverToken, requestHost);
 }
 
 /**
  * Ask user a series of questions before deleting templates.
  */
 
-async function deletePrompt(
+async function deletePrompts(
   serverToken: string,
   requestHost: string
 ): Promise<void> {
@@ -45,8 +42,10 @@ async function deletePrompt(
     message: "Choose how you want to delete templates:",
     choices: [
       {
-        name: "Delete templates by id",
-        value: "byId",
+        name: "Delete templates by id or alias",
+        description:
+          "NOTE: mixing ids and aliases on the same request is NOT supported",
+        value: "byIdOrAlias",
       },
       {
         name: "Delete all templates",
@@ -59,9 +58,9 @@ async function deletePrompt(
    * if the user has selected to delete templates by id
    */
 
-  if (choice === "byId") {
+  if (choice === "byIdOrAlias") {
     // TODO we probably want an actual validation
-    // against ids that exist in the server
+    // against ids/aliases that exist in the server
     const validateUserInput = async (input: string) => {
       // do not allow empty strings
       if (input) return true;
@@ -69,17 +68,19 @@ async function deletePrompt(
     };
 
     const userInput = await input({
-      message: "Enter template id(s) - separated by commas if multiple:",
+      message:
+        "Enter template id(s)/alias(es) - separate with commas if multiple:",
       validate: validateUserInput,
     });
 
-    const templateIds = userInput.split(",");
+    const templateIdsOrAliases = userInput.split(",");
 
     // if user has entered at least one id
-    if (templateIds.length) {
-      return deleteTemplates(templateIds, {
-        sourceServer: serverToken,
+    if (templateIdsOrAliases.length) {
+      return deleteTemplates(templateIdsOrAliases, {
         requestHost: requestHost,
+        sourceServer: serverToken,
+        templateType: undefined,
       });
     }
   }
@@ -89,15 +90,34 @@ async function deletePrompt(
    */
 
   if (choice === "all") {
-    const confirmed = await confirm({
-      default: false,
-      message: `Delete ALL templates? Are you sure?`,
+    let templateType, confirmed, inputIsValid;
+
+    templateType = await select({
+      message: "Which template type do you want to delete?",
+      choices: [
+        {
+          name: "Templates",
+          value: TemplateTypes.Standard,
+        },
+        {
+          description:
+            "NOTE: Layouts can only be deleted if not in use by any Templates",
+          name: "Layouts",
+          value: TemplateTypes.Layout,
+        },
+      ],
     });
 
+    if (templateType) {
+      confirmed = await confirm({
+        default: false,
+        message: `Delete ALL templates? Are you sure?`,
+      });
+    }
+
+    // user has to type the exact sentence to proceed
     const validateInput = async (input: string) =>
       input !== "delete all templates" ? false : true;
-
-    let inputIsValid;
 
     if (confirmed) {
       inputIsValid = await input({
@@ -108,6 +128,7 @@ async function deletePrompt(
 
     if (inputIsValid) {
       return deleteTemplates([], {
+        templateType: templateType,
         sourceServer: serverToken,
         requestHost: requestHost,
       });
@@ -120,10 +141,10 @@ async function deletePrompt(
  */
 
 async function deleteTemplates(
-  templateIds: string[],
+  templateIdsOrAliases: string[],
   options: TemplateListOptions
 ) {
-  const { sourceServer, requestHost } = options;
+  const { requestHost, sourceServer, templateType } = options;
 
   // keep track of templates deleted
   let totalDeleted = 0;
@@ -141,10 +162,10 @@ async function deleteTemplates(
     let templates = [];
     let totalCount = 0;
 
-    // if user has provided ids we use them
-    if (templateIds.length) {
-      for (const id of templateIds) {
-        const template = await client.getTemplate(id);
+    // if user has provided ids or aliases we use them
+    if (templateIdsOrAliases.length) {
+      for (const idOrAlias of templateIdsOrAliases) {
+        const template = await client.getTemplate(idOrAlias);
         templates.push(template);
       }
       totalCount = templates.length;
@@ -152,7 +173,7 @@ async function deleteTemplates(
       // otherwise fetch all templates from server
       const response = await client.getTemplates({
         count: 300,
-        templateType: TemplateTypes.Standard, // NOTE we might add this as an option users select
+        templateType,
       });
       templates = response.Templates;
       totalCount = response.TotalCount;
