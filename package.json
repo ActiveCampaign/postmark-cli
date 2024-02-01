@@ -15,7 +15,7 @@
     "lodash": "^4.17.11",
     "ora": "^5.4.1",
     "postmark": "^4",
-    "socket.io": "^2.4.1",
+    "socket.io": "^4",
     "table": "^6.8.0",
     "traverse": "^0.6.6",
     "ts-invariant": "^0.10.3",
