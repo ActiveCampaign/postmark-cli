@@ -12,8 +12,8 @@
     "lib": ["es5", "es2017", "dom"],
     "declaration": true,
     "resolveJsonModule": true,
-    "esModuleInterop": true
+    "esModuleInterop": true,
   },
   "include": ["src/**/*"],
-  "exclude": ["test/**/*", "preview/**/*"]
+  "exclude": ["test/**/*", "preview/**/*"],
 }

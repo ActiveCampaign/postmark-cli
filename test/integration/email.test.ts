@@ -26,9 +26,9 @@ describe('Email send command', () => {
         },
         error => {
           expect(error.message).to.include(
-            'Not enough non-option arguments: got 0, need at least 1'
+            'Not enough non-option arguments: got 0, need at least 1',
           )
-        }
+        },
       )
     })
 
@@ -40,7 +40,7 @@ describe('Email send command', () => {
           },
           error => {
             expect(error.message).to.include('Missing required arguments:')
-          }
+          },
         )
       })
 
@@ -48,14 +48,14 @@ describe('Email send command', () => {
         return execa(
           CLICommand,
           ['email', 'raw', '--subject="test"', fromParameter],
-          options
+          options,
         ).then(
           result => {
             expect(result).to.equal(null)
           },
           error => {
             expect(error.message).to.include('Missing required argument: to')
-          }
+          },
         )
       })
 
@@ -63,16 +63,16 @@ describe('Email send command', () => {
         return execa(
           CLICommand,
           ['email', 'raw', fromParameter, toParameter],
-          options
+          options,
         ).then(
           result => {
             expect(result).to.equal(null)
           },
           error => {
             expect(error.message).to.include(
-              'Missing required argument: subject'
+              'Missing required argument: subject',
             )
-          }
+          },
         )
       })
 
@@ -80,14 +80,14 @@ describe('Email send command', () => {
         return execa(
           CLICommand,
           ['email', 'raw', '--subject="hey"', toParameter],
-          options
+          options,
         ).then(
           result => {
             expect(result).to.equal(null)
           },
           error => {
             expect(error.message).to.include('Missing required argument: from')
-          }
+          },
         )
       })
     })
@@ -99,7 +99,7 @@ describe('Email send command', () => {
         },
         error => {
           expect(error.message).to.include('Provide')
-        }
+        },
       )
     })
   })

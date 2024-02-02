@@ -9,20 +9,24 @@ import ora = require('ora')
  * @returns yargs compatible command options
  */
 export function cmd(name: string, desc: string): CommandOptions {
-  return ({
+  return {
     name: name,
     command: `${name} <command> [options]`,
     desc: desc,
     builder: (yargs: Argv) => yargs.commandDir(`commands/${name}`),
-  })
+  }
 }
 
 /**
  * Pluralize a string
  * @returns The proper string depending on the count
  */
-export function pluralize(count: number, singular: string, plural: string): string {
-  return (count > 1 || count === 0 ? plural : singular)
+export function pluralize(
+  count: number,
+  singular: string,
+  plural: string,
+): string {
+  return count > 1 || count === 0 ? plural : singular
 }
 
 /**
@@ -51,7 +55,7 @@ export function log(text: string, settings?: LogSettings): void {
 
 export function logError(error: unknown): void {
   log(extractErrorMessage(error), { error: true })
-} 
+}
 
 export function fatalError(error: unknown): never {
   logError(error)
@@ -78,14 +82,16 @@ async function serverTokenPrompt(forAccount: boolean): Promise<string> {
 /**
  * Validates the presence of a server or account token
  */
-export async function validateToken(token: string, forAccount = false): Promise<string> {
+export async function validateToken(
+  token: string,
+  forAccount = false,
+): Promise<string> {
   if (!token) {
     return serverTokenPrompt(forAccount)
   }
 
   return token
 }
-
 
 /**
  * Handle starting/stopping spinner and console output

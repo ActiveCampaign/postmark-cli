@@ -86,7 +86,7 @@ const sendEmail = (
   to: string,
   subject: string,
   html: string | undefined,
-  text: string | undefined
+  text: string | undefined,
 ): Promise<MessageSendingResponse> => {
   return client.sendEmail({
     From: from,

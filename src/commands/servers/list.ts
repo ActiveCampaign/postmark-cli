@@ -87,7 +87,7 @@ const getServers = (
   client: AccountClient,
   count: number,
   offset: number,
-  name: string
+  name: string,
 ): Promise<Servers> => {
   const options = {
     ...(count && { count: count }),
@@ -105,7 +105,7 @@ const serverJson = (servers: Servers, showTokens: boolean): string => {
 
   servers.Servers.forEach(item => {
     item.ApiTokens.forEach(
-      (token, index) => (item.ApiTokens[index] = tokenMask())
+      (token, index) => (item.ApiTokens[index] = tokenMask()),
     )
     return item
   })
@@ -122,7 +122,7 @@ const serverTable = (servers: Servers, showTokens: boolean): string => {
 
   // Create server rows
   servers.Servers.forEach(server =>
-    serverTable.push(serverRow(server, showTokens))
+    serverTable.push(serverRow(server, showTokens)),
   )
   return table(serverTable, { border: getBorderCharacters('norc') })
 }

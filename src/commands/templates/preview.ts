@@ -48,11 +48,13 @@ export async function handler(args: TemplatePreviewArguments): Promise<void> {
   return preview(serverToken, args)
 }
 
-
 /**
  * Preview
  */
-async function preview(serverToken: string, args: TemplatePreviewArguments): Promise<void> {
+async function preview(
+  serverToken: string,
+  args: TemplatePreviewArguments,
+): Promise<void> {
   const { port, templatesdirectory } = args
   log(`${title} Starting template preview server...`)
 
@@ -94,7 +96,7 @@ async function preview(serverToken: string, args: TemplatePreviewArguments): Pro
     consolidate.ejs(
       `${previewPath}/index.ejs`,
       { templates, layouts, path },
-      (err, html) => renderTemplateContents(res, err, html)
+      (err, html) => renderTemplateContents(res, err, html),
     )
   })
 
@@ -108,7 +110,7 @@ async function preview(serverToken: string, args: TemplatePreviewArguments): Pro
       consolidate.ejs(
         `${previewPath}/template.ejs`,
         { template },
-        (err, html) => renderTemplateContents(res, err, html)
+        (err, html) => renderTemplateContents(res, err, html),
       )
     } else {
       // Redirect to index
@@ -178,9 +180,11 @@ async function preview(serverToken: string, args: TemplatePreviewArguments): Pro
     log(divider)
   })
 
-  function validateTemplateRequest(version: 'html' | 'text',
+  function validateTemplateRequest(
+    version: 'html' | 'text',
     payload: TemplateValidationOptions,
-    res: express.Response) {
+    res: express.Response,
+  ) {
     const versionKey = version === 'html' ? 'HtmlBody' : 'TextBody'
 
     // Make request to Postmark
@@ -188,8 +192,12 @@ async function preview(serverToken: string, args: TemplatePreviewArguments): Pro
       .validateTemplate(payload)
       .then(result => {
         if (result[versionKey].ContentIsValid) {
-          const renderedContent = result[versionKey].RenderedContent + templateLinks
-          io.emit('subject', { ...result.Subject, rawSubject: payload.Subject })
+          const renderedContent =
+            result[versionKey].RenderedContent + templateLinks
+          io.emit('subject', {
+            ...result.Subject,
+            rawSubject: payload.Subject,
+          })
 
           // Render raw source if HTML
           if (version === 'html') {
@@ -229,9 +237,9 @@ function getSource(version: 'html' | 'text', template: any, layout?: any) {
 
 function renderTemplateText(res: express.Response, body: string) {
   return consolidate.ejs(
-    `${previewPath}/templateText.ejs`, 
-    { body }, 
-    (err, html) => renderTemplateContents(res, err, html)
+    `${previewPath}/templateText.ejs`,
+    { body },
+    (err, html) => renderTemplateContents(res, err, html),
   )
 }
 
@@ -239,15 +247,15 @@ function renderTemplateInvalid(res: express.Response, errors: any) {
   return consolidate.ejs(
     `${previewPath}/templateInvalid.ejs`,
     { errors },
-    (err, html) => renderTemplateContents(res, err, html)
+    (err, html) => renderTemplateContents(res, err, html),
   )
 }
 
 function renderTemplate404(res: express.Response, version: string) {
   return consolidate.ejs(
-    `${previewPath}/template404.ejs`, 
-    { version }, 
-    (err, html) => renderTemplateContents(res, err, html)
+    `${previewPath}/template404.ejs`,
+    { version },
+    (err, html) => renderTemplateContents(res, err, html),
   )
 }
 

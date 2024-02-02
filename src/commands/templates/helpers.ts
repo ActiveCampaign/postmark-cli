@@ -68,19 +68,30 @@ export const createManifestItem = (file: MetaFileTraverse): MetaFile | null => {
 type TemplateDifference = 'html' | 'text' | 'subject' | 'name' | 'layout'
 type TemplateDifferences = Set<TemplateDifference>
 
-export function templatesDiff(t1: TemplateManifest, t2: TemplateManifest): TemplateDifferences {
+export function templatesDiff(
+  t1: TemplateManifest,
+  t2: TemplateManifest,
+): TemplateDifferences {
   const result: TemplateDifferences = new Set<TemplateDifference>()
 
   if (!sameContent(t1.HtmlBody, t2.HtmlBody)) result.add('html')
   if (!sameContent(t1.TextBody, t2.TextBody)) result.add('text')
-  if (t2.TemplateType === 'Standard' && !sameContent(t1.Subject, t2.Subject)) result.add('subject')
+  if (t2.TemplateType === 'Standard' && !sameContent(t1.Subject, t2.Subject))
+    result.add('subject')
   if (!sameContent(t1.Name, t2.Name)) result.add('name')
-  if (t2.TemplateType === 'Standard' && !sameContent(t1.LayoutTemplate, t2.LayoutTemplate)) result.add('layout')
+  if (
+    t2.TemplateType === 'Standard' &&
+    !sameContent(t1.LayoutTemplate, t2.LayoutTemplate)
+  )
+    result.add('layout')
 
-  return result;
+  return result
 }
 
-export function sameContent(str1: string | null | undefined, str2: string | null | undefined): boolean {
+export function sameContent(
+  str1: string | null | undefined,
+  str2: string | null | undefined,
+): boolean {
   if (isEmpty(str1) && isEmpty(str2)) {
     return true
   }

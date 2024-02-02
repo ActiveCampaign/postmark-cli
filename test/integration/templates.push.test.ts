@@ -46,7 +46,7 @@ describe('Templates command', () => {
         path,
         excludeLayouts && {
           exclude: /_layouts$/,
-        }
+        },
       )
       return folderTree.children[0].children
     }
@@ -65,12 +65,12 @@ describe('Templates command', () => {
         fs.writeFileSync(
           file.path,
           `test data ${Date.now().toString()}`,
-          'utf-8'
+          'utf-8',
         )
         const { stdout } = await execa(
           CLICommand,
           pushCommandParameters,
-          options
+          options,
         )
         expect(stdout).to.include('All finished!')
       })
@@ -110,12 +110,12 @@ describe('Templates command', () => {
         fs.writeFileSync(
           file.path,
           `test data ${Date.now().toString()} {{{@content}}}`,
-          'utf-8'
+          'utf-8',
         )
         const { stdout } = await execa(
           CLICommand,
           pushCommandParameters,
-          options
+          options,
         )
         expect(stdout).to.include('All finished!')
       })

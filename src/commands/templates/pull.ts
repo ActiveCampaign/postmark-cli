@@ -8,7 +8,13 @@ import { ServerClient } from 'postmark'
 import type { Template, Templates } from 'postmark/dist/client/models'
 
 import { MetaFile } from '../../types'
-import { log, validateToken, pluralize, logError, fatalError } from '../../utils'
+import {
+  log,
+  validateToken,
+  pluralize,
+  logError,
+  fatalError,
+} from '../../utils'
 
 export const command = 'pull <output directory> [options]'
 export const desc = 'Pull templates from a server to <output directory>'
@@ -43,7 +49,10 @@ export async function handler(args: TemplatePullArguments): Promise<void> {
 /**
  * Begin pulling the templates
  */
-async function pull(serverToken: string, args: TemplatePullArguments): Promise<void> {
+async function pull(
+  serverToken: string,
+  args: TemplatePullArguments,
+): Promise<void> {
   const { outputdirectory, overwrite, requestHost } = args
 
   // Check if directory exists
@@ -61,21 +70,24 @@ async function pull(serverToken: string, args: TemplatePullArguments): Promise<v
 /**
  * Ask user to confirm overwrite
  */
-async function overwritePrompt(serverToken: string, outputdirectory: string, requestHost: string): Promise<void> {
+async function overwritePrompt(
+  serverToken: string,
+  outputdirectory: string,
+  requestHost: string,
+): Promise<void> {
   const answer = await confirm({
     default: false,
     message: `Overwrite the files in ${outputdirectory}?`,
-  });
+  })
 
   if (answer) {
     return fetchTemplateList({
       sourceServer: serverToken,
       outputDir: outputdirectory,
       requestHost: requestHost,
-    });
+    })
   }
 }
-
 
 interface TemplateListOptions {
   sourceServer: string
@@ -135,7 +147,7 @@ async function processTemplates(options: ProcessTemplatesOptions) {
       requestCount++
       log(
         `Template named "${template.Name}" will not be downloaded because it is missing an alias.`,
-        { warn: true }
+        { warn: true },
       )
 
       // If this is the last template
@@ -160,9 +172,9 @@ async function processTemplates(options: ProcessTemplatesOptions) {
           `All finished! ${totalDownloaded} ${pluralize(
             totalDownloaded,
             'template has',
-            'templates have'
+            'templates have',
           )} been saved to ${outputDir}.`,
-          { color: 'green' }
+          { color: 'green' },
         )
       }
     } catch (e) {
@@ -176,10 +188,18 @@ async function processTemplates(options: ProcessTemplatesOptions) {
  * Save template
  * @return An object containing the HTML and Text body
  */
-async function saveTemplate(outputDir: string, template: Template, client: ServerClient) {
-  invariant(typeof template.Alias === 'string' && !!template.Alias, 'Template must have an alias')
+async function saveTemplate(
+  outputDir: string,
+  template: Template,
+  client: ServerClient,
+) {
+  invariant(
+    typeof template.Alias === 'string' && !!template.Alias,
+    'Template must have an alias',
+  )
 
-  outputDir = template.TemplateType === 'Layout' ? join(outputDir, '_layouts') : outputDir
+  outputDir =
+    template.TemplateType === 'Layout' ? join(outputDir, '_layouts') : outputDir
 
   const path: string = untildify(join(outputDir, template.Alias))
 
@@ -212,10 +232,10 @@ async function saveTemplate(outputDir: string, template: Template, client: Serve
       ...(template.TextBody && { TextBody: template.TextBody }),
       ...meta,
     })
-    .then((result) => {
+    .then(result => {
       meta.TestRenderModel = result.SuggestedTemplateModel
     })
-    .catch((error) => {
+    .catch(error => {
       logError('Error fetching suggested template model')
       logError(error)
     })

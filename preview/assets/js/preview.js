@@ -6,10 +6,10 @@ var activeToggleClass = 'is-active'
 var mode = document.querySelectorAll('.js-mode')
 var currentMode = 'html'
 
-mode.forEach(function(toggle) {
-  toggle.addEventListener('click', function(event) {
+mode.forEach(function (toggle) {
+  toggle.addEventListener('click', function (event) {
     // Reset all classes
-    mode.forEach(function(modeToggle) {
+    mode.forEach(function (modeToggle) {
       // Remove active class from all toggles
       modeToggle.classList.remove(activeToggleClass)
 
@@ -36,14 +36,14 @@ mode.forEach(function(toggle) {
 var view = document.querySelectorAll('.js-view')
 var currentView = 'desktop'
 
-view.forEach(function(toggle) {
+view.forEach(function (toggle) {
   // Add click event
-  toggle.addEventListener('click', function(event) {
-    view.forEach(function(viewToggle) {
+  toggle.addEventListener('click', function (event) {
+    view.forEach(function (viewToggle) {
       // Remove active class from all toggles
       viewToggle.classList.remove(activeToggleClass)
 
-      document.querySelectorAll('.preview-iframe').forEach(function(item) {
+      document.querySelectorAll('.preview-iframe').forEach(function (item) {
         item.classList.remove('preview-iframe--mobile')
       })
     })
@@ -52,7 +52,7 @@ view.forEach(function(toggle) {
     this.classList.add(activeToggleClass)
 
     if (this.dataset.view === 'mobile') {
-      document.querySelectorAll('.preview-iframe').forEach(function(item) {
+      document.querySelectorAll('.preview-iframe').forEach(function (item) {
         item.classList.add('preview-iframe--mobile')
       })
     }
@@ -78,7 +78,7 @@ function keypress(e) {
 document.onkeydown = keypress
 
 // Manage state when HTML iframe is finished loading
-document.querySelector('.js-html').onload = function() {
+document.querySelector('.js-html').onload = function () {
   // Hide loading indicator
   document.querySelector('.js-loader').classList.add('is-hidden')
 
@@ -92,23 +92,25 @@ document.querySelector('.js-html').onload = function() {
 var tooltipTrigger = document.querySelectorAll('.js-tooltip-trigger')
 
 // Loop through each tooltip trigger
-tooltipTrigger.forEach(function(trigger) {
-  var showEvents = ['mouseenter', 'focus'];
-  var hideEvents = ['mouseleave', 'blur'];
+tooltipTrigger.forEach(function (trigger) {
+  var showEvents = ['mouseenter', 'focus']
+  var hideEvents = ['mouseleave', 'blur']
 
   // Show event
-  showEvents.forEach(function(event) {
-    trigger.addEventListener(event, function() {
-      var selector = '.js-tooltip[data-tooltip="' + trigger.dataset.tooltip + '"]'
+  showEvents.forEach(function (event) {
+    trigger.addEventListener(event, function () {
+      var selector =
+        '.js-tooltip[data-tooltip="' + trigger.dataset.tooltip + '"]'
       var tooltip = document.querySelector(selector)
       tooltip.setAttribute('data-show', '')
-   })
+    })
   })
 
   // Hide event
-  hideEvents.forEach(function(event) {
-    trigger.addEventListener(event, function() {
-      var selector = '.js-tooltip[data-tooltip="' + trigger.dataset.tooltip + '"]'
+  hideEvents.forEach(function (event) {
+    trigger.addEventListener(event, function () {
+      var selector =
+        '.js-tooltip[data-tooltip="' + trigger.dataset.tooltip + '"]'
       var tooltip = document.querySelector(selector)
       tooltip.removeAttribute('data-show')
     })

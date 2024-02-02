@@ -1,4 +1,4 @@
-import { TemplateTypes } from "postmark/dist/client/models"
+import { TemplateTypes } from 'postmark/dist/client/models'
 
 export interface TemplateManifest {
   Name?: string

@@ -88,7 +88,7 @@ const sendEmailWithTemplate = (
   alias: string | undefined,
   from: string,
   to: string | undefined,
-  model: any | undefined
+  model: any | undefined,
 ): Promise<MessageSendingResponse> => {
   return client.sendEmailWithTemplate({
     TemplateId: id || undefined,

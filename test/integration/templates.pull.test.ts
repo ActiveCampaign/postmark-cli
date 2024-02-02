@@ -39,7 +39,7 @@ describe('Templates command', () => {
         path,
         excludeLayouts && {
           exclude: /_layouts$/,
-        }
+        },
       )
       return folderTree.children[0].children
     }

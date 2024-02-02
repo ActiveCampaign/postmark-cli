@@ -24,16 +24,16 @@ describe('Email send template command', () => {
         },
         error => {
           expect(error.message).to.include(
-            'Missing required arguments: from, to'
+            'Missing required arguments: from, to',
           )
-        }
+        },
       )
     })
 
     it('no model', async () => {
       const templates: postmark.Models.Templates = await client.getTemplates()
       const parameters: string[] = defaultParameters.concat(
-        `--id=${templates.Templates[0].TemplateId}`
+        `--id=${templates.Templates[0].TemplateId}`,
       )
 
       try {

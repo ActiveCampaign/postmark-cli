@@ -8,15 +8,15 @@ workflows:
       # End of Life (EOL): https://endoflife.date/nodejs
       - unit-tests:
           name: node16 # EOL 11 Sep 2023
-          version: "16.18.1"
+          version: '16.18.1'
       - unit-tests:
           name: node18 # EOL 30 Apr 2025
-          version: "18.17.1"
+          version: '18.17.1'
           requires:
             - node16
       - unit-tests:
           name: node20 # EOL 30 Apr 2026
-          version: "20.5.1"
+          version: '20.5.1'
           requires:
             - node18
 jobs:

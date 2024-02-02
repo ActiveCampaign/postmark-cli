@@ -15,94 +15,94 @@ function makeTemplateManifest(): TemplateManifest {
   }
 }
 
-describe("comparing templates", () => {
-  it("detects changes in html body", () => {
+describe('comparing templates', () => {
+  it('detects changes in html body', () => {
     const t1: TemplateManifest = {
-      ...makeTemplateManifest()
-    };
+      ...makeTemplateManifest(),
+    }
     const t2: TemplateManifest = {
       ...makeTemplateManifest(),
-      HtmlBody: "<p>hello</p>",
-    };
+      HtmlBody: '<p>hello</p>',
+    }
 
-    const diff = templatesDiff(t1, t2);
+    const diff = templatesDiff(t1, t2)
 
-    expect(Array.from(diff)).to.eql(['html']);
-  });
+    expect(Array.from(diff)).to.eql(['html'])
+  })
 
-  it("detects changes in text body", () => {
+  it('detects changes in text body', () => {
     const t1: TemplateManifest = {
-      ...makeTemplateManifest()
-    };
+      ...makeTemplateManifest(),
+    }
     const t2: TemplateManifest = {
       ...makeTemplateManifest(),
-      TextBody: "hello",
-    };
+      TextBody: 'hello',
+    }
 
-    const diff = templatesDiff(t1, t2);
+    const diff = templatesDiff(t1, t2)
 
-    expect(Array.from(diff)).to.eql(['text']);
-  });
+    expect(Array.from(diff)).to.eql(['text'])
+  })
 
-  it("detects changes in subject", () => {
+  it('detects changes in subject', () => {
     const t1: TemplateManifest = {
-      ...makeTemplateManifest()
-    };
+      ...makeTemplateManifest(),
+    }
     const t2: TemplateManifest = {
       ...makeTemplateManifest(),
-      Subject: "hello",
-    };
+      Subject: 'hello',
+    }
 
-    const diff = templatesDiff(t1, t2);
+    const diff = templatesDiff(t1, t2)
 
-    expect(Array.from(diff)).to.eql(['subject']);
-  });
+    expect(Array.from(diff)).to.eql(['subject'])
+  })
 
-  it("detects changes in name", () => {
+  it('detects changes in name', () => {
     const t1: TemplateManifest = {
-      ...makeTemplateManifest()
-    };
+      ...makeTemplateManifest(),
+    }
     const t2: TemplateManifest = {
       ...makeTemplateManifest(),
-      Name: "hello",
-    };
+      Name: 'hello',
+    }
 
-    const diff = templatesDiff(t1, t2);
+    const diff = templatesDiff(t1, t2)
 
-    expect(Array.from(diff)).to.eql(['name']);
-  });
+    expect(Array.from(diff)).to.eql(['name'])
+  })
 
-  it("detects changes in layout", () => {
+  it('detects changes in layout', () => {
     const t1: TemplateManifest = {
-      ...makeTemplateManifest()
-    };
+      ...makeTemplateManifest(),
+    }
     const t2: TemplateManifest = {
       ...makeTemplateManifest(),
-      LayoutTemplate: "hello",
-    };
+      LayoutTemplate: 'hello',
+    }
 
-    const diff = templatesDiff(t1, t2);
+    const diff = templatesDiff(t1, t2)
 
-    expect(Array.from(diff)).to.eql(['layout']);
-  });
+    expect(Array.from(diff)).to.eql(['layout'])
+  })
 
-  context("when comparing empty strings with undefined values", () => {
+  context('when comparing empty strings with undefined values', () => {
     it("doesn't detect changes", () => {
       const t1: TemplateManifest = {
-        ...makeTemplateManifest()
-      };
+        ...makeTemplateManifest(),
+      }
       const t2: TemplateManifest = {
         ...makeTemplateManifest(),
-        HtmlBody: "",
-        TextBody: "",
-        Subject: "",
-        Name: "",
-        LayoutTemplate: "",
-      };
+        HtmlBody: '',
+        TextBody: '',
+        Subject: '',
+        Name: '',
+        LayoutTemplate: '',
+      }
 
-      const diff = templatesDiff(t1, t2);
+      const diff = templatesDiff(t1, t2)
 
-      expect(Array.from(diff)).to.eql([]);
-    });
-  });
-});
+      expect(Array.from(diff)).to.eql([])
+    })
+  })
+})

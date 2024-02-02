@@ -1,7 +1,7 @@
 {
-    "diff": true,
-    "extension": ["test.ts"],
-    "require": "ts-node/register",
-    "spec": "test/unit",
-    "recursive": true
+  "diff": true,
+  "extension": ["test.ts"],
+  "require": "ts-node/register",
+  "spec": "test/unit",
+  "recursive": true
 }
