@@ -2,10 +2,13 @@
 .circleci
 .env*
 .eslintrc.js
+.git-blame-ignore-revs
+.mocharc.*
+.prettierignore
+.prettierrc.js
 .vscode
 media
 src
 test
 testing_keys.json
 tsconfig.json
-.mocharc.*
