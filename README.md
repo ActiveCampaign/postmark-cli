@@ -10,7 +10,6 @@
 </p>
 
 ## Usage
-
 After installation, type `postmark` in your command line to see a list of available commands. Check out the [wiki](https://github.com/activecampaign/postmark-cli/wiki) for instructions on how to [send emails](https://github.com/activecampaign/postmark-cli/wiki/email-command), [manage templates](https://github.com/activecampaign/postmark-cli/wiki/templates-command), or [list servers](https://github.com/activecampaign/postmark-cli/wiki/servers-command).
 
 ```bash
