@@ -4,6 +4,6 @@
   <link href="../styles/styles.css" rel="stylesheet" type="text/css" media="all">
 </head>
 <body class="preview-text">
-<pre><%- body %></pre>
+<pre><%- body.replaceAll("<", "&lt;").replaceAll(">", "&gt;") %></pre>
 </body>
 </html>
