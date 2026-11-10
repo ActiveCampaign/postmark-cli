@@ -28,7 +28,9 @@ $ postmark
 
 ## Installation
 
-- Install [Node.js](https://nodejs.org/en/)
+- Install [Node.js](https://nodejs.org/en/) 22.23.4+, 24.22.1+ or 26.12.1+. Earlier releases ship a Brotli decoder affected by
+  [CVE-2026-111497](https://www.cve.org/CVERecord?id=CVE-2026-111497) ([Node.js security release](https://nodejs.org/en/blog/vulnerability/october-2026-security-releases)), and the `postmark`
+  4.x client the CLI depends on requests and decodes Brotli responses.
 - `$ npm i postmark-cli -g`
 - `$ postmark` 🌈
 
