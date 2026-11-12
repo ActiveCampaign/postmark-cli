@@ -15,6 +15,7 @@ import {
   logError,
   fatalError,
 } from '../../utils'
+import { fetchAllTemplates } from './helpers'
 
 export const command = 'pull <output directory> [options]'
 export const desc = 'Pull templates from a server to <output directory>'
@@ -106,7 +107,7 @@ async function fetchTemplateList(options: TemplateListOptions) {
   }
 
   try {
-    const templates = await client.getTemplates({ count: 300 })
+    const templates = await fetchAllTemplates(client)
 
     if (templates.TotalCount === 0) {
       spinner.stop()

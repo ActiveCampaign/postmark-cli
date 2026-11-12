@@ -18,7 +18,12 @@ import {
   logError,
 } from '../../utils'
 
-import { createManifest, sameContent, templatesDiff } from './helpers'
+import {
+  createManifest,
+  fetchAllTemplates,
+  sameContent,
+  templatesDiff,
+} from './helpers'
 
 const debug = require('debug')('postmark-cli:templates:push')
 
@@ -119,7 +124,7 @@ async function push(
     }
 
     try {
-      const templateList = await client.getTemplates({ count: 300 })
+      const templateList = await fetchAllTemplates(client)
       const newList =
         templateList.TotalCount === 0
           ? []

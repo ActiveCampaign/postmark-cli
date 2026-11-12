@@ -4,6 +4,8 @@ import { readJsonSync, readFileSync, existsSync } from 'fs-extra'
 import traverse from 'traverse'
 import dirTree from 'directory-tree'
 import { TemplateManifest, MetaFileTraverse, MetaFile } from '../../types'
+import { ServerClient } from 'postmark'
+import { Templates } from 'postmark/dist/client/models'
 
 /**
  * Parses templates folder and files
@@ -101,4 +103,20 @@ export function sameContent(
   }
 
   return str1 === str2
+}
+
+export async function fetchAllTemplates(client: ServerClient) {
+  const pageSize = 300
+  let offset = 0
+  let totalCount = Infinity
+  let templates: Templates['Templates'] = []
+
+  while (offset < totalCount) {
+    const response = await client.getTemplates({ count: pageSize, offset })
+    totalCount = response.TotalCount
+    offset += response.Templates.length
+    templates.push(...response.Templates)
+  }
+
+  return { Templates: templates, TotalCount: totalCount }
 }
